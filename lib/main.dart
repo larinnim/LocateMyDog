@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(debugShowCheckedModeBanner: false,
       title: 'Locate My Pet',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: Colors.white,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: Material(child: Wrapper()),
