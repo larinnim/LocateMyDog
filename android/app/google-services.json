@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "687212317780",
+    "firebase_url": "https://locatemydog-17a7b.firebaseio.com",
+    "project_id": "locatemydog-17a7b",
+    "storage_bucket": "locatemydog-17a7b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:687212317780:android:1dddf8f2209f34795cb1c1",
+        "android_client_info": {
+          "package_name": "com.retroportalstudio.www.flutter_maps"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "687212317780-ou1qraf0c6drfnmarctobocmvsjdkldf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUH39IOpdGm5OXAzGh_P6DyK7yL6Unc8Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "687212317780-ou1qraf0c6drfnmarctobocmvsjdkldf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
