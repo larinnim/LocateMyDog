@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
 void main() => runApp(MyApp());
 
@@ -38,6 +37,7 @@ class _MyHomePageState extends State<MyHomePage> {
   GoogleMapController _controller;
   Map<PolylineId, Polyline> _mapPolylines = {};
   int _polylineIdCounter = 1;
+  final List<LatLng> points = <LatLng>[];
 
   static final CameraPosition initialLocation = CameraPosition(
     target: LatLng(46.520444, -80.954180),
@@ -50,39 +50,23 @@ class _MyHomePageState extends State<MyHomePage> {
     return byteData.buffer.asUint8List();
   }
 
-  void add() {
+  void updatePolygon(LocationData newLocalData) {
     final String polylineIdVal = 'polyline_id_$_polylineIdCounter';
     _polylineIdCounter++;
     final PolylineId polylineId = PolylineId(polylineIdVal);
+    points.add(LatLng(newLocalData.latitude, newLocalData.longitude));
 
     final Polyline polyline = Polyline(
       polylineId: polylineId,
       consumeTapEvents: true,
       color: Colors.red,
       width: 5,
-      points: _createPoints(),
+      points: points
     );
 
     setState(() {
       _mapPolylines[polylineId] = polyline;
     });
-  }
-
-  List<LatLng> _createPoints() {
-    final List<LatLng> points = <LatLng>[];
-    points.add(LatLng(46.5203678, -80.9545719));
-    points.add(LatLng(46.52077, -80.95457));
-    points.add(LatLng(46.52183, -80.95457));
-    points.add(LatLng(46.52208, -80.95458));
-    points.add(LatLng(46.5220848, -80.9545758));
-    points.add(LatLng(46.52207, -80.95596));
-    points.add(LatLng(46.52207, -80.95763));
-    points.add(LatLng(46.52208, -80.95819));
-    points.add(LatLng(46.52207, -80.95842));
-    points.add(LatLng(46.52208, -80.95888));
-    points.add(LatLng(46.52208, -80.95901));
-    points.add(LatLng(46.52207, -80.9592));
-    return points;
   }
 
   void updateMarkerAndCircle(LocationData newLocalData, Uint8List imageData) {
@@ -97,7 +81,6 @@ class _MyHomePageState extends State<MyHomePage> {
           flat: true,
           anchor: Offset(0.5, 0.5),
           icon: BitmapDescriptor.fromBytes(imageData));
-      add();
       /*
       circle = Circle(
           circleId: CircleId("car"),
@@ -131,6 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   tilt: 0,
                   zoom: 18.00)));
           updateMarkerAndCircle(newLocalData, imageData);
+          updatePolygon(newLocalData);
         }
       });
     } on PlatformException catch (e) {
