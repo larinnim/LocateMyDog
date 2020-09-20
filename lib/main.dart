@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Map Home Page'),
+      home: MyHomePage(title: 'Locate My Dog'),
     );
   }
 }
@@ -40,7 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final List<LatLng> points = <LatLng>[];
 
   static final CameraPosition initialLocation = CameraPosition(
-    target: LatLng(46.520444, -80.954180),
+    target: LatLng(46.520227, -80.954182),
     zoom: 14.4746,
   );
 
