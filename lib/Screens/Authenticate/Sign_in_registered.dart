@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -10,7 +12,40 @@ class SignInRegistered extends StatefulWidget {
 }
 
 class _SignInRegisteredState extends State<SignInRegistered> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _rememberPassword = false;
+  String email, password;
+
+  void _signIn({String em, String pw}) {
+    _auth.signInWithEmailAndPassword(email: em, password: pw).then((authResult) {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+        return Container(
+            color: Colors.yellow,
+            child: Text('Welcome ${authResult.user.email}'));
+      }));
+    }).catchError((err){
+       if (err.code == 'ERROR_WRONG_PASSWORD') {
+        showCupertinoDialog(
+            context: context,
+            builder: (context) {
+              return CupertinoAlertDialog(
+                title: Text(
+                    'The password was incorrect, please try again.'),
+                actions: [
+                  CupertinoDialogAction(
+                    child: Text('OK'),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  )
+                ],
+              );
+            });
+      }
+      //TODO Create if user doesnt exist
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -27,6 +62,11 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                       fontWeight: FontWeight.w600)),
               SizedBox(height: 12.0),
               TextField(
+                onChanged: (textVal) {
+                  setState(() {
+                    email = textVal;
+                  });
+                },
                 decoration: InputDecoration(
                     hintText: 'Enter Email',
                     hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
@@ -39,6 +79,11 @@ class _SignInRegisteredState extends State<SignInRegistered> {
               ),
               SizedBox(height: 20.0),
               TextField(
+                onChanged: (textVal) {
+                  setState(() {
+                    password = textVal;
+                  });
+                },
                 obscureText: true,
                 decoration: InputDecoration(
                     hintText: 'Password',
@@ -70,20 +115,25 @@ class _SignInRegisteredState extends State<SignInRegistered> {
               Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Container(
-                        // width: double.infinity,
-                        padding: EdgeInsets.symmetric(
-                            vertical: 16.0, horizontal: 34.0),
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(30.0)),
-                        child: Text(
-                          'LOG IN',
-                          style: TextStyle(
-                              color: Colors.red,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold),
-                        ))
+                    InkWell(
+                      onTap: () {
+                        _signIn(em: email, pw: password);
+                      },
+                      child: Container(
+                          // width: double.infinity,
+                          padding: EdgeInsets.symmetric(
+                              vertical: 16.0, horizontal: 34.0),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(30.0)),
+                          child: Text(
+                            'LOG IN',
+                            style: TextStyle(
+                                color: Colors.red,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold),
+                          )),
+                    )
                   ]),
               SizedBox(height: 20.0),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: <
