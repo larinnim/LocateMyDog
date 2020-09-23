@@ -108,7 +108,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                         });
                       },
                     ),
-                    Text('Remember Password',
+                    Text('Use TouchID',
                         style: TextStyle(color: Colors.white, fontSize: 16.0))
                   ]),
               SizedBox(height: 20.0),
