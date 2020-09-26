@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>687212317780-d0m6lniofc24nu6g0mqmss74g1u450cc.apps.googleusercontent.com</string>
+	<string>687212317780-vs298rbjegheoep8e5sfffihg47nsfug.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.687212317780-d0m6lniofc24nu6g0mqmss74g1u450cc</string>
+	<string>com.googleusercontent.apps.687212317780-vs298rbjegheoep8e5sfffihg47nsfug</string>
 	<key>API_KEY</key>
 	<string>AIzaSyC4LoCktzWSKP73T6FHqMc7BJAyCyrAFao</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.retroportalstudio.www.flutterMaps</string>
+	<string>com.findmypet</string>
 	<key>PROJECT_ID</key>
 	<string>locatemydog-17a7b</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,7 +29,7 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:687212317780:ios:5ac369a36b5f68975cb1c1</string>
+	<string>1:687212317780:ios:27ebf08bb65721be5cb1c1</string>
 	<key>DATABASE_URL</key>
 	<string>https://locatemydog-17a7b.firebaseio.com</string>
 </dict>
