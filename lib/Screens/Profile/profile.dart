@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +10,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
+  @override
+  _ProfileScreenState createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  File _image;
+
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context,
@@ -34,7 +43,18 @@ class ProfileScreen extends StatelessWidget {
             margin: EdgeInsets.only(top: kSpacingUnit.w * 3),
             child: InkWell(
               onTap: () async {
-                await ImagePicker().getImage(source: ImageSource.gallery);
+                //Get the file from the image picker and store it
+                final pickedFile =
+                    await ImagePicker().getImage(source: ImageSource.gallery);
+
+                setState(() {
+                  if (pickedFile != null) {
+                    _image = File(pickedFile.path);
+                    locator.get<UserController>().uploadProfilePicture();
+                  } else {
+                    print('No image selected.');
+                  }
+                });
               },
               child: Stack(
                 children: <Widget>[
@@ -68,14 +88,12 @@ class ProfileScreen extends StatelessWidget {
           ),
           SizedBox(height: kSpacingUnit.w * 2),
           Text(
-            "Nicolas",
-            // "Where is " + _firebaseAuth.currentUser.displayName + '?',
+            "Where is  ${_firebaseAuth.currentUser.displayName} ?",
             style: kTitleTextStyle,
           ),
           SizedBox(height: kSpacingUnit.w * 0.5),
           Text(
-            "email",
-            // _firebaseAuth.currentUser.email,
+            "${_firebaseAuth.currentUser.email} ?",
             style: kCaptionTextStyle,
           ),
           SizedBox(height: kSpacingUnit.w * 2),
