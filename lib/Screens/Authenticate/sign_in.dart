@@ -95,7 +95,7 @@ class _State extends State<SignIn> {
                         duration: Duration(milliseconds: 200),
                         curve: Curves.easeIn);
                   },
-                )
+                ),
               ])),
         ],
       ),

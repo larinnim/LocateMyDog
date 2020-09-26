@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_maps/Screens/Profile/profile.dart';
 
 class Register extends StatefulWidget {
   final Function cancelBackToHome;
@@ -30,7 +31,9 @@ class _RegisterState extends State<Register> {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
         return Container(
             color: Colors.yellow,
-            child: Text('Welcome ${authResult.user.email}'));
+            child:
+            ProfileScreen());
+            //  Text('Welcome ${authResult.user.email}'));
       }));
     }).catchError((err) {
       print(err);
