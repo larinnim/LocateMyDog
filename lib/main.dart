@@ -3,9 +3,14 @@ import 'dart:typed_data';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_maps/Screens/Authenticate/ForgotPassword.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+
+import 'Screens/Authenticate/Register.dart';
+import 'Screens/Authenticate/Sign_in_registered.dart';
+import 'Screens/Authenticate/home_sigin_widget.dart';
 
 // void main() => runApp(MyApp());
 
