@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Services/constants.dart';
 import 'package:flutter_screenutil/screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -31,43 +32,50 @@ class ProfileScreen extends StatelessWidget {
             height: kSpacingUnit.w * 10,
             width: kSpacingUnit.w * 10,
             margin: EdgeInsets.only(top: kSpacingUnit.w * 3),
-            child: Stack(
-              children: <Widget>[
-                CircleAvatar(
-                  radius: kSpacingUnit.w * 5,
-                  backgroundImage: AssetImage('assets/images/Bailey.png'),
-                ),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Container(
-                    height: kSpacingUnit.w * 2.5,
-                    width: kSpacingUnit.w * 2.5,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).accentColor,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      heightFactor: kSpacingUnit.w * 1.5,
-                      widthFactor: kSpacingUnit.w * 1.5,
-                      child: Icon(
-                        LineAwesomeIcons.pen,
-                        color: kDarkPrimaryColor,
-                        size: ScreenUtil().setSp(kSpacingUnit.w * 1.5),
+            child: InkWell(
+              onTap: () async {
+                await ImagePicker().getImage(source: ImageSource.gallery);
+              },
+              child: Stack(
+                children: <Widget>[
+                  CircleAvatar(
+                    radius: kSpacingUnit.w * 5,
+                    backgroundImage: AssetImage('assets/images/Bailey.png'),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Container(
+                      height: kSpacingUnit.w * 2.5,
+                      width: kSpacingUnit.w * 2.5,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).accentColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        heightFactor: kSpacingUnit.w * 1.5,
+                        widthFactor: kSpacingUnit.w * 1.5,
+                        child: Icon(
+                          LineAwesomeIcons.pen,
+                          color: kDarkPrimaryColor,
+                          size: ScreenUtil().setSp(kSpacingUnit.w * 1.5),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           SizedBox(height: kSpacingUnit.w * 2),
           Text(
-            'Nicolas Adams',
+            "Nicolas",
+            // "Where is " + _firebaseAuth.currentUser.displayName + '?',
             style: kTitleTextStyle,
           ),
           SizedBox(height: kSpacingUnit.w * 0.5),
           Text(
-            'nicolasadams@gmail.com',
+            "email",
+            // _firebaseAuth.currentUser.email,
             style: kCaptionTextStyle,
           ),
           SizedBox(height: kSpacingUnit.w * 2),
