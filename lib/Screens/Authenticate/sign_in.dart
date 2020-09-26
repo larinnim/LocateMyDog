@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_maps/Screens/Authenticate/ForgotPassword.dart';
 import 'package:flutter_maps/Screens/Authenticate/Register.dart';
 import 'package:flutter_maps/Screens/Authenticate/Sign_in_registered.dart';
 import 'package:flutter_maps/Screens/Authenticate/home_sigin_widget.dart';
@@ -75,6 +76,11 @@ class _State extends State<SignIn> {
                         duration: Duration(milliseconds: 200),
                         curve: Curves.easeIn);
                   },
+                  goToForgotPW: () {
+                        pageController.animateToPage(3,
+                        duration: Duration(milliseconds: 200),
+                        curve: Curves.easeIn);
+                  },
                 ),
                 Register(
                   cancelBackToHome: () {
@@ -83,6 +89,13 @@ class _State extends State<SignIn> {
                         curve: Curves.easeIn);
                   },
                 ),
+                ForgotPassword(
+                  gotoSignIn: () {
+                    pageController.animateToPage(1,
+                        duration: Duration(milliseconds: 200),
+                        curve: Curves.easeIn);
+                  },
+                )
               ])),
         ],
       ),
