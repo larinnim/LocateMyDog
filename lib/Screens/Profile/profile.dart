@@ -1,6 +1,7 @@
-import 'package:animated_theme_switcher/animated_theme_switcher.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Services/constants.dart';
 import 'package:flutter_screenutil/screenutil.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
@@ -11,6 +12,17 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     ScreenUtil.init(context,
         designSize: Size(750, 1334), allowFontScaling: true);
+    final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
+    void signOut() async {
+      await _firebaseAuth.signOut().then((value) {
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) {
+          return Container(
+              color: Colors.yellow, child: Material(child: Wrapper()));
+        }));
+      });
+    }
 
     var profileInfo = Expanded(
       child: Column(
@@ -129,7 +141,7 @@ class ProfileScreen extends StatelessWidget {
               header,
               Expanded(
                 child: ListView(
-                  children: <Widget>[                  
+                  children: <Widget>[
                     ProfileListItem(
                       icon: LineAwesomeIcons.user_shield,
                       text: 'Privacy',
@@ -150,10 +162,17 @@ class ProfileScreen extends StatelessWidget {
                       icon: LineAwesomeIcons.user_plus,
                       text: 'Invite a Friend',
                     ),
-                    ProfileListItem(
-                      icon: LineAwesomeIcons.alternate_sign_out,
-                      text: 'Logout',
-                      hasNavigation: false,
+                    InkWell(
+                      onTap: () {
+                        print("profile SIgn OUt");
+                        // SignOut();
+                        signOut();
+                      },
+                      child: ProfileListItem(
+                        icon: LineAwesomeIcons.alternate_sign_out,
+                        text: 'Logout',
+                        hasNavigation: false,
+                      ),
                     ),
                   ],
                 ),
@@ -208,7 +227,7 @@ class ProfileListItem extends StatelessWidget {
             ),
           ),
           Spacer(),
-          if (this.hasNavigation) 
+          if (this.hasNavigation)
             Icon(
               LineAwesomeIcons.angle_right,
               size: kSpacingUnit.w * 2.5,
