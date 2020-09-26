@@ -1,7 +1,12 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_maps/Screens/Authenticate/signed.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:local_auth/local_auth.dart';
 
 class SignInRegistered extends StatefulWidget {
   final Function gotoSignUp;
@@ -13,24 +18,72 @@ class SignInRegistered extends StatefulWidget {
 
 class _SignInRegisteredState extends State<SignInRegistered> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  bool _rememberPassword = false;
+  final LocalAuthentication auth = LocalAuthentication();
+  final FlutterSecureStorage storage = FlutterSecureStorage();
+  bool _useTouchID = false;
+  bool userHasTouchID = false;
   String email, password;
 
+  @override
+  void initState() {
+    super.initState();
+    getSecureStorage();
+  }
+
+  void getSecureStorage() async {
+    final isUsingBio = await storage.read(key: 'usingBiometric');
+    setState(() {
+      userHasTouchID = isUsingBio == 'true';
+    });
+  }
+
+  void authenticate() async {
+    final canCheck = await auth.canCheckBiometrics;
+    if (canCheck) {
+      List<BiometricType> availableBiometrics =
+          await auth.getAvailableBiometrics();
+
+      if (Platform.isIOS) {
+        if (availableBiometrics.contains(BiometricType.face)) {
+          //Face ID
+          final authenticated = await auth.authenticateWithBiometrics(
+              localizedReason: 'Enable Face ID to sign in more easily');
+          if (authenticated) {
+            final userStoredEmail = await storage.read(key: 'email');
+            final userStoredPassword = await storage.read(key: 'password');
+
+            _signIn(em: userStoredEmail, pw: userStoredPassword);
+          }
+        } else if (availableBiometrics.contains(BiometricType.fingerprint)) {
+          //Touch ID
+        }
+      }
+    } else {
+      print('cant check');
+    }
+  }
+
   void _signIn({String em, String pw}) {
-    _auth.signInWithEmailAndPassword(email: em, password: pw).then((authResult) {
+    _auth
+        .signInWithEmailAndPassword(email: em, password: pw)
+        .then((authResult) {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-        return Container(
-            color: Colors.yellow,
-            child: Text('Welcome ${authResult.user.email}'));
+        return Signed(
+          user: authResult.user,
+          wantsTouchID: _useTouchID,
+          password: password,
+        );
+        // return Container(
+        //     color: Colors.yellow,
+        //     child: Text('Welcome ${authResult.user.email}'));
       }));
-    }).catchError((err){
-       if (err.code == 'ERROR_WRONG_PASSWORD') {
+    }).catchError((err) {
+      if (err.code == 'ERROR_WRONG_PASSWORD') {
         showCupertinoDialog(
             context: context,
             builder: (context) {
               return CupertinoAlertDialog(
-                title: Text(
-                    'The password was incorrect, please try again.'),
+                title: Text('The password was incorrect, please try again.'),
                 actions: [
                   CupertinoDialogAction(
                     child: Text('OK'),
@@ -96,21 +149,33 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                 style: TextStyle(color: Colors.white, fontSize: 22.0),
               ),
               SizedBox(height: 12.0),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Checkbox(
-                      activeColor: Colors.orange,
-                      value: _rememberPassword,
-                      onChanged: (newValue) {
-                        setState(() {
-                          _rememberPassword = newValue;
-                        });
-                      },
-                    ),
-                    Text('Remember Password',
-                        style: TextStyle(color: Colors.white, fontSize: 16.0))
-                  ]),
+              userHasTouchID
+                  ? InkWell(
+                      onTap: () => authenticate(),
+                      child: Container(
+                          decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              border: Border.all(color: Colors.red),
+                              borderRadius: BorderRadius.circular(30.0)),
+                          padding: EdgeInsets.all(10.0),
+                          child: Icon(FontAwesomeIcons.fingerprint)),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                          Checkbox(
+                            activeColor: Colors.orange,
+                            value: _useTouchID,
+                            onChanged: (newValue) {
+                              setState(() {
+                                _useTouchID = newValue;
+                              });
+                            },
+                          ),
+                          Text('Use TouchID',
+                              style: TextStyle(
+                                  color: Colors.white, fontSize: 16.0))
+                        ]),
               SizedBox(height: 20.0),
               Row(
                   mainAxisAlignment: MainAxisAlignment.center,

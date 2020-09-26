@@ -85,6 +85,27 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "7.3.0"
+  firebase_analytics:
+    dependency: "direct main"
+    description:
+      name: firebase_analytics
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "5.0.16"
+  firebase_analytics_platform_interface:
+    dependency: transitive
+    description:
+      name: firebase_analytics_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.3"
+  firebase_analytics_web:
+    dependency: transitive
+    description:
+      name: firebase_analytics_web
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.1"
   firebase_auth:
     dependency: "direct main"
     description:
@@ -132,6 +153,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_facebook_login:
+    dependency: "direct main"
+    description:
+      name: flutter_facebook_login
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.0"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -139,6 +167,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.9"
+  flutter_secure_storage:
+    dependency: "direct main"
+    description:
+      name: flutter_secure_storage
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.3.4"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -171,7 +206,7 @@ packages:
     source: hosted
     version: "1.0.4"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       url: "https://pub.dartlang.org"
@@ -198,6 +233,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.6.2"
+  local_auth:
+    dependency: "direct main"
+    description:
+      name: local_auth
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.6.3+1"
   location:
     dependency: "direct main"
     description:
@@ -233,6 +275,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.9.0"
+  platform:
+    dependency: transitive
+    description:
+      name: platform
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.2.1"
   plugin_platform_interface:
     dependency: transitive
     description:
@@ -317,4 +366,4 @@ packages:
     version: "2.0.8"
 sdks:
   dart: ">=2.9.0-14.0.dev <3.0.0"
-  flutter: ">=1.16.3 <2.0.0"
+  flutter: ">=1.20.0 <2.0.0"
