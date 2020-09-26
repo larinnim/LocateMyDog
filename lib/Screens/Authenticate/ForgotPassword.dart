@@ -5,6 +5,7 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:flutter_maps/Screens/Authenticate/Sign_in_registered.dart';
 import 'package:flutter_maps/Screens/Authenticate/sign_in.dart';
+import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 
@@ -36,12 +37,10 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                 CupertinoDialogAction(
                   child: Text('OK'),
                   onPressed: () {
-                    // Navigator.pushReplacement(context,
-                    //     MaterialPageRoute(builder: (context) {
-                    //   return SignInRegistered();
-                    // }));
-                    // Navigator.pushNamed(context, '/signin');
-                    Navigator.pop(context);
+                    Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) {
+                      return Material(child: Wrapper());
+                    }));
                   },
                 )
               ],
@@ -104,7 +103,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                       borderSide: BorderSide(color: Colors.white))),
               style: TextStyle(color: Colors.white, fontSize: 22.0),
             ),
-            SizedBox(height: 12.0),
+            SizedBox(height: 20.0),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
               InkWell(
                 onTap: () {
