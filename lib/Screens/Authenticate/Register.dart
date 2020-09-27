@@ -21,7 +21,7 @@ class Register extends StatefulWidget {
 class _RegisterState extends State<Register> {
   bool _termsAgreed = false;
   bool saveAttempted = false;
-  String email, password, passwordConfirm, dogname, dogowner, dogbreed, dogage;
+  String email, password, passwordConfirm, dogname, ownername, dogbreed;
   final formKey = GlobalKey<FormState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -29,12 +29,14 @@ class _RegisterState extends State<Register> {
     _auth
         .createUserWithEmailAndPassword(email: email, password: pw)
         .then((authResult) async {
+      authResult.user.updateProfile(displayName: dogname);
       authResult.user != null
-        ? AppUser(authResult.user.uid, displayName: authResult.user.displayName)
-        : null;
+          ? AppUser(authResult.user.uid,
+              displayName: authResult.user.displayName)
+          : null;
       // create a new document for the user with the uid
       await DatabaseService(uid: authResult.user.uid)
-          .updateUserData(dogname, dogowner, dogbreed, 100);
+          .updateUserData(dogname, ownername, dogbreed);
       print('yay! ${authResult.user}');
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
         return Container(color: Colors.yellow, child: ProfileScreen());
@@ -68,7 +70,7 @@ class _RegisterState extends State<Register> {
     return Form(
       key: formKey,
       child: SingleChildScrollView(
-          child: Container(
+        child: Container(
           padding: EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             children: <Widget>[
@@ -100,7 +102,7 @@ class _RegisterState extends State<Register> {
                 autovalidate: saveAttempted,
                 onChanged: (textValue) {
                   setState(() {
-                    dogname = textValue;
+                    ownername = textValue;
                   });
                 },
                 validator: (dogOwnerVal) {
@@ -124,7 +126,7 @@ class _RegisterState extends State<Register> {
                 autovalidate: saveAttempted,
                 onChanged: (textValue) {
                   setState(() {
-                    dogname = textValue;
+                    dogbreed = textValue;
                   });
                 },
                 validator: (dogBreedVal) {
@@ -135,30 +137,6 @@ class _RegisterState extends State<Register> {
                 decoration: InputDecoration(
                     errorStyle: TextStyle(color: Colors.white),
                     hintText: 'Dog Breed: ',
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
-                    focusColor: Colors.white,
-                    focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white)),
-                    enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white))),
-                style: TextStyle(color: Colors.white, fontSize: 22.0),
-              ),
-              SizedBox(height: 12.0),
-              TextFormField(
-                autovalidate: saveAttempted,
-                onChanged: (textValue) {
-                  setState(() {
-                    dogname = textValue;
-                  });
-                },
-                validator: (dogBreedVal) {
-                  if (dogBreedVal.isEmpty) {
-                    return 'This field is mandatory';
-                  }
-                },
-                decoration: InputDecoration(
-                    errorStyle: TextStyle(color: Colors.white),
-                    hintText: 'Dog Age: ',
                     hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
                     focusColor: Colors.white,
                     focusedBorder: UnderlineInputBorder(
@@ -276,45 +254,47 @@ class _RegisterState extends State<Register> {
                     style: TextStyle(color: Colors.white, fontSize: 16.0))
               ]),
               SizedBox(width: 20.0),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-                InkWell(
-                  onTap: () {
-                    widget.cancelBackToHome();
-                  },
-                  child: Text(
-                    'CANCEL',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-                SizedBox(width: 38.0),
-                InkWell(
-                  onTap: () {
-                    setState(() {
-                      saveAttempted = true;
-                    });
-                    if (formKey.currentState.validate()) {
-                      formKey.currentState.save();
-                      _createUser(email: email, pw: password);
-                    }
-                  },
-                  child: Container(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 16.0, horizontal: 34.0),
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(30.0)),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    InkWell(
+                      onTap: () {
+                        widget.cancelBackToHome();
+                      },
                       child: Text(
-                        'SAVE',
+                        'CANCEL',
                         style: TextStyle(
-                            color: Colors.red,
-                            fontSize: 20,
+                            color: Colors.white,
+                            fontSize: 20.0,
                             fontWeight: FontWeight.bold),
-                      )),
-                )
-              ])
+                      ),
+                    ),
+                    SizedBox(width: 38.0),
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          saveAttempted = true;
+                        });
+                        if (formKey.currentState.validate()) {
+                          formKey.currentState.save();
+                          _createUser(email: email, pw: password);
+                        }
+                      },
+                      child: Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 16.0, horizontal: 34.0),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(30.0)),
+                          child: Text(
+                            'SAVE',
+                            style: TextStyle(
+                                color: Colors.red,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold),
+                          )),
+                    )
+                  ])
             ],
           ),
         ),

@@ -8,11 +8,12 @@ import 'package:provider/provider.dart';
 
 class Wrapper extends StatelessWidget {
   @override
-
   Widget build(BuildContext context) {
     if (FirebaseAuth.instance.currentUser == null) {
+      print("In Authenticate screen");
       return Authenticate();
     } else {
+      print("In Profile screen");
       return ProfileScreen();
     }
   }

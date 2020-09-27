@@ -67,8 +67,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       setState(() {});
                     },
                   ),
+                  SizedBox(height: kSpacingUnit.w * 2),
                   Text(
-                    "Hi ${_currentUser.displayName ?? 'nice to see you here.'}"),
+                    "Where is  ${_firebaseAuth.currentUser.displayName} ?",
+                    style: kTitleTextStyle,
+                  ),
+                  // Text(
+                  //   "Hi ${_currentUser.displayName ?? 'nice to see you here.'}"),
 
                       // "Hi ${_currentUser.displayName ?? 'nice to see you here.'}"),
                 ],
@@ -139,11 +144,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     //           ),
     //         ),
     //       ),
-    //       SizedBox(height: kSpacingUnit.w * 2),
-    //       Text(
-    //         "Where is  ${_firebaseAuth.currentUser.displayName} ?",
-    //         style: kTitleTextStyle,
-    //       ),
+          // SizedBox(height: kSpacingUnit.w * 2),
+          // Text(
+          //   "Where is  ${_firebaseAuth.currentUser.displayName} ?",
+          //   style: kTitleTextStyle,
+          // ),
     //       SizedBox(height: kSpacingUnit.w * 0.5),
     //       Text(
     //         "${_firebaseAuth.currentUser.email} ?",
