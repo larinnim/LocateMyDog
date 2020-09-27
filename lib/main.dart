@@ -11,12 +11,15 @@ import 'package:location/location.dart';
 import 'Screens/Authenticate/Register.dart';
 import 'Screens/Authenticate/Sign_in_registered.dart';
 import 'Screens/Authenticate/home_sigin_widget.dart';
+import 'locator.dart';
 
 // void main() => runApp(MyApp());
 
 void main() async {
+  // void main() {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  setupServices();
   runApp(MyApp());
 }
 

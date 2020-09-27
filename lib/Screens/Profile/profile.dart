@@ -5,10 +5,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Services/constants.dart';
+import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:flutter_screenutil/screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../locator.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -50,7 +53,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 setState(() {
                   if (pickedFile != null) {
                     _image = File(pickedFile.path);
-                    locator.get<UserController>().uploadProfilePicture();
+                    locator.get<UserController>().uploadProfilePicture(_image);
                   } else {
                     print('No image selected.');
                   }

@@ -66,8 +66,10 @@ class _SignInRegisteredState extends State<SignInRegistered> {
   }
 
   // create user obj based on firebase user
-  AppUser _userFromFirebaseUser(User user) {
-    return user != null ? AppUser(uid: user.uid) : null;
+  Future<AppUser> _userFromFirebaseUser(User user) async {
+    var firebaseUser = await _auth.currentUser;
+    return user != null ? AppUser(firebaseUser.uid,
+        displayName: firebaseUser.displayName) : null;
   }
 
   void _signIn({String em, String pw}) {
