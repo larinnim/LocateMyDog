@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Services/constants.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
@@ -12,6 +13,7 @@ import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../locator.dart';
+import 'avatar.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -20,7 +22,8 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   File _image;
-
+  AppUser _currentUser = locator.get<UserController>().currentUser;
+ 
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context,
@@ -37,86 +40,133 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
     }
 
-    var profileInfo = Expanded(
-      child: Column(
-        children: <Widget>[
-          Container(
-            height: kSpacingUnit.w * 10,
-            width: kSpacingUnit.w * 10,
-            margin: EdgeInsets.only(top: kSpacingUnit.w * 3),
-            child: InkWell(
-              onTap: () async {
-                //Get the file from the image picker and store it
-                final pickedFile =
-                    await ImagePicker().getImage(source: ImageSource.gallery);
-
-                setState(() {
-                  if (pickedFile != null) {
-                    _image = File(pickedFile.path);
-                    locator.get<UserController>().uploadProfilePicture(_image);
-                  } else {
-                    print('No image selected.');
-                  }
-                });
-              },
-              child: Stack(
+  var profileInfo = 
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+                borderRadius : BorderRadius.circular(kSpacingUnit.w * 3)
+                // borderRadius: BorderRadius.only(
+                //   bottomLeft: Radius.circular(20.0),
+                //   bottomRight: Radius.circular(20.0),
+                // ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  CircleAvatar(
-                    radius: kSpacingUnit.w * 5,
-                    backgroundImage: AssetImage('assets/images/Bailey.png'),
+                  Avatar(
+                    avatarUrl: _currentUser?.avatarUrl,
+                    onTap: () async {
+                      File image = await ImagePicker.pickImage(
+                          source: ImageSource.gallery);
+
+                      await locator
+                          .get<UserController>()
+                          .uploadProfilePicture(image);
+
+                      setState(() {});
+                    },
                   ),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Container(
-                      height: kSpacingUnit.w * 2.5,
-                      width: kSpacingUnit.w * 2.5,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).accentColor,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        heightFactor: kSpacingUnit.w * 1.5,
-                        widthFactor: kSpacingUnit.w * 1.5,
-                        child: Icon(
-                          LineAwesomeIcons.pen,
-                          color: kDarkPrimaryColor,
-                          size: ScreenUtil().setSp(kSpacingUnit.w * 1.5),
-                        ),
-                      ),
-                    ),
-                  ),
+                  Text(
+                    "Hi ${_currentUser.displayName ?? 'nice to see you here.'}"),
+
+                      // "Hi ${_currentUser.displayName ?? 'nice to see you here.'}"),
                 ],
               ),
             ),
-          ),
-          SizedBox(height: kSpacingUnit.w * 2),
-          Text(
-            "Where is  ${_firebaseAuth.currentUser.displayName} ?",
-            style: kTitleTextStyle,
-          ),
-          SizedBox(height: kSpacingUnit.w * 0.5),
-          Text(
-            "${_firebaseAuth.currentUser.email} ?",
-            style: kCaptionTextStyle,
-          ),
-          SizedBox(height: kSpacingUnit.w * 2),
-          Container(
-            height: kSpacingUnit.w * 4,
-            width: kSpacingUnit.w * 20,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(kSpacingUnit.w * 3),
-              color: Theme.of(context).accentColor,
-            ),
-            child: Center(
-              child: Text(
-                'Upgrade to PRO',
-                style: kButtonTextStyle,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+          );
+          // Expanded(
+          //   flex: 2,
+          //   child: ManageProfileInformationWidget(
+          //     currentUser: _currentUser,
+          //   ),
+          // )
+    // );
+    // var profileInfo = Expanded(
+    //   child: Column(
+    //     children: <Widget>[
+    //       Container(
+    //         height: kSpacingUnit.w * 10,
+    //         width: kSpacingUnit.w * 10,
+    //         margin: EdgeInsets.only(top: kSpacingUnit.w * 3),
+    //         child: InkWell(
+    //           onTap: () async {
+    //             //Get the file from the image picker and store it
+    //             final pickedFile =
+    //                 await ImagePicker().getImage(source: ImageSource.gallery);
+
+    //             setState(() {
+    //               if (pickedFile != null) {
+    //                 _image = File(pickedFile.path);
+    //                 locator.get<UserController>().uploadProfilePicture(_image);
+    //               } else {
+    //                 print('No image selected.');
+    //               }
+    //             });
+    //           },
+    //           child: Stack(
+    //               children: <Widget>[
+    //                 _currentUser.avatarUrl == null ? 
+    //                 CircleAvatar(
+    //               radius: kSpacingUnit.w * 5,
+    //               child: Icon(Icons.photo_camera),
+    //             ):
+    //               CircleAvatar(
+    //                 radius: kSpacingUnit.w * 5,
+    //                 backgroundImage: NetworkImage(_currentUser.avatarUrl),
+    //               ),
+    //               Align(
+    //                 alignment: Alignment.bottomRight,
+    //                 child: Container(
+    //                   height: kSpacingUnit.w * 2.5,
+    //                   width: kSpacingUnit.w * 2.5,
+    //                   decoration: BoxDecoration(
+    //                     color: Theme.of(context).accentColor,
+    //                     shape: BoxShape.circle,
+    //                   ),
+    //                   child: Center(
+    //                     heightFactor: kSpacingUnit.w * 1.5,
+    //                     widthFactor: kSpacingUnit.w * 1.5,
+    //                     child: Icon(
+    //                       LineAwesomeIcons.pen,
+    //                       color: kDarkPrimaryColor,
+    //                       size: ScreenUtil().setSp(kSpacingUnit.w * 1.5),
+    //                     ),
+    //                   ),
+    //                 ),
+    //               ),
+    //             ],
+    //           ),
+    //         ),
+    //       ),
+    //       SizedBox(height: kSpacingUnit.w * 2),
+    //       Text(
+    //         "Where is  ${_firebaseAuth.currentUser.displayName} ?",
+    //         style: kTitleTextStyle,
+    //       ),
+    //       SizedBox(height: kSpacingUnit.w * 0.5),
+    //       Text(
+    //         "${_firebaseAuth.currentUser.email} ?",
+    //         style: kCaptionTextStyle,
+    //       ),
+    //       SizedBox(height: kSpacingUnit.w * 2),
+    //       Container(
+    //         height: kSpacingUnit.w * 4,
+    //         width: kSpacingUnit.w * 20,
+    //         decoration: BoxDecoration(
+    //           borderRadius: BorderRadius.circular(kSpacingUnit.w * 3),
+    //           color: Theme.of(context).accentColor,
+    //         ),
+    //         child: Center(
+    //           child: Text(
+    //             'Upgrade to PRO',
+    //             style: kButtonTextStyle,
+    //           ),
+    //         ),
+    //       ),
+    //     ],
+    //   ),
+    // );
 
     // var themeSwitcher = ThemeSwitcher(
     //   builder: (context) {

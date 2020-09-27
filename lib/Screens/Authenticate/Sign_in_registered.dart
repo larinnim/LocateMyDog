@@ -68,15 +68,18 @@ class _SignInRegisteredState extends State<SignInRegistered> {
   // create user obj based on firebase user
   Future<AppUser> _userFromFirebaseUser(User user) async {
     var firebaseUser = await _auth.currentUser;
-    return user != null ? AppUser(firebaseUser.uid,
-        displayName: firebaseUser.displayName) : null;
+    return user != null
+        ? AppUser(firebaseUser.uid, displayName: firebaseUser.displayName)
+        : null;
   }
 
   void _signIn({String em, String pw}) {
     _auth
         .signInWithEmailAndPassword(email: em, password: pw)
         .then((authResult) {
+      print("'Welcomeeee ${authResult.user.displayName}',");
       _userFromFirebaseUser(authResult.user);
+
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
         return Signed(
           user: authResult.user,
