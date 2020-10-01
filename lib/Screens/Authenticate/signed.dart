@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 
@@ -56,17 +57,17 @@ class _SignedPageState extends State<Signed> {
   @override
   Widget build(BuildContext context) {
     if (widget.wantsTouchID) {}
-
-    return Material(
-        child: SafeArea(
-      child: Container(
-        child: Center(
-          child: Text(
-            'Welcome ${widget.user.email}',
-            style: TextStyle(fontSize: 24.0),
-          ),
-        ),
-      ),
-    ));
+    return ProfileScreen();
+  //   return Material(
+  //     child: SafeArea(
+  //     child: Container(
+  //       child: Center(
+  //         child: Text(
+  //           'Welcome ${widget.user.email}',
+  //           style: TextStyle(fontSize: 24.0),
+  //         ),
+  //       ),
+  //     ),
+  //   ));
   }
 }

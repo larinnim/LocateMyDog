@@ -1,0 +1,323 @@
+import 'dart:io';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_maps/Models/user.dart';
+import 'package:flutter_maps/Screens/Home/wrapper.dart';
+import 'package:flutter_maps/Services/constants.dart';
+import 'package:flutter_maps/Services/user_controller.dart';
+import 'package:flutter_screenutil/screenutil.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:line_awesome_flutter/line_awesome_flutter.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../locator.dart';
+import 'avatar.dart';
+
+class ProfileScreen extends StatefulWidget {
+  @override
+  _ProfileScreenState createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  File _image;
+  AppUser _currentUser = locator.get<UserController>().currentUser;
+ 
+  @override
+  Widget build(BuildContext context) {
+    ScreenUtil.init(context,
+        designSize: Size(750, 1334), allowFontScaling: true);
+    final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
+    void signOut() async {
+      await _firebaseAuth.signOut().then((value) {
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) {
+          return Container(
+              color: Colors.yellow, child: Material(child: Wrapper()));
+        }));
+      });
+    }
+
+  var profileInfo = 
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+                borderRadius : BorderRadius.circular(kSpacingUnit.w * 3)
+                // borderRadius: BorderRadius.only(
+                //   bottomLeft: Radius.circular(20.0),
+                //   bottomRight: Radius.circular(20.0),
+                // ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  Avatar(
+                    avatarUrl: _currentUser?.avatarUrl,
+                    onTap: () async {
+                      File image = await ImagePicker.pickImage(
+                          source: ImageSource.gallery);
+
+                      await locator
+                          .get<UserController>()
+                          .uploadProfilePicture(image);
+
+                      setState(() {});
+                    },
+                  ),
+                  SizedBox(height: kSpacingUnit.w * 2),
+                  Text(
+                    "Where is  ${_firebaseAuth.currentUser.displayName} ?",
+                    style: kTitleTextStyle,
+                  ),
+                  // Text(
+                  //   "Hi ${_currentUser.displayName ?? 'nice to see you here.'}"),
+
+                      // "Hi ${_currentUser.displayName ?? 'nice to see you here.'}"),
+                ],
+              ),
+            ),
+          );
+          // Expanded(
+          //   flex: 2,
+          //   child: ManageProfileInformationWidget(
+          //     currentUser: _currentUser,
+          //   ),
+          // )
+    // );
+    // var profileInfo = Expanded(
+    //   child: Column(
+    //     children: <Widget>[
+    //       Container(
+    //         height: kSpacingUnit.w * 10,
+    //         width: kSpacingUnit.w * 10,
+    //         margin: EdgeInsets.only(top: kSpacingUnit.w * 3),
+    //         child: InkWell(
+    //           onTap: () async {
+    //             //Get the file from the image picker and store it
+    //             final pickedFile =
+    //                 await ImagePicker().getImage(source: ImageSource.gallery);
+
+    //             setState(() {
+    //               if (pickedFile != null) {
+    //                 _image = File(pickedFile.path);
+    //                 locator.get<UserController>().uploadProfilePicture(_image);
+    //               } else {
+    //                 print('No image selected.');
+    //               }
+    //             });
+    //           },
+    //           child: Stack(
+    //               children: <Widget>[
+    //                 _currentUser.avatarUrl == null ? 
+    //                 CircleAvatar(
+    //               radius: kSpacingUnit.w * 5,
+    //               child: Icon(Icons.photo_camera),
+    //             ):
+    //               CircleAvatar(
+    //                 radius: kSpacingUnit.w * 5,
+    //                 backgroundImage: NetworkImage(_currentUser.avatarUrl),
+    //               ),
+    //               Align(
+    //                 alignment: Alignment.bottomRight,
+    //                 child: Container(
+    //                   height: kSpacingUnit.w * 2.5,
+    //                   width: kSpacingUnit.w * 2.5,
+    //                   decoration: BoxDecoration(
+    //                     color: Theme.of(context).accentColor,
+    //                     shape: BoxShape.circle,
+    //                   ),
+    //                   child: Center(
+    //                     heightFactor: kSpacingUnit.w * 1.5,
+    //                     widthFactor: kSpacingUnit.w * 1.5,
+    //                     child: Icon(
+    //                       LineAwesomeIcons.pen,
+    //                       color: kDarkPrimaryColor,
+    //                       size: ScreenUtil().setSp(kSpacingUnit.w * 1.5),
+    //                     ),
+    //                   ),
+    //                 ),
+    //               ),
+    //             ],
+    //           ),
+    //         ),
+    //       ),
+          // SizedBox(height: kSpacingUnit.w * 2),
+          // Text(
+          //   "Where is  ${_firebaseAuth.currentUser.displayName} ?",
+          //   style: kTitleTextStyle,
+          // ),
+    //       SizedBox(height: kSpacingUnit.w * 0.5),
+    //       Text(
+    //         "${_firebaseAuth.currentUser.email} ?",
+    //         style: kCaptionTextStyle,
+    //       ),
+    //       SizedBox(height: kSpacingUnit.w * 2),
+    //       Container(
+    //         height: kSpacingUnit.w * 4,
+    //         width: kSpacingUnit.w * 20,
+    //         decoration: BoxDecoration(
+    //           borderRadius: BorderRadius.circular(kSpacingUnit.w * 3),
+    //           color: Theme.of(context).accentColor,
+    //         ),
+    //         child: Center(
+    //           child: Text(
+    //             'Upgrade to PRO',
+    //             style: kButtonTextStyle,
+    //           ),
+    //         ),
+    //       ),
+    //     ],
+    //   ),
+    // );
+
+    // var themeSwitcher = ThemeSwitcher(
+    //   builder: (context) {
+    //     return AnimatedCrossFade(
+    //       duration: Duration(milliseconds: 200),
+    //       crossFadeState:
+    //           ThemeProvider.of(context).brightness == Brightness.dark
+    //               ? CrossFadeState.showFirst
+    //               : CrossFadeState.showSecond,
+    //       firstChild: GestureDetector(
+    //         onTap: () =>
+    //             ThemeSwitcher.of(context).changeTheme(theme: kLightTheme),
+    //         child: Icon(
+    //           LineAwesomeIcons.sun,
+    //           size: ScreenUtil().setSp(kSpacingUnit.w * 3),
+    //         ),
+    //       ),
+    //       secondChild: GestureDetector(
+    //         onTap: () =>
+    //             ThemeSwitcher.of(context).changeTheme(theme: kDarkTheme),
+    //         child: Icon(
+    //           LineAwesomeIcons.moon,
+    //           size: ScreenUtil().setSp(kSpacingUnit.w * 3),
+    //         ),
+    //       ),
+    //     );
+    //   },
+    // );
+
+    var header = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        SizedBox(width: kSpacingUnit.w * 3),
+        Icon(
+          LineAwesomeIcons.arrow_left,
+          size: ScreenUtil().setSp(kSpacingUnit.w * 3),
+        ),
+        profileInfo,
+        // themeSwitcher,
+        SizedBox(width: kSpacingUnit.w * 3),
+      ],
+    );
+
+    return Builder(
+      builder: (context) {
+        return Scaffold(
+          body: Column(
+            children: <Widget>[
+              SizedBox(height: kSpacingUnit.w * 5),
+              header,
+              Expanded(
+                child: ListView(
+                  children: <Widget>[
+                    ProfileListItem(
+                      icon: LineAwesomeIcons.user_shield,
+                      text: 'Privacy',
+                    ),
+                    ProfileListItem(
+                      icon: LineAwesomeIcons.history,
+                      text: 'Purchase History',
+                    ),
+                    ProfileListItem(
+                      icon: LineAwesomeIcons.question_circle,
+                      text: 'Help & Support',
+                    ),
+                    ProfileListItem(
+                      icon: LineAwesomeIcons.cog,
+                      text: 'Settings',
+                    ),
+                    ProfileListItem(
+                      icon: LineAwesomeIcons.user_plus,
+                      text: 'Invite a Friend',
+                    ),
+                    InkWell(
+                      onTap: () {
+                        print("profile SIgn OUt");
+                        // SignOut();
+                        signOut();
+                      },
+                      child: ProfileListItem(
+                        icon: LineAwesomeIcons.alternate_sign_out,
+                        text: 'Logout',
+                        hasNavigation: false,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class ProfileListItem extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final bool hasNavigation;
+
+  const ProfileListItem({
+    Key key,
+    this.icon,
+    this.text,
+    this.hasNavigation = true,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: kSpacingUnit.w * 5.5,
+      margin: EdgeInsets.symmetric(
+        horizontal: kSpacingUnit.w * 4,
+      ).copyWith(
+        bottom: kSpacingUnit.w * 2,
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: kSpacingUnit.w * 2,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(kSpacingUnit.w * 3),
+        color: Theme.of(context).backgroundColor,
+      ),
+      child: Row(
+        children: <Widget>[
+          Icon(
+            this.icon,
+            size: kSpacingUnit.w * 2.5,
+          ),
+          SizedBox(width: kSpacingUnit.w * 1.5),
+          Text(
+            this.text,
+            style: kTitleTextStyle.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Spacer(),
+          if (this.hasNavigation)
+            Icon(
+              LineAwesomeIcons.angle_right,
+              size: kSpacingUnit.w * 2.5,
+            ),
+        ],
+      ),
+    );
+  }
+}
