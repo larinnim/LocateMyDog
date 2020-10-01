@@ -5,9 +5,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Authenticate/signed.dart';
+import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:local_auth/local_auth.dart';
+import '../../locator.dart';
 
 class SignInRegistered extends StatefulWidget {
   final Function gotoSignUp;
@@ -73,43 +75,18 @@ class _SignInRegisteredState extends State<SignInRegistered> {
         : null;
   }
 
-  void _signIn({String em, String pw}) {
-    _auth
-        .signInWithEmailAndPassword(email: em, password: pw)
-        .then((authResult) {
-      print("'Welcomeeee ${authResult.user.displayName}',");
-      _userFromFirebaseUser(authResult.user);
+  void _signIn({String em, String pw}) async {
+    await locator
+        .get<UserController>()
+        .signInWithEmailAndPassword(email: em, password: pw);
 
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-        return Signed(
-          user: authResult.user,
-          wantsTouchID: _useTouchID,
-          password: password,
-        );
-        // return Container(
-        //     color: Colors.yellow,
-        //     child: Text('Welcome ${authResult.user.email}'));
-      }));
-    }).catchError((err) {
-      if (err.code == 'ERROR_WRONG_PASSWORD') {
-        showCupertinoDialog(
-            context: context,
-            builder: (context) {
-              return CupertinoAlertDialog(
-                title: Text('The password was incorrect, please try again.'),
-                actions: [
-                  CupertinoDialogAction(
-                    child: Text('OK'),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  )
-                ],
-              );
-            });
-      }
-      //TODO Create if user doesnt exist
-    });
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+      return Signed(
+        // user: authResult.user,
+        user: FirebaseAuth.instance.currentUser,
+        wantsTouchID: _useTouchID,
+        password: password,
+      );}));
   }
 
   @override
