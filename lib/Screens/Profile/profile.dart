@@ -230,9 +230,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: LineAwesomeIcons.user_shield,
                       text: 'Privacy',
                     ),
-                    ProfileListItem(
-                      icon: LineAwesomeIcons.history,
-                      text: 'Purchase History',
+                    InkWell(
+                      // onTap: () {
+                      //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+                      //   return MapLocation();}));
+                      // },
+                      child: ProfileListItem(
+                        icon: LineAwesomeIcons.map_marked,
+                        text: 'Find ${_firebaseAuth.currentUser.displayName}',
+                      ),
                     ),
                     ProfileListItem(
                       icon: LineAwesomeIcons.question_circle,
