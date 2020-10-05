@@ -38,9 +38,77 @@ class _MapLocationState extends State<MapLocation>
   final _firestore = FirebaseFirestore.instance;
   // FirebaseStorage firestore = FirebaseStorage.instance;
   Geoflutterfire geo = Geoflutterfire();
+  CollectionReference reference =
+      FirebaseFirestore.instance.collection('locations');
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  List<LatLng> polyLinesLatLongs = List<LatLng>(); // our list of geopoints
 
   @override
   bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    listenNumbers();
+    super.initState();
+  }
+
+  listenNumbers() async {
+    Uint8List imageData = await getMarker();
+    LocationData _locationData = await _locationTracker.getLocation();
+    // Stream<QuerySnapshot> streamNumbers = _firestore
+        _firestore
+        .collection('locations')
+        .doc(_firebaseAuth.currentUser.uid)
+        .collection('User_Locations')
+        .where("owner", isEqualTo: "${_firebaseAuth.currentUser.uid}")
+        .get()
+        .then((querySnapshot) {
+      var fireBase = querySnapshot.docs;
+      for (var i = 1; i < fireBase.length; i++) {
+        GeoPoint point = fireBase[i].data()['position']['geopoint']; //that way to take instance of geopoint
+
+        // updateMarkerAndCircle(
+        //     LatLng(double.parse('${point.latitude}'),
+        //         double.parse('${point.longitude}')),
+        //     imageData,
+        //     newLocalData.heading);
+
+        // updatePolygon(LatLng(double.parse('${point.latitude}'),
+        //     double.parse('${point.longitude}')));
+
+        polyLinesLatLongs.add(LatLng(
+            double.parse('${point.latitude}'),
+            double.parse(
+                '${point.longitude}'))); // now we can add our point to list
+        
+        updateMarkerAndCircle(
+             LatLng(
+            double.parse('${point.latitude}'),
+            double.parse(
+                '${point.longitude}')),
+              imageData,
+              _locationData.heading);
+        updatePolygon(LatLng(
+            double.parse('${point.latitude}'),
+            double.parse(
+                '${point.longitude}')));
+      }
+    });
+    // Stream<QuerySnapshot> streamNumbers = _firestore
+    //   .collection('locations')
+    //   .doc(_firebaseAuth.currentUser.uid)
+    //   .collection('User_Locations')
+    //   .where("owner", isEqualTo: "${_firebaseAuth.currentUser.uid}")
+    //   .snapshots();
+    // streamNumbers.listen((snapshot) {
+    //   snapshot.docs.forEach((doc) {
+    //     MyModel obj = MyModel.fromDocument(doc);
+    //     numbersList.add(obj);
+    //     setState(() {
+    //     });
+    //   });
+    // });
+  }
 
   void _onMapCreated(GoogleMapController controller) {
     if (_controller == null) _controller = controller;
@@ -57,11 +125,11 @@ class _MapLocationState extends State<MapLocation>
     return byteData.buffer.asUint8List();
   }
 
-  void updatePolygon(LocationData newLocalData) {
+  void updatePolygon(LatLng latlong) {
     final String polylineIdVal = 'polyline_id_$_polylineIdCounter';
     _polylineIdCounter++;
     final PolylineId polylineId = PolylineId(polylineIdVal);
-    points.add(LatLng(newLocalData.latitude, newLocalData.longitude));
+    points.add(LatLng(latlong.latitude, latlong.longitude));
 
     final Polyline polyline = Polyline(
         polylineId: polylineId,
@@ -75,13 +143,14 @@ class _MapLocationState extends State<MapLocation>
     });
   }
 
-  void updateMarkerAndCircle(LocationData newLocalData, Uint8List imageData) {
-    LatLng latlng = LatLng(newLocalData.latitude, newLocalData.longitude);
+  void updateMarkerAndCircle(
+      LatLng latlong, Uint8List imageData, double heading) {
+    LatLng latlng = LatLng(latlong.latitude, latlong.longitude);
     this.setState(() {
       marker = Marker(
           markerId: MarkerId("home"),
           position: latlng,
-          rotation: newLocalData.heading,
+          rotation: heading,
           draggable: false,
           zIndex: 2,
           flat: true,
@@ -102,9 +171,9 @@ class _MapLocationState extends State<MapLocation>
   void getCurrentLocation() async {
     try {
       Uint8List imageData = await getMarker();
-      var location = await _locationTracker.getLocation();
+      // var location = await _locationTracker.getLocation();
 
-      updateMarkerAndCircle(location, imageData);
+      // updateMarkerAndCircle(location, imageData);
 
       if (_locationSubscription != null) {
         _locationSubscription.cancel();
@@ -119,13 +188,22 @@ class _MapLocationState extends State<MapLocation>
                   target: LatLng(newLocalData.latitude, newLocalData.longitude),
                   tilt: 0,
                   zoom: 18.00)));
-          updateMarkerAndCircle(newLocalData, imageData);
-          updatePolygon(newLocalData);
+          updateMarkerAndCircle(
+              LatLng(newLocalData.latitude, newLocalData.longitude),
+              imageData,
+              newLocalData.heading);
+          updatePolygon(LatLng(newLocalData.latitude, newLocalData.longitude));
+          polyLinesLatLongs.add(LatLng(
+            double.parse('${newLocalData.latitude}'),
+            double.parse(
+                '${newLocalData.longitude}'))); 
           //  GeoFirePoint point =
           // geo.point(latitude: newLocalData.latitude, longitude: newLocalData.longitude);
           // _firestore
           // .collection('locations')
-          // .add({'position': point.data, 'name': 'Yay I can be queried!'});
+          // .doc(_firebaseAuth.currentUser.uid)
+          // .collection('User_Locations')
+          // .add({'position': point.data, 'owner': _firebaseAuth.currentUser.uid});
         }
       });
     } on PlatformException catch (e) {
