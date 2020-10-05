@@ -64,6 +64,15 @@ class _MapLocationState extends State<MapLocation>
         .get()
         .then((querySnapshot) {
       var fireBase = querySnapshot.docs;
+
+      GeoFirePoint point =
+          geo.point(latitude: 46.520374, longitude: -80.954211);
+          _firestore
+          .collection('locations')
+          .doc(_firebaseAuth.currentUser.uid)
+          .collection('User_Locations')
+          .add({'position': point.data, 'owner': _firebaseAuth.currentUser.uid});
+          
       for (var i = 1; i < fireBase.length; i++) {
         GeoPoint point = fireBase[i].data()['position']['geopoint']; //that way to take instance of geopoint
 
@@ -115,8 +124,9 @@ class _MapLocationState extends State<MapLocation>
   }
 
   static final CameraPosition initialLocation = CameraPosition(
-    target: LatLng(46.520227, -80.954182),
-    zoom: 14.4746,
+    target: LatLng(46.520374, -80.954211),
+    zoom: 18.00
+    // zoom: 14.4746,
   );
 
   Future<Uint8List> getMarker() async {
@@ -184,7 +194,8 @@ class _MapLocationState extends State<MapLocation>
         if (_controller != null) {
           _controller.animateCamera(CameraUpdate.newCameraPosition(
               new CameraPosition(
-                  bearing: 192.8334901395799,
+                  // bearing: 192.8334901395799,
+                  bearing: 0,
                   target: LatLng(newLocalData.latitude, newLocalData.longitude),
                   tilt: 0,
                   zoom: 18.00)));
@@ -257,6 +268,7 @@ class _MapLocationState extends State<MapLocation>
         markers: Set.of((marker != null) ? [marker] : []),
         circles: Set.of((circle != null) ? [circle] : []),
         polylines: Set<Polyline>.of(_mapPolylines.values),
+        myLocationButtonEnabled: false,
         onMapCreated: _onMapCreated,
         // onMapCreated: (GoogleMapController controller) {
         //   _controller = controller;

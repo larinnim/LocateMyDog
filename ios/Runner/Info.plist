@@ -2,7 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSPhotoLibraryAddUsageDescription</key>	
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs to access your location</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs permission to access photos on your device</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>photos</string>
@@ -60,6 +62,8 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs to access your location</string>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
 </dict>
