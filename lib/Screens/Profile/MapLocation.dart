@@ -13,6 +13,7 @@ import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:location/location.dart';
+import 'package:geolocator/geolocator.dart';
 
 class MapLocation extends StatefulWidget {
   // final User user;
@@ -56,7 +57,7 @@ class _MapLocationState extends State<MapLocation>
     Uint8List imageData = await getMarker();
     LocationData _locationData = await _locationTracker.getLocation();
     // Stream<QuerySnapshot> streamNumbers = _firestore
-        _firestore
+    _firestore
         .collection('locations')
         .doc(_firebaseAuth.currentUser.uid)
         .collection('User_Locations')
@@ -67,40 +68,29 @@ class _MapLocationState extends State<MapLocation>
 
       GeoFirePoint point =
           geo.point(latitude: 46.520374, longitude: -80.954211);
-          _firestore
+      _firestore
           .collection('locations')
           .doc(_firebaseAuth.currentUser.uid)
           .collection('User_Locations')
-          .add({'position': point.data, 'owner': _firebaseAuth.currentUser.uid});
-          
+          .add(
+              {'position': point.data, 'owner': _firebaseAuth.currentUser.uid});
+
       for (var i = 1; i < fireBase.length; i++) {
-        GeoPoint point = fireBase[i].data()['position']['geopoint']; //that way to take instance of geopoint
-
-        // updateMarkerAndCircle(
-        //     LatLng(double.parse('${point.latitude}'),
-        //         double.parse('${point.longitude}')),
-        //     imageData,
-        //     newLocalData.heading);
-
-        // updatePolygon(LatLng(double.parse('${point.latitude}'),
-        //     double.parse('${point.longitude}')));
+        GeoPoint point = fireBase[i].data()['position']
+            ['geopoint']; //that way to take instance of geopoint
 
         polyLinesLatLongs.add(LatLng(
             double.parse('${point.latitude}'),
             double.parse(
                 '${point.longitude}'))); // now we can add our point to list
-        
+
         updateMarkerAndCircle(
-             LatLng(
-            double.parse('${point.latitude}'),
-            double.parse(
-                '${point.longitude}')),
-              imageData,
-              _locationData.heading);
-        updatePolygon(LatLng(
-            double.parse('${point.latitude}'),
-            double.parse(
-                '${point.longitude}')));
+            LatLng(double.parse('${point.latitude}'),
+                double.parse('${point.longitude}')),
+            imageData,
+            _locationData.heading);
+        updatePolygon(LatLng(double.parse('${point.latitude}'),
+            double.parse('${point.longitude}')));
       }
     });
     // Stream<QuerySnapshot> streamNumbers = _firestore
@@ -123,11 +113,10 @@ class _MapLocationState extends State<MapLocation>
     if (_controller == null) _controller = controller;
   }
 
-  static final CameraPosition initialLocation = CameraPosition(
-    target: LatLng(46.520374, -80.954211),
-    zoom: 18.00
-    // zoom: 14.4746,
-  );
+  static final CameraPosition initialLocation =
+      CameraPosition(target: LatLng(46.520374, -80.954211), zoom: 18.00
+          // zoom: 14.4746,
+          );
 
   Future<Uint8List> getMarker() async {
     ByteData byteData =
@@ -181,9 +170,12 @@ class _MapLocationState extends State<MapLocation>
   void getCurrentLocation() async {
     try {
       Uint8List imageData = await getMarker();
+      // Position position = await getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       // var location = await _locationTracker.getLocation();
 
-      // updateMarkerAndCircle(location, imageData);
+      // updateMarkerAndCircle(LatLng(location.latitude, location.longitude),
+      //         imageData,
+      //         location.heading);
 
       if (_locationSubscription != null) {
         _locationSubscription.cancel();
@@ -192,10 +184,14 @@ class _MapLocationState extends State<MapLocation>
       _locationSubscription =
           _locationTracker.onLocationChanged().listen((newLocalData) {
         if (_controller != null) {
-          _controller.animateCamera(CameraUpdate.newCameraPosition(
-              new CameraPosition(
-                  // bearing: 192.8334901395799,
-                  bearing: 0,
+          print('Accuracy ${newLocalData.accuracy}');
+          print('Latitude ${newLocalData.latitude}');
+          print('Latitude ${newLocalData.longitude}');
+
+          _controller
+              .animateCamera(CameraUpdate.newCameraPosition(new CameraPosition(
+                  bearing: 192.8334901395799,
+                  // bearing: 0,
                   target: LatLng(newLocalData.latitude, newLocalData.longitude),
                   tilt: 0,
                   zoom: 18.00)));
@@ -204,10 +200,8 @@ class _MapLocationState extends State<MapLocation>
               imageData,
               newLocalData.heading);
           updatePolygon(LatLng(newLocalData.latitude, newLocalData.longitude));
-          polyLinesLatLongs.add(LatLng(
-            double.parse('${newLocalData.latitude}'),
-            double.parse(
-                '${newLocalData.longitude}'))); 
+          polyLinesLatLongs.add(LatLng(double.parse('${newLocalData.latitude}'),
+              double.parse('${newLocalData.longitude}')));
           //  GeoFirePoint point =
           // geo.point(latitude: newLocalData.latitude, longitude: newLocalData.longitude);
           // _firestore
