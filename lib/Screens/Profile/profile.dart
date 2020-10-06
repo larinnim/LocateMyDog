@@ -13,6 +13,7 @@ import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../locator.dart';
+import 'MapLocation.dart';
 import 'avatar.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -230,9 +231,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: LineAwesomeIcons.user_shield,
                       text: 'Privacy',
                     ),
-                    ProfileListItem(
-                      icon: LineAwesomeIcons.history,
-                      text: 'Purchase History',
+                    InkWell(
+                      onTap: () {
+                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+                        return MapLocation();}));
+                      },
+                      child: ProfileListItem(
+                        icon: LineAwesomeIcons.map_marked,
+                        text: 'Find ${_firebaseAuth.currentUser.displayName}',
+                      ),
                     ),
                     ProfileListItem(
                       icon: LineAwesomeIcons.question_circle,
