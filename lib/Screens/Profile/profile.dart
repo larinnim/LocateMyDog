@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
+import 'package:flutter_maps/Services/bluetooth_conect.dart';
 import 'package:flutter_maps/Services/constants.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:flutter_screenutil/screenutil.dart';
@@ -24,7 +25,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   File _image;
   AppUser _currentUser = locator.get<UserController>().currentUser;
- 
+
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context,
@@ -41,167 +42,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
     }
 
-  var profileInfo = 
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-                borderRadius : BorderRadius.circular(kSpacingUnit.w * 3)
-                // borderRadius: BorderRadius.only(
-                //   bottomLeft: Radius.circular(20.0),
-                //   bottomRight: Radius.circular(20.0),
-                // ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  Avatar(
-                    avatarUrl: _currentUser?.avatarUrl,
-                    onTap: () async {
-                      File image = await ImagePicker.pickImage(
-                          source: ImageSource.gallery);
-
-                      await locator
-                          .get<UserController>()
-                          .uploadProfilePicture(image);
-
-                      setState(() {});
-                    },
-                  ),
-                  SizedBox(height: kSpacingUnit.w * 2),
-                  Text(
-                    "Where is  ${_firebaseAuth.currentUser.displayName} ?",
-                    style: kTitleTextStyle,
-                  ),
-                  // Text(
-                  //   "Hi ${_currentUser.displayName ?? 'nice to see you here.'}"),
-
-                      // "Hi ${_currentUser.displayName ?? 'nice to see you here.'}"),
-                ],
-              ),
+    var profileInfo = Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+            color: Theme.of(context).primaryColor,
+            borderRadius: BorderRadius.circular(kSpacingUnit.w * 3)
+            // borderRadius: BorderRadius.only(
+            //   bottomLeft: Radius.circular(20.0),
+            //   bottomRight: Radius.circular(20.0),
+            // ),
             ),
-          );
-          // Expanded(
-          //   flex: 2,
-          //   child: ManageProfileInformationWidget(
-          //     currentUser: _currentUser,
-          //   ),
-          // )
-    // );
-    // var profileInfo = Expanded(
-    //   child: Column(
-    //     children: <Widget>[
-    //       Container(
-    //         height: kSpacingUnit.w * 10,
-    //         width: kSpacingUnit.w * 10,
-    //         margin: EdgeInsets.only(top: kSpacingUnit.w * 3),
-    //         child: InkWell(
-    //           onTap: () async {
-    //             //Get the file from the image picker and store it
-    //             final pickedFile =
-    //                 await ImagePicker().getImage(source: ImageSource.gallery);
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            Avatar(
+              avatarUrl: _currentUser?.avatarUrl,
+              onTap: () async {
+                File image =
+                    await ImagePicker.pickImage(source: ImageSource.gallery);
 
-    //             setState(() {
-    //               if (pickedFile != null) {
-    //                 _image = File(pickedFile.path);
-    //                 locator.get<UserController>().uploadProfilePicture(_image);
-    //               } else {
-    //                 print('No image selected.');
-    //               }
-    //             });
-    //           },
-    //           child: Stack(
-    //               children: <Widget>[
-    //                 _currentUser.avatarUrl == null ? 
-    //                 CircleAvatar(
-    //               radius: kSpacingUnit.w * 5,
-    //               child: Icon(Icons.photo_camera),
-    //             ):
-    //               CircleAvatar(
-    //                 radius: kSpacingUnit.w * 5,
-    //                 backgroundImage: NetworkImage(_currentUser.avatarUrl),
-    //               ),
-    //               Align(
-    //                 alignment: Alignment.bottomRight,
-    //                 child: Container(
-    //                   height: kSpacingUnit.w * 2.5,
-    //                   width: kSpacingUnit.w * 2.5,
-    //                   decoration: BoxDecoration(
-    //                     color: Theme.of(context).accentColor,
-    //                     shape: BoxShape.circle,
-    //                   ),
-    //                   child: Center(
-    //                     heightFactor: kSpacingUnit.w * 1.5,
-    //                     widthFactor: kSpacingUnit.w * 1.5,
-    //                     child: Icon(
-    //                       LineAwesomeIcons.pen,
-    //                       color: kDarkPrimaryColor,
-    //                       size: ScreenUtil().setSp(kSpacingUnit.w * 1.5),
-    //                     ),
-    //                   ),
-    //                 ),
-    //               ),
-    //             ],
-    //           ),
-    //         ),
-    //       ),
-          // SizedBox(height: kSpacingUnit.w * 2),
-          // Text(
-          //   "Where is  ${_firebaseAuth.currentUser.displayName} ?",
-          //   style: kTitleTextStyle,
-          // ),
-    //       SizedBox(height: kSpacingUnit.w * 0.5),
-    //       Text(
-    //         "${_firebaseAuth.currentUser.email} ?",
-    //         style: kCaptionTextStyle,
-    //       ),
-    //       SizedBox(height: kSpacingUnit.w * 2),
-    //       Container(
-    //         height: kSpacingUnit.w * 4,
-    //         width: kSpacingUnit.w * 20,
-    //         decoration: BoxDecoration(
-    //           borderRadius: BorderRadius.circular(kSpacingUnit.w * 3),
-    //           color: Theme.of(context).accentColor,
-    //         ),
-    //         child: Center(
-    //           child: Text(
-    //             'Upgrade to PRO',
-    //             style: kButtonTextStyle,
-    //           ),
-    //         ),
-    //       ),
-    //     ],
-    //   ),
-    // );
+                await locator.get<UserController>().uploadProfilePicture(image);
 
-    // var themeSwitcher = ThemeSwitcher(
-    //   builder: (context) {
-    //     return AnimatedCrossFade(
-    //       duration: Duration(milliseconds: 200),
-    //       crossFadeState:
-    //           ThemeProvider.of(context).brightness == Brightness.dark
-    //               ? CrossFadeState.showFirst
-    //               : CrossFadeState.showSecond,
-    //       firstChild: GestureDetector(
-    //         onTap: () =>
-    //             ThemeSwitcher.of(context).changeTheme(theme: kLightTheme),
-    //         child: Icon(
-    //           LineAwesomeIcons.sun,
-    //           size: ScreenUtil().setSp(kSpacingUnit.w * 3),
-    //         ),
-    //       ),
-    //       secondChild: GestureDetector(
-    //         onTap: () =>
-    //             ThemeSwitcher.of(context).changeTheme(theme: kDarkTheme),
-    //         child: Icon(
-    //           LineAwesomeIcons.moon,
-    //           size: ScreenUtil().setSp(kSpacingUnit.w * 3),
-    //         ),
-    //       ),
-    //     );
-    //   },
-    // );
+                setState(() {});
+              },
+            ),
+            SizedBox(height: kSpacingUnit.w * 2),
+            Text(
+              "Where is  ${_firebaseAuth.currentUser.displayName} ?",
+              style: kTitleTextStyle,
+            ),
+            // Text(
+            //   "Hi ${_currentUser.displayName ?? 'nice to see you here.'}"),
 
+            // "Hi ${_currentUser.displayName ?? 'nice to see you here.'}"),
+          ],
+        ),
+      ),
+    );
     var header = Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,12 +110,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     InkWell(
                       onTap: () {
-                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-                        return MapLocation();}));
+                        Navigator.pushReplacement(context,
+                            MaterialPageRoute(builder: (context) {
+                          return MapLocation();
+                        }));
                       },
                       child: ProfileListItem(
                         icon: LineAwesomeIcons.map_marked,
                         text: 'Find ${_firebaseAuth.currentUser.displayName}',
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        Navigator.pushReplacement(context,
+                            MaterialPageRoute(builder: (context) {
+                          return BluetoothConnection();
+                        }));
+                      },
+                      child: ProfileListItem(
+                        icon: LineAwesomeIcons.bluetooth,
+                        text: 'Connect Using Bluetooth',
                       ),
                     ),
                     ProfileListItem(
@@ -248,10 +139,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ProfileListItem(
                       icon: LineAwesomeIcons.cog,
                       text: 'Settings',
-                    ),
-                    ProfileListItem(
-                      icon: LineAwesomeIcons.user_plus,
-                      text: 'Invite a Friend',
                     ),
                     InkWell(
                       onTap: () {

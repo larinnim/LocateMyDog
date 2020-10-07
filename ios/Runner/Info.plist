@@ -2,12 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs to access your location</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>$(PRODUCT_NAME) needs permission to access photos on your device</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>photos</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
@@ -41,8 +35,24 @@
 	<string>Locate My Dog</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>To use of some functions on this app requires permission to access Bluetooth</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>We would like to use Face ID to make signin in faster and more secure</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs to access your location</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>To use of some functions on this app requires permission to access your location</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>$(PRODUCT_NAME) needs permission to access photos on your device</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>photos</string>
+	<key>CFBundleName</key>
+	<string>Locate My Pet</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>bluetooth-central</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -62,8 +72,6 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>This app needs to access your location</string>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
 </dict>
