@@ -95,7 +95,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
     if (!_isScanning) {
       deviceList.clear();
       // _bleManager.startPeripheralScan().listen((scanResult) {
-        _bleManager.startPeripheralScan(uuids: ["4fafc201-1fb5-459e-8fcc-c5c9c331914b",],).listen((scanResult) {
+        _bleManager.startPeripheralScan(uuids: ["d1acf0d0-0a9b-11eb-adc1-0242ac120002",],).listen((scanResult) {
         // 페리페럴 항목에 이름이 있으면 그걸 사용하고
         // 없다면 어드버타이지먼트 데이터의 이름을 사용하고 그것 마져 없다면 Unknown으로 표시
         var name = scanResult.peripheral.name ??
