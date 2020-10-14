@@ -324,6 +324,12 @@ PODS:
   - flutter_ble_lib (2.3.0):
     - Flutter
     - MultiplatformBleAdapter (~> 0.1.6)
+  - flutter_blue (0.0.1):
+    - Flutter
+    - flutter_blue/Protos (= 0.0.1)
+  - flutter_blue/Protos (0.0.1):
+    - Flutter
+    - Protobuf (~> 3.11.4)
   - flutter_facebook_login (0.0.1):
     - FBSDKCoreKit (~> 5.5)
     - FBSDKLoginKit (~> 5.5)
@@ -424,6 +430,7 @@ PODS:
   - "permission_handler (5.0.1+1)":
     - Flutter
   - PromisesObjC (1.2.10)
+  - Protobuf (3.11.4)
 
 DEPENDENCIES:
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
@@ -433,6 +440,7 @@ DEPENDENCIES:
   - firebase_storage (from `.symlinks/plugins/firebase_storage/ios`)
   - Flutter (from `Flutter`)
   - flutter_ble_lib (from `.symlinks/plugins/flutter_ble_lib/ios`)
+  - flutter_blue (from `.symlinks/plugins/flutter_blue/ios`)
   - flutter_facebook_login (from `.symlinks/plugins/flutter_facebook_login/ios`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
   - geoflutterfire (from `.symlinks/plugins/geoflutterfire/ios`)
@@ -474,6 +482,7 @@ SPEC REPOS:
     - MultiplatformBleAdapter
     - nanopb
     - PromisesObjC
+    - Protobuf
 
 EXTERNAL SOURCES:
   cloud_firestore:
@@ -490,6 +499,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_ble_lib:
     :path: ".symlinks/plugins/flutter_ble_lib/ios"
+  flutter_blue:
+    :path: ".symlinks/plugins/flutter_blue/ios"
   flutter_facebook_login:
     :path: ".symlinks/plugins/flutter_facebook_login/ios"
   flutter_secure_storage:
@@ -534,6 +545,7 @@ SPEC CHECKSUMS:
   FirebaseStorage: f4f39ae834a7145963b913f54e2f24a9db1d8fac
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_ble_lib: 1d400af3aa9ea4b069974cd06c2bafefe0289086
+  flutter_blue: eeb381dc4727a0954dede73515f683865494b370
   flutter_facebook_login: cfb5659f686b1c575ef205c6b6fd20db9679d3c4
   flutter_secure_storage: 7953c38a04c3fdbb00571bcd87d8e3b5ceb9daec
   geoflutterfire: 2a6493e01fb6eef1a6c9046b1baf9a943d0c5ffe
@@ -557,6 +569,7 @@ SPEC CHECKSUMS:
   nanopb: c43f40fadfe79e8b8db116583945847910cbabc9
   permission_handler: eac8e15b4a1a3fba55b761d19f3f4e6b005d15b6
   PromisesObjC: b14b1c6b68e306650688599de8a45e49fae81151
+  Protobuf: 176220c526ad8bd09ab1fb40a978eac3fef665f7
 
 PODFILE CHECKSUM: ffd7293eb7d5907b54a367fd400872baeef513a5
 

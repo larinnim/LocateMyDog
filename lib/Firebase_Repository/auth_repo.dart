@@ -32,15 +32,15 @@ class AuthRepo {
   }
 
   Future<AppUser> getUser() async {
-    var firebaseUser = await _auth.currentUser;
+    var firebaseUser = _auth.currentUser;
     return AppUser(firebaseUser.uid, displayName: firebaseUser.displayName);
   }
 
-  Future<void> updateDisplayName(String displayName) async {
-    var user = await _auth.currentUser;
+  // Future<void> updateDisplayName(String displayName) async {
+  //   var user = await _auth.currentUser;
 
-    // user.updateProfile(
-    //   UserUpdateInfo()..displayName = displayName,
-    // );
-  }
+  //   // user.updateProfile(
+  //   //   UserUpdateInfo()..displayName = displayName,
+  //   // );
+  // }
 }

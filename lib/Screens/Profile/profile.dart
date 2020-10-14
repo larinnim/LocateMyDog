@@ -23,7 +23,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  File _image;
   AppUser _currentUser = locator.get<UserController>().currentUser;
 
   @override

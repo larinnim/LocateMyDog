@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Authenticate/signed.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -21,7 +20,6 @@ class SignInRegistered extends StatefulWidget {
 }
 
 class _SignInRegisteredState extends State<SignInRegistered> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final LocalAuthentication auth = LocalAuthentication();
   final FlutterSecureStorage storage = FlutterSecureStorage();
   bool _useTouchID = false;
@@ -66,15 +64,6 @@ class _SignInRegisteredState extends State<SignInRegistered> {
       print('cant check');
     }
   }
-
-  // create user obj based on firebase user
-  Future<AppUser> _userFromFirebaseUser(User user) async {
-    var firebaseUser = await _auth.currentUser;
-    return user != null
-        ? AppUser(firebaseUser.uid, displayName: firebaseUser.displayName)
-        : null;
-  }
-
   void _signIn({String em, String pw}) async {
     await locator
         .get<UserController>()

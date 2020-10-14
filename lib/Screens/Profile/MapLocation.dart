@@ -1,19 +1,13 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 import 'dart:typed_data';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:location/location.dart';
-import 'package:geolocator/geolocator.dart';
 
 class MapLocation extends StatefulWidget {
   // final User user;

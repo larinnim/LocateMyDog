@@ -1,21 +1,13 @@
-import 'dart:async';
+import 'dart:convert';
 import 'dart:io' show Platform;
 import 'dart:typed_data';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_ble_lib/flutter_ble_lib.dart';
+// import 'package:flutter_ble_lib/flutter_ble_lib.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:geoflutterfire/geoflutterfire.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:local_auth/local_auth.dart';
-import 'package:location/location.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:convert/convert.dart';
+import 'dart:convert';
 
 class BluetoothConnection extends StatefulWidget {
   @override
@@ -23,12 +15,21 @@ class BluetoothConnection extends StatefulWidget {
 }
 
 class _BluetoothConnectionState extends State<BluetoothConnection> {
-  BleManager _bleManager = BleManager();
+  // BleManager _bleManager = BleManager();
+  FlutterBlue flutterBlue = FlutterBlue.instance;
+
   // BluetoothState currentState = await _bleManager.bluetoothState();
   bool _isScanning = false;
   List<BleDeviceItem> deviceList = [];
-  List<Service> services = [];
-  // List<Characteristic> characteristics1 = [];
+  List<BluetoothService> services = [];
+  List<BluetoothCharacteristic> characteristics = [];
+  bool isConnected = false;
+  List<BluetoothDevice> connectedDevices;
+  List<int> lat;
+  List<int> lng;
+  // String lat = "";
+  // String lng = "";
+  String serviceUUID = "d1acf0d0-0a9b-11eb-adc1-0242ac120002";
 
   @override
   void initState() {
@@ -37,57 +38,82 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
   }
 
   void init() async {
-    //BLE 생성
-    await _bleManager
-        .createClient(
-            restoreStateIdentifier: "example-restore-state-identifier",
-            restoreStateAction: (peripherals) {
-              peripherals?.forEach((peripheral) {
-                print("Restored peripheral: ${peripheral.name}");
-              });
-            })
-        .catchError((e) => print("Couldn't create BLE client  $e"))
-        .then((_) => _checkPermissions())
-        .catchError((e) => print("Permission check error $e"));
-    //.then((_) => _waitForBluetoothPoweredOn())
+    FlutterBlue.instance.state.listen((state) {
+      if (state == BluetoothState.off) {
+        //Alert user to turn on bluetooth.
+      } else if (state == BluetoothState.on) {
+        //if bluetooth is enabled then go ahead.
+        //Make sure user's device gps is on.
+      }
+    });
+    // setState(() {_isScanning = false;});
+    // scan();
   }
 
-  _checkPermissions() async {
-    if (Platform.isAndroid) {
-      if (await Permission.contacts.request().isGranted) {}
-      // Map<Permission, PermissionStatus> statuses = await [
-      //   Permission.location
-      // ].request();
-      // print(statuses[Permission.location]);
-    }
+  void connect(BluetoothDevice dev) async {
+    await dev.connect(autoConnect: true).then((status) async {
+      connectedDevices = await flutterBlue.connectedDevices;
+      if (connectedDevices.contains(dev)) {
+        setState(() {
+          isConnected = true;
+          print("Connected");
+        });
+        services = await dev.discoverServices();
+        //Only works if I have 1 service. Review the logic if there is more than 1
+        services.forEach((service) {
+          characteristics = service.characteristics;
+        });
+        lat = await characteristics[0].read();
+        lng = await characteristics[1].read();
+      }
+    }).catchError((e) => print("Permission check error $e"));
+    print(lat);
+    print(lng);
+    
+    // setupAlertDialoadContainer();
   }
 
-  void connect(Peripheral peripheral) async {
-    peripheral.connect();
-    if (await peripheral.isConnected()) {
-      //assuming peripheral is connected
-      peripheral.discoverAllServicesAndCharacteristics(
-          transactionId: "discovery");
-      services = await peripheral.services(); //getting all services
-      setupAlertDialoadContainer();
-    }
-  }
-
-  Widget setupAlertDialoadContainer() {
-    return Container(
-      height: 300.0, // Change as per your requirement
-      width: 300.0, // Change as per your requirement
-      child: ListView.builder(
-        shrinkWrap: true,
-        itemCount: 5,
-        itemBuilder: (BuildContext context, int index) {
-          return ListTile(
-            title: Text(services[index].uuid),
-            // title: Text('Gujarat, India'),
-          );
-        },
-      ),
-    );
+  void setupAlertDialoadContainer() {
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text("Locate My Pet"),
+          leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                // Navigate back to the first screen by popping the current route
+                // off the stack.
+                // Navigator.pop(context);
+                Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (context) {
+                  // _bleManager.destroyClient();
+                  return BluetoothConnection();
+                }));
+              }
+              // onPressed: () => Navigator.of(context).pop(),
+              ),
+        ),
+        body: Center(
+            child: Container(
+                child: Material(
+          child: ListView.builder(
+            itemCount: deviceList.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: Text(services[index].uuid.toString()),
+                subtitle: Text("Lat :" +
+                    Utf8Decoder().convert(lat) +
+                    " Long: " +
+                    Utf8Decoder().convert(lng)),
+                // trailing: Text(characteristicsLng[index].isReadable
+                //     ? characteristicsLng[index].read()
+                //     : ""),
+              );
+            },
+          ),
+        ))),
+      );
+    }));
   }
 
   //스캔 ON/OFF
@@ -95,51 +121,27 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
     if (!_isScanning) {
       deviceList.clear();
       // _bleManager.startPeripheralScan().listen((scanResult) {
-        _bleManager.startPeripheralScan(uuids: ["d1acf0d0-0a9b-11eb-adc1-0242ac120002",],).listen((scanResult) {
-        // 페리페럴 항목에 이름이 있으면 그걸 사용하고
-        // 없다면 어드버타이지먼트 데이터의 이름을 사용하고 그것 마져 없다면 Unknown으로 표시
-        var name = scanResult.peripheral.name ??
-            scanResult.advertisementData.localName ??
-            "Unknown";
+      flutterBlue.startScan(
+          timeout: Duration(seconds: 4), withServices: [Guid(serviceUUID)]);
 
-        // 여러가지 정보 확인
-        print("Scanned Name $name, RSSI ${scanResult.rssi}");
-        print(
-            "\tidentifier(mac) ${scanResult.peripheral.identifier}"); //mac address
-        print("\tservice UUID : ${scanResult.advertisementData.serviceUuids}");
-        print(
-            "\tmanufacture Data : ${scanResult.advertisementData.manufacturerData}");
-        print(
-            "\tTx Power Level : ${scanResult.advertisementData.txPowerLevel}");
-        print("\t${scanResult.peripheral}");
-
-        //이미 검색된 장치인지 확인 mac 주소로 확인
-        var findDevice = deviceList.any((element) {
-          if (element.peripheral.identifier ==
-              scanResult.peripheral.identifier) {
-            //이미 존재하면 기존 값을 갱신.
-            element.peripheral = scanResult.peripheral;
-            element.advertisementData = scanResult.advertisementData;
-            element.rssi = scanResult.rssi;
-            return true;
-          }
-          return false;
-        });
-        //처음 발견된 장치라면 devicelist에 추가
-        if (!findDevice) {
-          deviceList.add(BleDeviceItem(name, scanResult.rssi,
-              scanResult.peripheral, scanResult.advertisementData));
+      // Listen to scan results
+      flutterBlue.scanResults.listen((results) {
+        // do something with scan results
+        for (ScanResult r in results) {
+          // 여러가지 정보 확인
+          print("Scanned Name ${r.device.name}, RSSI ${r.rssi}");
+          print("\tidentifier(mac) ${r.device.id}"); //mac address
+          print("\tservice UUID : ${r.advertisementData.serviceUuids}");
+          print("\tmanufacture Data : ${r.advertisementData.manufacturerData}");
+          print("\tTx Power Level : ${r.advertisementData.txPowerLevel}");
+          deviceList.add(BleDeviceItem(r.rssi, r.advertisementData, r.device));
         }
-        //갱긴 적용.
-        setState(() {});
       });
-      //스캔중으로 변수 변경
       setState(() {
         _isScanning = true;
       });
     } else {
-      //스캔중이었다면 스캔 정지
-      _bleManager.stopPeripheralScan();
+      flutterBlue.stopScan();
       setState(() {
         _isScanning = false;
       });
@@ -152,13 +154,39 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
       itemBuilder: (context, index) {
         return ListTile(
           //디바이스 이름과 맥주소 그리고 신호 세기를 표시한다.
-          title: Text(deviceList[index].deviceName),
+          title: Text(deviceList[index].device.name),
           // subtitle: Text("${deviceList[index].advertisementData}"),
-          subtitle: Text(deviceList[index].peripheral.identifier),
-          trailing: Text("${deviceList[index].rssi}"),
-          onTap: () {
-            connect(deviceList[index].peripheral);
-          },
+          subtitle: lat != null && lng!= null ? Text("Lat :" +
+                    Utf8Decoder().convert(lat) +
+                    " Long: " +
+                    Utf8Decoder().convert(lng)) : Text(" "),
+          // ignore: unrelated_type_equality_checks
+          trailing: FlatButton(
+            color: isConnected ? Colors.red : Colors.green,
+            shape: RoundedRectangleBorder(),
+            onPressed: () {
+              if (!isConnected) {
+                connect(deviceList[index].device);
+              } else {
+                deviceList[index].device.disconnect().whenComplete(() async => {
+                      connectedDevices = await flutterBlue.connectedDevices,
+                      if (!connectedDevices.contains(deviceList[index].device))
+                        {
+                          setState(() {
+                            isConnected = false;
+                            print("Disconnected");
+                          })
+                        }
+                    });
+              }
+              print('Received click');
+            },
+            child: Text(isConnected ? "Disconnect" : "Connect"),
+          ),
+          // trailing: Text("${deviceList[index].rssi}"),
+          // onTap: () {
+          //   connect(deviceList[index].peripheral);
+          // },
         );
       },
     );
@@ -177,6 +205,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
               // Navigator.pop(context);
               Navigator.pushReplacement(context,
                   MaterialPageRoute(builder: (context) {
+                // _bleManager.destroyClient();
                 return ProfileScreen();
               }));
             }
@@ -198,10 +227,8 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
 }
 
 class BleDeviceItem {
-  String deviceName;
-  Peripheral peripheral;
   int rssi;
   AdvertisementData advertisementData;
-  BleDeviceItem(
-      this.deviceName, this.rssi, this.peripheral, this.advertisementData);
+  BluetoothDevice device;
+  BleDeviceItem(this.rssi, this.advertisementData, this.device);
 }
