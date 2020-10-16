@@ -1,6 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -8,8 +6,6 @@ import 'package:http/http.dart' as http;
 class HomeSignInWidget extends StatelessWidget {
   final Function gotoSignUp;
   final Function gotoSignIn;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
   HomeSignInWidget({this.gotoSignUp, this.gotoSignIn});
 
   void _signInFacebook() async {
@@ -17,7 +13,7 @@ class HomeSignInWidget extends StatelessWidget {
     final result = await facebookLogin.logIn(['email']);
     final token = result.accessToken.token;
     final graphResponse = await http.get(
-        'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=${token}');
+        'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=$token');
     print(graphResponse.body);
     // if (result.status == FacebookLoginStatus.loggedIn) {
     //   final credential = FacebookAuthProvider.getCredential(token)

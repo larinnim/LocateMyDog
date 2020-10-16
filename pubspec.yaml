@@ -39,6 +39,12 @@ dependencies:
   firebase_storage: ^4.0.0
   geoflutterfire: ^2.2.1
   geolocator: ^6.0.0+4
+  flutter_ble_lib: ^2.3.0
+  flutter_blue: ^0.7.2
+  permission_handler: ^5.0.1+1
+  flutter_launcher_icons: "^0.8.1"
+  convert: ^2.1.1
+
   flutter:
     sdk: flutter
 
@@ -50,6 +56,11 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+flutter_icons:
+    android: true
+    ios: true
+    image_path_android: "assets/icon/icon.png"
+    image_path_ios: "assets/icon/icon.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

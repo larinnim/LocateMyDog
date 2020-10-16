@@ -33,7 +33,8 @@ class UserController {
 
   void updateDisplayName(String displayName) {
     _currentUser.displayName = displayName;
-    _authRepo.updateDisplayName(displayName);
+    updateDisplayName(displayName);
+    // _authRepo.updateDisplayName(displayName);
   }
 
   Future<void> signInWithEmailAndPassword(
