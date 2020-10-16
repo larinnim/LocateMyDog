@@ -36,8 +36,6 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
         //Make sure user's device gps is on.
       }
     });
-    // setState(() {_isScanning = false;});
-    // scan();
   }
 
   void connectDev(BluetoothDevice dev) async {
@@ -53,6 +51,18 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                     services.forEach((service) {
                       characteristics = service.characteristics;
                     }),
+                    await characteristics[0].setNotifyValue(true),
+                    await characteristics[1].setNotifyValue(true),
+
+                    characteristics[0].value.listen((value) {
+                      lat = value;
+                      print("Received Latitude: " + Utf8Decoder().convert(lat));
+                    }),
+                    characteristics[1].value.listen((value) {
+                      lng = value;
+                      print("Received Longitude: " + Utf8Decoder().convert(lng));
+                    }),
+
                     lat = await characteristics[0].read(),
                     lng = await characteristics[1].read(),
                     print("Connected"),
