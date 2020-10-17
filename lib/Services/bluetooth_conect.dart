@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
+import 'package:intl/intl.dart';
 
 class BluetoothConnection extends StatefulWidget {
   @override
@@ -18,6 +19,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
   List<BluetoothDevice> connectedDevices;
   List<int> lat;
   List<int> lng;
+  DateTime now;
 
   String serviceUUID = "d1acf0d0-0a9b-11eb-adc1-0242ac120002";
 
@@ -36,12 +38,10 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
         //Make sure user's device gps is on.
       }
     });
-    // setState(() {_isScanning = false;});
-    // scan();
   }
 
   void connectDev(BluetoothDevice dev) async {
-    await dev.connect(autoConnect: true).then((status) async {
+    await dev.connect().then((status) async {
       // connectedDevices = await flutterBlue.connectedDevices;
       await flutterBlue.connectedDevices
           .then((value) async => {
@@ -53,6 +53,28 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                     services.forEach((service) {
                       characteristics = service.characteristics;
                     }),
+                    await characteristics[0].setNotifyValue(true),
+                    await characteristics[1].setNotifyValue(true),
+
+                    characteristics[0].value.listen((value) {
+                      lat = value;
+                      print(
+                          "Received Latitude: " + Utf8Decoder().convert(value));
+                      setState(() {
+                        lat = value;
+                        now = DateTime.now();
+                      });
+                    }),
+                    characteristics[1].value.listen((value) {
+                      // lng = value;
+                      print("Received Longitude: " +
+                          Utf8Decoder().convert(value));
+                      setState(() {
+                        lng = value;
+                        now = DateTime.now();
+                      });
+                    }),
+
                     lat = await characteristics[0].read(),
                     lng = await characteristics[1].read(),
                     print("Connected"),
@@ -128,7 +150,9 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
               ? Text("Lat :" +
                   Utf8Decoder().convert(lat) +
                   " Long: " +
-                  Utf8Decoder().convert(lng))
+                  Utf8Decoder().convert(lng) +
+                  " at : " +
+                  DateFormat('hh:mm:ss').format(now))
               : Text(" "),
           // ignore: unrelated_type_equality_checks
           trailing: FlatButton(
