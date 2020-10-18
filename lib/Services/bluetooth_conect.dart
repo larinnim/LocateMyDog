@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_maps/Screens/Profile/MapLocation.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'dart:math';
 import 'package:vector_math/vector_math.dart' as vec;
 import 'custom_expansion_tile.dart' as custom;
@@ -112,33 +114,54 @@ class BlueLocation {
         controller.addError(e);
       }
     });
-    // return null;
-    // });
-    //   try {
-    //     await methodChannel.invokeMethod<void>('listen', arguments);
-    //   } catch (exception, stack) {
-    //     FlutterError.reportError(FlutterErrorDetails(
-    //       exception: exception,
-    //       stack: stack,
-    //       library: 'services library',
-    //       context: ErrorDescription('while activating platform stream on channel $name'),
-    //     ));
-    //   }
-    // },
-    //  onCancel: () async {
-    //   binaryMessenger.setMessageHandler(name, null);
-    //   try {
-    //     await methodChannel.invokeMethod<void>('cancel', arguments);
-    //   } catch (exception, stack) {
-    //     FlutterError.reportError(FlutterErrorDetails(
-    //       exception: exception,
-    //       stack: stack,
-    //       library: 'services library',
-    //       context: ErrorDescription('while de-activating platform stream on channel $name'),
-    //     ));
-    //   }
-    // });
     return controller.stream;
+  }
+}
+
+class BleModel extends ChangeNotifier {
+  List<BleDeviceItem> _deviceList = [];
+  List<BluetoothService> _services = [];
+  List<BluetoothCharacteristic> _characteristics = [];
+  List<BluetoothDevice> _connectedDevices;
+
+  /// An unmodifiable view of the items in the cart.
+  UnmodifiableListView<BleDeviceItem> get items =>
+      UnmodifiableListView(_deviceList);
+
+  /// Adds [item] to cart. This and [removeAll] are the only ways to modify the
+  /// cart from the outside.
+  void addDeviceList(BleDeviceItem item) {
+    _deviceList.add(item);
+    // This call tells the widgets that are listening to this model to rebuild.
+    notifyListeners();
+  }
+
+  void addService(BluetoothService service) {
+    _services.add(service);
+    // This call tells the widgets that are listening to this model to rebuild.
+    notifyListeners();
+  }
+
+  void addcharacteristics(BluetoothCharacteristic characteristic) {
+    _characteristics.add(characteristic);
+    // This call tells the widgets that are listening to this model to rebuild.
+    notifyListeners();
+  }
+
+  void addconnectedDevices(BluetoothDevice device) {
+    _connectedDevices.add(device);
+    // This call tells the widgets that are listening to this model to rebuild.
+    notifyListeners();
+  }
+
+  /// Removes all items from the cart.
+  void removeAll() {
+    _deviceList.clear();
+    _services.clear();
+    _characteristics.clear();
+    _connectedDevices.clear();
+    // This call tells the widgets that are listening to this model to rebuild.
+    notifyListeners();
   }
 }
 
@@ -152,11 +175,10 @@ class BluetoothConnection extends StatefulWidget {
 class _BluetoothConnectionState extends State<BluetoothConnection> {
   FlutterBlue flutterBlue = FlutterBlue.instance;
   bool _isScanning = false;
-  List<BleDeviceItem> deviceList = [];
-  List<BluetoothService> services = [];
-  List<BluetoothCharacteristic> characteristics = [];
-  // bool isConnected = false;
-  List<BluetoothDevice> connectedDevices;
+  // List<BleDeviceItem> deviceList = [];
+  // List<BluetoothService> services = [];
+  // List<BluetoothCharacteristic> characteristics = [];
+  // List<BluetoothDevice> connectedDevices;
   // List<int> lat;
   // List<int> lng;
   // DateTime now;
@@ -188,18 +210,18 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
       // connectedDevices = await flutterBlue.connectedDevices;
       await flutterBlue.connectedDevices
           .then((value) async => {
-                connectedDevices = value,
-                if (connectedDevices.contains(dev))
+                      Provider.of<BleModel>(context, listen: false)._connectedDevices = value,
+                if (Provider.of<BleModel>(context, listen: false)._connectedDevices.contains(dev))
                   {
-                    services = await dev.discoverServices(),
+                    Provider.of<BleModel>(context, listen: false)._services = await dev.discoverServices(),
                     //Only works if I have 1 service. Review the logic if there is more than 1
-                    services.forEach((service) {
-                      characteristics = service.characteristics;
+                    Provider.of<BleModel>(context, listen: false)._services.forEach((service) {
+                      Provider.of<BleModel>(context, listen: false)._characteristics = service.characteristics;
                     }),
-                    await characteristics[0].setNotifyValue(true),
-                    await characteristics[1].setNotifyValue(true),
+                    await Provider.of<BleModel>(context, listen: false)._characteristics[0].setNotifyValue(true),
+                    await Provider.of<BleModel>(context, listen: false)._characteristics[1].setNotifyValue(true),
 
-                    characteristics[0].value.listen((value) {
+                    Provider.of<BleModel>(context, listen: false)._characteristics[0].value.listen((value) {
                       // lat = value;
                       BlueLocation._singleton.lat = value;
                       print(
@@ -210,7 +232,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                         BlueLocation._singleton.onLocationChanged();
                       });
                     }),
-                    characteristics[1].value.listen((value) {
+                    Provider.of<BleModel>(context, listen: false)._characteristics[1].value.listen((value) {
                       // lng = value;
                       print("Received Longitude: " +
                           Utf8Decoder().convert(value));
@@ -223,9 +245,9 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
 
                     // lat = await characteristics[0].read(),
                     BlueLocation._singleton.lat =
-                        await characteristics[0].read(),
+                        await Provider.of<BleModel>(context, listen: false)._characteristics[0].read(),
                     BlueLocation._singleton.lng =
-                        await characteristics[1].read(),
+                        await Provider.of<BleModel>(context, listen: false)._characteristics[1].read(),
                     print("Connected"),
                     setState(() {
                       // isConnected = true;
@@ -242,7 +264,9 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
   //스캔 ON/OFF
   void scan() async {
     if (!_isScanning) {
-      deviceList.clear();
+      // Provider.of<BleModel>(context, listen: false).removeAll();
+
+      // deviceList.clear();
       flutterBlue.startScan(withServices: [Guid(serviceUUID)]);
 
       // Listen to scan results
@@ -250,7 +274,9 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
         // do something with scan results
         for (ScanResult r in results) {
           //Check if the device has already been discovered Check by mac address
-          var findDevice = deviceList.any((element) {
+          var findDevice = Provider.of<BleModel>(context, listen: false)
+              ._deviceList
+              .any((element) {
             if (element.device.id == r.device.id) {
               //이미 존재하면 기존 값을 갱신.
               element.device = r.device;
@@ -270,8 +296,8 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
             print(
                 "\tmanufacture Data : ${r.advertisementData.manufacturerData}");
             print("\tTx Power Level : ${r.advertisementData.txPowerLevel}");
-            deviceList
-                .add(BleDeviceItem(r.rssi, r.advertisementData, r.device));
+            Provider.of<BleModel>(context, listen: false)
+                .addDeviceList(BleDeviceItem(r.rssi, r.advertisementData, r.device));
           }
           setState(() {});
         }
@@ -289,7 +315,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
 
   list() {
     return ListView.builder(
-        itemCount: deviceList.length,
+        itemCount: Provider.of<BleModel>(context, listen: false).items.length,
         itemBuilder: (context, index) {
           return Column(children: <Widget>[
             SizedBox(height: 20.0),
@@ -297,7 +323,11 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                 headerBackgroundColor: Colors.blue,
                 iconColor: Colors.white,
                 title: Text(
-                  "Device: " + deviceList[index].device.name,
+                  "Device: " +
+                      Provider.of<BleModel>(context, listen: false)
+                          ._deviceList[index]
+                          .device
+                          .name,
                   style: TextStyle(
                       fontSize: 18.0,
                       fontWeight: FontWeight.bold,
@@ -339,58 +369,87 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                                     " at : " +
                                     DateFormat('hh:mm:ss')
                                         .format(BlueLocation._singleton.now))
-                                : Text("No Data. Please Connect", style: TextStyle(fontFamily: 'Raleway', fontSize: 13, color: Colors.grey),),
+                                : Text(
+                                    "No Data. Please Connect",
+                                    style: TextStyle(
+                                        fontFamily: 'Raleway',
+                                        fontSize: 13,
+                                        color: Colors.grey),
+                                  ),
                             trailing: FlatButton(
-                                color: connectedDevices == null ||
-                                        !connectedDevices
-                                            .contains(deviceList[index].device)
-                                    ? Colors.green
-                                    : Colors.red,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.0)),
-                                onPressed: () {
-                                  if (connectedDevices != null) {
-                                    if (!connectedDevices
-                                        .contains(deviceList[index].device)) {
-                                      connectDev(deviceList[index].device);
-                                    } else {
-                                      deviceList[index]
-                                          .device
-                                          .disconnect()
-                                          .then((status) async => {
-                                                await flutterBlue
-                                                    .connectedDevices
-                                                    .then((value) async => {
-                                                          connectedDevices =
-                                                              value,
-                                                          if (!connectedDevices
-                                                              .contains(
-                                                                  deviceList[
-                                                                          index]
-                                                                      .device))
-                                                            {
-                                                              BlueLocation
-                                                                  ._singleton
-                                                                  .lat = null,
-                                                              BlueLocation
-                                                                  ._singleton
-                                                                  .lng = null,
-                                                              setState(() {})
-                                                            }
-                                                        })
-                                              });
-                                    }
+                              color: Provider.of<BleModel>(context, listen: false)._connectedDevices == null ||
+                                      !Provider.of<BleModel>(context, listen: false)._connectedDevices.contains(
+                                          Provider.of<BleModel>(context,
+                                                  listen: false)
+                                              ._deviceList[index]
+                                              .device)
+                                  ? Colors.green
+                                  : Colors.red,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18.0)),
+                              onPressed: () {
+                                if (Provider.of<BleModel>(context, listen: false)._connectedDevices != null) {
+                                  if (!Provider.of<BleModel>(context, listen: false)._connectedDevices.contains(
+                                      Provider.of<BleModel>(context,
+                                              listen: false)
+                                          ._deviceList[index]
+                                          .device)) {
+                                    connectDev(Provider.of<BleModel>(context,
+                                            listen: false)
+                                        ._deviceList[index]
+                                        .device);
                                   } else {
-                                    connectDev(deviceList[index].device);
+                                    Provider.of<BleModel>(context,
+                                            listen: false)
+                                        ._deviceList[index]
+                                        .device
+                                        .disconnect()
+                                        .then((status) async => {
+                                              await flutterBlue.connectedDevices
+                                                  .then((value) async => {
+                                                        Provider.of<BleModel>(context, listen: false)._connectedDevices =
+                                                            value,
+                                                        if (!Provider.of<BleModel>(context, listen: false)._connectedDevices
+                                                            .contains(Provider.of<
+                                                                        BleModel>(
+                                                                    context,
+                                                                    listen:
+                                                                        false)
+                                                                ._deviceList[
+                                                                    index]
+                                                                .device))
+                                                          {
+                                                            BlueLocation
+                                                                ._singleton
+                                                                .lat = null,
+                                                            BlueLocation
+                                                                ._singleton
+                                                                .lng = null,
+                                                            setState(() {})
+                                                          }
+                                                      })
+                                            });
                                   }
-                                },
-                                child: Text(
-                                  connectedDevices == null ||
-                                      !connectedDevices.contains(deviceList[index].device)
-                                  ? "Connect"
-                                  : "Disconnect",
-                                  style: TextStyle(fontSize: 15.0, color: Colors.white),
-                                ),
-                                ))
+                                } else {
+                                  connectDev(Provider.of<BleModel>(context,
+                                          listen: false)
+                                      ._deviceList[index]
+                                      .device);
+                                }
+                              },
+                              child: Text(
+                                Provider.of<BleModel>(context, listen: false)._connectedDevices == null ||
+                                        !Provider.of<BleModel>(context, listen: false)._connectedDevices.contains(
+                                            Provider.of<BleModel>(context,
+                                                    listen: false)
+                                                ._deviceList[index]
+                                                .device)
+                                    ? "Connect"
+                                    : "Disconnect",
+                                style: TextStyle(
+                                    fontSize: 15.0, color: Colors.white),
+                              ),
+                            ))
                       ])
                 ])
           ]);

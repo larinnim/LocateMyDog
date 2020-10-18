@@ -1,8 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
+import 'package:provider/provider.dart';
 import 'locator.dart';
-
+import 'Services/bluetooth_conect.dart';
 // void main() => runApp(MyApp());
 
 void main() async {
@@ -16,7 +17,15 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(
+          value: BleModel(),
+        ),
+      ], child:
+    
+     MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Locate My Pet',
       theme: ThemeData(
@@ -30,7 +39,7 @@ class MyApp extends StatelessWidget {
       //   primarySwatch: Colors.blue,
       // ),
       // home: MyHomePage(title: 'Locate My Dog'),
-    );
+    ));
   }
 }
 
