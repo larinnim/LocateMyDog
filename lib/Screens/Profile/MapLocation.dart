@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
+import '../../Services/bluetooth_conect.dart';
 
 class MapLocation extends StatefulWidget {
   // final User user;
@@ -23,7 +23,10 @@ class MapLocation extends StatefulWidget {
 class _MapLocationState extends State<MapLocation>
     with AutomaticKeepAliveClientMixin {
   StreamSubscription _locationSubscription;
-  Location _locationTracker = Location();
+  BlueLocation _locationTracker = BlueLocation();
+  // GlobalKey<_BluetoothConnectionState> _myKey = GlobalKey();
+
+  // Location _locationTracker = Location();
   Marker marker;
   Circle circle;
   GoogleMapController _controller;
@@ -49,7 +52,9 @@ class _MapLocationState extends State<MapLocation>
 
   listenNumbers() async {
     Uint8List imageData = await getMarker();
-    LocationData _locationData = await _locationTracker.getLocation();
+    // LocationValues _locationData = await _locationTracker.heading;
+    // LocationValues _locationValues = await _locationTracker.getLocation();
+
     // Stream<QuerySnapshot> streamNumbers = _firestore
     _firestore
         .collection('locations')
@@ -82,7 +87,7 @@ class _MapLocationState extends State<MapLocation>
             LatLng(double.parse('${point.latitude}'),
                 double.parse('${point.longitude}')),
             imageData,
-            _locationData.heading);
+            _locationTracker.heading);
         updatePolygon(LatLng(double.parse('${point.latitude}'),
             double.parse('${point.longitude}')));
       }
@@ -175,10 +180,10 @@ class _MapLocationState extends State<MapLocation>
         _locationSubscription.cancel();
       }
 
-      _locationSubscription =
+      _locationSubscription = 
           _locationTracker.onLocationChanged().listen((newLocalData) {
         if (_controller != null) {
-          print('Accuracy ${newLocalData.accuracy}');
+          // print('Accuracy ${newLocalData.accuracy}');
           print('Latitude ${newLocalData.latitude}');
           print('Latitude ${newLocalData.longitude}');
 
@@ -245,7 +250,7 @@ class _MapLocationState extends State<MapLocation>
                 // Navigator.pop(context);
                 Navigator.pushReplacement(context,
                     MaterialPageRoute(builder: (context) {
-                  return ProfileScreen();
+                  return BluetoothConnection();
                 }));
               }
               // onPressed: () => Navigator.of(context).pop(),

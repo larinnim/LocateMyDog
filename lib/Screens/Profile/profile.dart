@@ -115,7 +115,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         }));
                       },
                       child: ProfileListItem(
-                        icon: LineAwesomeIcons.map_marked,
+                        icon: LineAwesomeIcons.search_location,
                         text: 'Find ${_firebaseAuth.currentUser.displayName}',
                       ),
                     ),
@@ -127,8 +127,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         }));
                       },
                       child: ProfileListItem(
-                        icon: LineAwesomeIcons.bluetooth,
-                        text: 'Connect Using Bluetooth',
+                        icon: LineAwesomeIcons.walking,
+                        text: 'Track Walk',
                       ),
                     ),
                     ProfileListItem(
