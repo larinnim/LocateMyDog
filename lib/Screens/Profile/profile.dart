@@ -115,20 +115,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         }));
                       },
                       child: ProfileListItem(
-                        icon: LineAwesomeIcons.map_marked,
+                        icon: LineAwesomeIcons.search_location,
                         text: 'Find ${_firebaseAuth.currentUser.displayName}',
                       ),
                     ),
                     InkWell(
                       onTap: () {
-                        Navigator.pushReplacement(context,
-                            MaterialPageRoute(builder: (context) {
-                          return BluetoothConnection();
-                        }));
+                        Navigator.push(context, new MaterialPageRoute(
+                        builder: (context) => new BluetoothConnection())
+                      );
+                        // Navigator.pushNamed(context, '/trackWalk');
+                        // Navigator.pushReplacement(context,
+                        //     MaterialPageRoute(builder: (context) {
+                        //   return BluetoothConnection();
+                        // }));
                       },
                       child: ProfileListItem(
-                        icon: LineAwesomeIcons.bluetooth,
-                        text: 'Connect Using Bluetooth',
+                        icon: LineAwesomeIcons.walking,
+                        text: 'Track Walk',
                       ),
                     ),
                     ProfileListItem(

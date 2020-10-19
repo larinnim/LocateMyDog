@@ -1,10 +1,203 @@
+import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_maps/Screens/Profile/MapLocation.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'dart:math';
+import 'package:vector_math/vector_math.dart' as vec;
+import 'custom_expansion_tile.dart' as custom;
+import 'dart:io';
+
+class LocationValues {
+  /// Latitude in degrees
+  final double latitude;
+
+  /// Longitude, in degrees
+  final double longitude;
+
+  /// timestamp of the LocationData
+  final double time;
+
+  /// Heading is the horizontal direction of travel of this device, in degrees
+  double heading = 90;
+
+  LocationValues._(this.latitude, this.longitude, this.time, this.heading);
+
+  factory LocationValues.fromMap(Map<String, double> dataMap) {
+    return LocationValues._(
+      dataMap['latitude'],
+      dataMap['longitude'],
+      dataMap['heading'],
+      dataMap['time'],
+    );
+  }
+  @override
+  String toString() {
+    return "LocationValues<lat: $latitude, long: $longitude>";
+  }
+
+  /// Returns the initial bearing between two points
+  /// The initial bearing will most of the time be different than the end bearing, see [https://www.movable-type.co.uk/scripts/latlong.html#bearing]
+  Future<double> bearingBetween(double startLatitude, double startLongitude,
+      double endLatitude, double endLongitude) {
+    var startLongtitudeRadians = vec.radians(startLongitude);
+    var startLatitudeRadians = vec.radians(startLatitude);
+
+    var endLongtitudeRadians = vec.radians(endLongitude);
+    var endLattitudeRadians = vec.radians(endLatitude);
+
+    var y = sin(endLongtitudeRadians - startLongtitudeRadians) *
+        cos(endLattitudeRadians);
+    var x = cos(startLatitudeRadians) * sin(endLattitudeRadians) -
+        sin(startLatitudeRadians) *
+            cos(endLattitudeRadians) *
+            cos(endLongtitudeRadians - startLongtitudeRadians);
+
+    return Future.value(vec.degrees(atan2(y, x)));
+  }
+}
+
+class BleDeviceItem {
+  int rssi;
+  AdvertisementData advertisementData;
+  BluetoothDevice device;
+  BleDeviceItem(this.rssi, this.advertisementData, this.device);
+}
+
+class BleSingleton {
+  static final BleSingleton _singleton = BleSingleton._internal();
+  factory BleSingleton() => _singleton;
+  BleSingleton._internal();
+  static BleSingleton get shared => _singleton;
+  List<int> lat;
+  List<int> lng;
+  DateTime now;
+  double heading = 90;
+  // BlueLocation.private(this.lat, this.lng, this.now);
+
+  Stream<LocationValues> _onLocationChanged;
+  StreamController<dynamic> controller;
+
+  /// Returns a stream of [LocationData] objects.
+  /// The frequency and accuracy of this stream can be changed with [changeSettings]
+  ///
+  /// Throws an error if the app has no permission to access location.
+  Stream<LocationValues> onLocationChanged() {
+    _onLocationChanged = receiveBroadcastStream().map<LocationValues>(
+        (element) => LocationValues.fromMap(element.cast<String, double>()));
+    return _onLocationChanged;
+  }
+
+  Stream<dynamic> receiveBroadcastStream([dynamic arguments]) {
+    controller = StreamController<dynamic>.broadcast(onListen: () async {
+      // binaryMessenger.setMessageHandler(name, (ByteData reply) async {
+      try {
+        controller.add(lat);
+        controller.add(lng);
+        controller.add(now);
+        controller.close();
+      } on PlatformException catch (e) {
+        controller.addError(e);
+      }
+    });
+    return controller.stream;
+  }
+}
+
+class BleModel extends ChangeNotifier {
+  List<BleDeviceItem> deviceList = [];
+  List<BluetoothService> services = [];
+  List<BluetoothCharacteristic> characteristics = [];
+  List<BluetoothDevice> connectedDevices = [];
+  List<int> lat;
+  List<int> lng;
+  DateTime now;
+
+  /// An unmodifiable view of the items in the cart.
+  UnmodifiableListView<BleDeviceItem> get items =>
+      UnmodifiableListView(deviceList);
+
+  /// Adds [item] to cart. This and [removeAll] are the only ways to modify the
+  /// cart from the outside.
+  void addDeviceList(BleDeviceItem item) {
+    print("addDeviceList - Line 138");
+    deviceList.add(item);
+    // This call tells the widgets that are listening to this model to rebuild.
+    notifyListeners();
+  }
+
+  void removeConnectedDevice(BluetoothDevice device) {
+    services.clear();
+    characteristics.clear();
+    connectedDevices.clear();
+    lat = null;
+    lng = null;
+    BleSingleton._singleton.lat = null;
+    BleSingleton._singleton.lng = null;
+    BleSingleton._singleton.now = null;
+    notifyListeners();
+  }
+
+  void addService(BluetoothService service) {
+    print("addDeviceList - Line 145");
+    services.add(service);
+    // This call tells the widgets that are listening to this model to rebuild.
+    notifyListeners();
+  }
+
+  void addcharacteristics(BluetoothCharacteristic characteristic) {
+    print("addcharacteristics - Line 152");
+    characteristics.add(characteristic);
+    // This call tells the widgets that are listening to this model to rebuild.
+    notifyListeners();
+  }
+
+  void addconnectedDevices(BluetoothDevice device) {
+    print("addconnectedDevices - Line 159");
+    connectedDevices.add(device);
+    // This call tells the widgets that are listening to this model to rebuild.
+    notifyListeners();
+  }
+
+  void addLat(List<int> value) {
+    //print("addLat - Line 166");
+    lat = value;
+    BleSingleton._singleton.lat = value;
+    BleSingleton._singleton.now = DateTime.now();
+    BleSingleton._singleton.onLocationChanged();
+    now = BleSingleton._singleton.now;
+    // This call tells the widgets that are listening to this model to rebuild.
+    notifyListeners();
+  }
+
+  void addLng(List<int> value) {
+    //print("addLgn - Line 177");
+    lng = value;
+    BleSingleton._singleton.lng = value;
+    BleSingleton._singleton.now = DateTime.now();
+    BleSingleton._singleton.onLocationChanged();
+    now = BleSingleton._singleton.now;
+    // This call tells the widgets that are listening to this model to rebuild.
+    notifyListeners();
+  }
+
+  /// Removes all items from the cart.
+  void removeAll() {
+    print("removeAll - Line 189");
+    deviceList.clear();
+    // This call tells the widgets that are listening to this model to rebuild.
+    notifyListeners();
+  }
+}
 
 class BluetoothConnection extends StatefulWidget {
+  const BluetoothConnection({Key key}) : super(key: key);
+
   @override
   _BluetoothConnectionState createState() => _BluetoothConnectionState();
 }
@@ -12,24 +205,17 @@ class BluetoothConnection extends StatefulWidget {
 class _BluetoothConnectionState extends State<BluetoothConnection> {
   FlutterBlue flutterBlue = FlutterBlue.instance;
   bool _isScanning = false;
-  List<BleDeviceItem> deviceList = [];
-  List<BluetoothService> services = [];
-  List<BluetoothCharacteristic> characteristics = [];
-  // bool isConnected = false;
-  List<BluetoothDevice> connectedDevices;
-  List<int> lat;
-  List<int> lng;
-  DateTime now;
-
   String serviceUUID = "d1acf0d0-0a9b-11eb-adc1-0242ac120002";
 
   @override
   void initState() {
+    print("initState - Line 225");
     init();
     super.initState();
   }
 
   void init() async {
+    print("init - Line 231");
     FlutterBlue.instance.state.listen((state) {
       if (state == BluetoothState.off) {
         //Alert user to turn on bluetooth.
@@ -41,59 +227,37 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
   }
 
   void connectDev(BluetoothDevice dev) async {
+    //sleep(const Duration(seconds: 1));
+    print("connectDev - Line 243");
     await dev.connect().then((status) async {
-      // connectedDevices = await flutterBlue.connectedDevices;
-      await flutterBlue.connectedDevices
-          .then((value) async => {
-                connectedDevices = value,
-                if (connectedDevices.contains(dev))
-                  {
-                    services = await dev.discoverServices(),
-                    //Only works if I have 1 service. Review the logic if there is more than 1
-                    services.forEach((service) {
-                      characteristics = service.characteristics;
-                    }),
-                    await characteristics[0].setNotifyValue(true),
-                    await characteristics[1].setNotifyValue(true),
+      //add connected device to the list
+      context.read<BleModel>().addconnectedDevices(dev);
 
-                    characteristics[0].value.listen((value) {
-                      lat = value;
-                      print(
-                          "Received Latitude: " + Utf8Decoder().convert(value));
-                      setState(() {
-                        lat = value;
-                        now = DateTime.now();
-                      });
-                    }),
-                    characteristics[1].value.listen((value) {
-                      // lng = value;
-                      print("Received Longitude: " +
-                          Utf8Decoder().convert(value));
-                      setState(() {
-                        lng = value;
-                        now = DateTime.now();
-                      });
-                    }),
+      context.read<BleModel>().services = await dev.discoverServices();
+      //Only works if I have 1 service. Review the logic if there is more than 1
+      context.read<BleModel>().services.forEach((service) {
+        context.read<BleModel>().characteristics = service.characteristics;
+      });
+      await context.read<BleModel>().characteristics[0].setNotifyValue(true);
+      await context.read<BleModel>().characteristics[1].setNotifyValue(true);
 
-                    lat = await characteristics[0].read(),
-                    lng = await characteristics[1].read(),
-                    print("Connected"),
-                    setState(() {
-                      // isConnected = true;
-                    })
-                  }
-              })
-          .catchError((e) => print(
-              "Couldn't retrieve list of connected devices because of error $e"));
-      print(lat);
-      print(lng);
+      context.read<BleModel>().characteristics[0].value.listen((value) {
+        context.read<BleModel>().addLat(value);
+      });
+      context.read<BleModel>().characteristics[1].value.listen((value) {
+        context.read<BleModel>().addLng(value);
+      });
+
+      print("Connected");
+      setState(() {
+      });
     }).catchError((e) => print("Connection Error $e"));
   }
 
   //스캔 ON/OFF
   void scan() async {
+    print("scan - Line 340");
     if (!_isScanning) {
-      deviceList.clear();
       flutterBlue.startScan(withServices: [Guid(serviceUUID)]);
 
       // Listen to scan results
@@ -101,7 +265,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
         // do something with scan results
         for (ScanResult r in results) {
           //Check if the device has already been discovered Check by mac address
-          var findDevice = deviceList.any((element) {
+          var findDevice = context.read<BleModel>().deviceList.any((element) {
             if (element.device.id == r.device.id) {
               //이미 존재하면 기존 값을 갱신.
               element.device = r.device;
@@ -121,8 +285,8 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
             print(
                 "\tmanufacture Data : ${r.advertisementData.manufacturerData}");
             print("\tTx Power Level : ${r.advertisementData.txPowerLevel}");
-            deviceList
-                .add(BleDeviceItem(r.rssi, r.advertisementData, r.device));
+            context.read<BleModel>().addDeviceList(
+                BleDeviceItem(r.rssi, r.advertisementData, r.device));
           }
           setState(() {});
         }
@@ -139,60 +303,112 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
   }
 
   list() {
-    return ListView.builder(
-      itemCount: deviceList.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          //디바이스 이름과 맥주소 그리고 신호 세기를 표시한다.
-          title: Text(deviceList[index].device.name),
-          // subtitle: Text("${deviceList[index].advertisementData}"),
-          subtitle: lat != null && lng != null
-              ? Text("Lat :" +
-                  Utf8Decoder().convert(lat) +
-                  " Long: " +
-                  Utf8Decoder().convert(lng) +
-                  " at : " +
-                  DateFormat('hh:mm:ss').format(now))
-              : Text(" "),
-          // ignore: unrelated_type_equality_checks
-          trailing: FlatButton(
-            color: connectedDevices == null ||
-                    !connectedDevices.contains(deviceList[index].device)
-                ? Colors.green
-                : Colors.red,
-            shape: RoundedRectangleBorder(),
-            onPressed: () {
-              if (connectedDevices != null) {
-                if (!connectedDevices.contains(deviceList[index].device)) {
-                  connectDev(deviceList[index].device);
-                } else {
-                  deviceList[index].device.disconnect().then((status) async => {
-                        await flutterBlue.connectedDevices
-                            .then((value) async => {
-                                  connectedDevices = value,
-                                  if (!connectedDevices
-                                      .contains(deviceList[index].device))
-                                    {lat = null, lng = null, setState(() {})}
-                                })
-                      });
-                  print('Received click');
-                }
-              } else {
-                connectDev(deviceList[index].device);
-              }
-            },
-            child: Text(connectedDevices == null ||
-                    !connectedDevices.contains(deviceList[index].device)
-                ? "Connect"
-                : "Disconnect"),
-          ),
-        );
-      },
-    );
+    print("list - Line 391");
+    // Consumer looks for an ancestor Provider widget
+    // and retrieves its model (BLE Model, in this case).
+    // Then it uses that model to build widgets, and will trigger
+    // rebuilds if the model is updated.
+    return Consumer<BleModel>(builder: (_, dev, child) {
+      return ListView.builder(
+          itemCount: dev.items.length,
+          itemBuilder: (context, index) {
+            return Column(children: <Widget>[
+              SizedBox(height: 20.0),
+              custom.ExpansionTile(
+                  headerBackgroundColor: Colors.blue,
+                  iconColor: Colors.white,
+                  title: Text(
+                    "Device: " + dev.deviceList[index].device.name,
+                    style: TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
+                  ),
+                  children: <Widget>[
+                    ListTile(
+                        title: Text("Configure Device WiFi"),
+                        trailing: IconButton(
+                            icon: Icon(Icons.wifi),
+                            tooltip: 'Go to WiFI',
+                            onPressed: () => Navigator.pushReplacement(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return MapLocation(); //TODO create go to wifi
+                                })))),
+                    ListTile(
+                        title: Text("Go to Map"),
+                        trailing: IconButton(
+                            icon: Icon(Icons.map),
+                            tooltip: 'Go to Map',
+                            onPressed: () => Navigator.pushReplacement(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return MapLocation();
+                                })))),
+                    ExpansionTile(
+                        title: Text(
+                          'Current Data',
+                        ),
+                        children: <Widget>[
+                          ListTile(
+                              title: dev.lat != null && dev.lng != null
+                                  ? Text("Lat :" +
+                                      Utf8Decoder().convert(dev.lat) +
+                                      " | Long: " +
+                                      Utf8Decoder().convert(dev.lng) +
+                                      " at : " +
+                                      DateFormat('hh:mm:ss').format(dev.now))
+                                  : Text(
+                                      "No Data. Please Connect",
+                                      style: TextStyle(
+                                          fontFamily: 'Raleway',
+                                          fontSize: 13,
+                                          color: Colors.grey),
+                                    ),
+                              trailing: FlatButton(
+                                color: dev.connectedDevices == null ||
+                                        !dev.connectedDevices.contains(
+                                            dev.deviceList[index].device)
+                                    ? Colors.green
+                                    : Colors.red,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18.0)),
+                                onPressed: () {
+                                  if (dev.connectedDevices != null) {
+                                    if (!dev.connectedDevices.contains(
+                                        dev.deviceList[index].device)) {
+                                      connectDev(dev.deviceList[index].device);
+                                    } else {
+                                      dev.deviceList[index].device
+                                          .disconnect()
+                                          .then((status) async => {
+                                                context
+                                                    .read<BleModel>().removeConnectedDevice(dev.deviceList[index].device),
+                                                setState(() {})
+                                              });
+                                    }
+                                  } else {
+                                    connectDev(dev.deviceList[index].device);
+                                  }
+                                },
+                                child: Text(
+                                  dev.connectedDevices == null ||
+                                          !dev.connectedDevices.contains(
+                                              dev.deviceList[index].device)
+                                      ? "Connect"
+                                      : "Disconnect",
+                                  style: TextStyle(
+                                      fontSize: 15.0, color: Colors.white),
+                                ),
+                              ))
+                        ])
+                  ])
+            ]);
+          });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // return Consumer<BleModel>(builder: (context, dev, _) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Locate My Pet"),
@@ -202,12 +418,14 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
               // Navigate back to the first screen by popping the current route
               // off the stack.
               // Navigator.pop(context);
-              Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (context) {
-                return ProfileScreen();
-              }));
+              // Navigator.pushReplacement(context,
+              //     MaterialPageRoute(builder: (context) {
+              //   return ProfileScreen();
+              // }));
+              Navigator.pushNamed(context, '/profile');
             }),
       ),
+      backgroundColor: Colors.grey[100],
       body: Center(
         //디바이스 리스트 함수 호출
         child: list(),
@@ -220,11 +438,4 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
       ),
     );
   }
-}
-
-class BleDeviceItem {
-  int rssi;
-  AdvertisementData advertisementData;
-  BluetoothDevice device;
-  BleDeviceItem(this.rssi, this.advertisementData, this.device);
 }
