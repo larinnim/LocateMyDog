@@ -121,10 +121,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     InkWell(
                       onTap: () {
-                        Navigator.pushReplacement(context,
-                            MaterialPageRoute(builder: (context) {
-                          return BluetoothConnection();
-                        }));
+                        Navigator.push(context, new MaterialPageRoute(
+                        builder: (context) => new BluetoothConnection())
+                      );
+                        // Navigator.pushNamed(context, '/trackWalk');
+                        // Navigator.pushReplacement(context,
+                        //     MaterialPageRoute(builder: (context) {
+                        //   return BluetoothConnection();
+                        // }));
                       },
                       child: ProfileListItem(
                         icon: LineAwesomeIcons.walking,

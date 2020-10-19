@@ -23,7 +23,7 @@ class MapLocation extends StatefulWidget {
 class _MapLocationState extends State<MapLocation>
     with AutomaticKeepAliveClientMixin {
   StreamSubscription _locationSubscription;
-  BlueLocation _locationTracker = BlueLocation();
+  BleSingleton _locationTracker = BleSingleton();
   // GlobalKey<_BluetoothConnectionState> _myKey = GlobalKey();
 
   // Location _locationTracker = Location();
