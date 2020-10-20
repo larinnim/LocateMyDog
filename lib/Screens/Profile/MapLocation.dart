@@ -28,7 +28,9 @@ class _MapLocationState extends State<MapLocation> {
   // GlobalKey<_BluetoothConnectionState> _myKey = GlobalKey();
 
   // Location _locationTracker = Location();
-  Marker marker;
+  // Marker marker;
+  List<Marker> markers = <Marker>[];
+
   Circle circle;
   GoogleMapController _controller;
   Map<PolylineId, Polyline> _mapPolylines = {};
@@ -42,70 +44,75 @@ class _MapLocationState extends State<MapLocation> {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   List<LatLng> polyLinesLatLongs = List<LatLng>(); // our list of geopoints
   var mapLocation;
-
+  Uint8List imageData;
   @override
   void initState() {
-    listenNumbers();
+    // getimage();
+    // listenNumbers();
     super.initState();
   }
 
-  listenNumbers() async {
-    Uint8List imageData = await getMarker();
-    // LocationValues _locationData = await _locationTracker.heading;
-    // LocationValues _locationValues = await _locationTracker.getLocation();
-
-    // Stream<QuerySnapshot> streamNumbers = _firestore
-    _firestore
-        .collection('locations')
-        .doc(_firebaseAuth.currentUser.uid)
-        .collection('User_Locations')
-        .where("owner", isEqualTo: "${_firebaseAuth.currentUser.uid}")
-        .get()
-        .then((querySnapshot) {
-      var fireBase = querySnapshot.docs;
-
-      GeoFirePoint point =
-          geo.point(latitude: 46.520374, longitude: -80.954211);
-      _firestore
-          .collection('locations')
-          .doc(_firebaseAuth.currentUser.uid)
-          .collection('User_Locations')
-          .add(
-              {'position': point.data, 'owner': _firebaseAuth.currentUser.uid});
-
-      for (var i = 1; i < fireBase.length; i++) {
-        GeoPoint point = fireBase[i].data()['position']
-            ['geopoint']; //that way to take instance of geopoint
-
-        polyLinesLatLongs.add(LatLng(
-            double.parse('${point.latitude}'),
-            double.parse(
-                '${point.longitude}'))); // now we can add our point to list
-
-        updateMarkerAndCircle(
-            LatLng(double.parse('${point.latitude}'),
-                double.parse('${point.longitude}')),
-            imageData,
-            _locationTracker.heading);
-        updatePolygon(LatLng(double.parse('${point.latitude}'),
-            double.parse('${point.longitude}')));
-      }
-    });
-    // Stream<QuerySnapshot> streamNumbers = _firestore
-    //   .collection('locations')
-    //   .doc(_firebaseAuth.currentUser.uid)
-    //   .collection('User_Locations')
-    //   .where("owner", isEqualTo: "${_firebaseAuth.currentUser.uid}")
-    //   .snapshots();
-    // streamNumbers.listen((snapshot) {
-    //   snapshot.docs.forEach((doc) {
-    //     MyModel obj = MyModel.fromDocument(doc);
-    //     numbersList.add(obj);
-    //     setState(() {
-    //     });
-    //   });
-    // });
+  getimage() async {
+    imageData = await getMarker();
   }
+
+  // listenNumbers() async {
+  //   // Uint8List imageData = await getMarker();
+  //   // LocationValues _locationData = await _locationTracker.heading;
+  //   // LocationValues _locationValues = await _locationTracker.getLocation();
+
+  //   // Stream<QuerySnapshot> streamNumbers = _firestore
+  //   _firestore
+  //       .collection('locations')
+  //       .doc(_firebaseAuth.currentUser.uid)
+  //       .collection('User_Locations')
+  //       .where("owner", isEqualTo: "${_firebaseAuth.currentUser.uid}")
+  //       .get()
+  //       .then((querySnapshot) {
+  //     var fireBase = querySnapshot.docs;
+
+  //     GeoFirePoint point =
+  //         geo.point(latitude: 46.520374, longitude: -80.954211);
+  //     _firestore
+  //         .collection('locations')
+  //         .doc(_firebaseAuth.currentUser.uid)
+  //         .collection('User_Locations')
+  //         .add(
+  //             {'position': point.data, 'owner': _firebaseAuth.currentUser.uid});
+
+  //     for (var i = 1; i < fireBase.length; i++) {
+  //       GeoPoint point = fireBase[i].data()['position']
+  //           ['geopoint']; //that way to take instance of geopoint
+
+  //       polyLinesLatLongs.add(LatLng(
+  //           double.parse('${point.latitude}'),
+  //           double.parse(
+  //               '${point.longitude}'))); // now we can add our point to list
+
+  //       updateMarkerAndCircle(
+  //           LatLng(double.parse('${point.latitude}'),
+  //               double.parse('${point.longitude}')),
+  //           imageData,
+  //           _locationTracker.heading);
+  //       updatePolygon(LatLng(double.parse('${point.latitude}'),
+  //           double.parse('${point.longitude}')));
+  //     }
+  //   });
+  // Stream<QuerySnapshot> streamNumbers = _firestore
+  //   .collection('locations')
+  //   .doc(_firebaseAuth.currentUser.uid)
+  //   .collection('User_Locations')
+  //   .where("owner", isEqualTo: "${_firebaseAuth.currentUser.uid}")
+  //   .snapshots();
+  // streamNumbers.listen((snapshot) {
+  //   snapshot.docs.forEach((doc) {
+  //     MyModel obj = MyModel.fromDocument(doc);
+  //     numbersList.add(obj);
+  //     setState(() {
+  //     });
+  //   });
+  // });
+  // }
 
   void _onMapCreated(GoogleMapController controller) {
     if (_controller == null) _controller = controller;
@@ -141,20 +148,37 @@ class _MapLocationState extends State<MapLocation> {
     });
   }
 
-  void updateMarkerAndCircle(
-      LatLng latlong, Uint8List imageData, double heading) {
+  Future<Set<Marker>> updateMarkerAndCircle(LatLng latlong) async {
     LatLng latlng = LatLng(latlong.latitude, latlong.longitude);
-    this.setState(() {
-      marker = Marker(
-          markerId: MarkerId("home"),
-          position: latlng,
-          rotation: heading,
-          draggable: false,
-          zIndex: 2,
-          flat: true,
-          anchor: Offset(0.5, 0.5),
-          icon: BitmapDescriptor.fromBytes(imageData));
-      /*
+    // this.setState(() {
+    Marker marker = Marker(
+      markerId: MarkerId("home"),
+      position: latlng,
+      rotation: BleSingleton.shared.heading,
+      draggable: false,
+      zIndex: 2,
+      flat: true,
+      anchor: Offset(0.5, 0.5),
+      icon: BitmapDescriptor.fromBytes(await getMarker())
+    );
+
+    markers.add(marker);
+
+    final String polylineIdVal = 'polyline_id_$_polylineIdCounter';
+    _polylineIdCounter++;
+    final PolylineId polylineId = PolylineId(polylineIdVal);
+    points.add(LatLng(latlong.latitude, latlong.longitude));
+
+    final Polyline polyline = Polyline(
+        polylineId: polylineId,
+        consumeTapEvents: true,
+        color: Colors.red,
+        width: 5,
+        points: points);
+    _mapPolylines[polylineId] = polyline;
+    return markers.toSet();
+
+    /*
       circle = Circle(
           circleId: CircleId("car"),
           radius: newLocalData.accuracy,
@@ -163,74 +187,74 @@ class _MapLocationState extends State<MapLocation> {
           center: latlng,
           fillColor: Colors.blue.withAlpha(70));
           */
-    });
+    // });
   }
 
-  void getCurrentLocation() async {
-    try {
-      Uint8List imageData = await getMarker();
-      // Position position = await getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      // var location = await _locationTracker.getLocation();
+  // void getCurrentLocation() async {
+  //   try {
+  //     Uint8List imageData = await getMarker();
+  //     // Position position = await getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+  //     // var location = await _locationTracker.getLocation();
 
-      // updateMarkerAndCircle(LatLng(location.latitude, location.longitude),
-      //         imageData,
-      //         location.heading);
+  //     // updateMarkerAndCircle(LatLng(location.latitude, location.longitude),
+  //     //         imageData,
+  //     //         location.heading);
 
-      // if (_locationSubscription != null) {
-      //   _locationSubscription.cancel();
-      // }
+  //     // if (_locationSubscription != null) {
+  //     //   _locationSubscription.cancel();
+  //     // }
 
-      // _locationSubscription =
-      //     _locationTracker.onLocationChanged().listen((newLocalData) {
-      if (_controller != null) {
-        // print('Accuracy ${newLocalData.accuracy}');
-        print(
-            'Latitude ${Utf8Decoder().convert(context.read<BleModel>().lat)}');
-        print(
-            'Latitude ${double.parse(Utf8Decoder().convert(context.read<BleModel>().lng))}');
+  //     // _locationSubscription =
+  //     //     _locationTracker.onLocationChanged().listen((newLocalData) {
+  //     if (_controller != null) {
+  //       // print('Accuracy ${newLocalData.accuracy}');
+  //       print(
+  //           'Latitude ${Utf8Decoder().convert(context.read<BleModel>().lat)}');
+  //       print(
+  //           'Latitude ${double.parse(Utf8Decoder().convert(context.read<BleModel>().lng))}');
 
-        _controller.animateCamera(CameraUpdate.newCameraPosition(
-            new CameraPosition(
-                bearing: 192.8334901395799,
-                // bearing: 0,
-                target: LatLng(
-                    double.parse(
-                        Utf8Decoder().convert(context.read<BleModel>().lat)),
-                    double.parse(
-                        Utf8Decoder().convert(context.read<BleModel>().lng))),
-                tilt: 0,
-                zoom: 18.00)));
-        updateMarkerAndCircle(
-            LatLng(
-                double.parse(
-                    Utf8Decoder().convert(context.read<BleModel>().lat)),
-                double.parse(
-                    Utf8Decoder().convert(context.read<BleModel>().lng))),
-            imageData,
-            BleSingleton.shared.heading);
-        updatePolygon(LatLng(
-            double.parse(Utf8Decoder().convert(context.read<BleModel>().lat)),
-            double.parse(Utf8Decoder().convert(context.read<BleModel>().lng))));
-        polyLinesLatLongs.add(LatLng(
-            double.parse(
-                '${Utf8Decoder().convert(context.read<BleModel>().lat)}'),
-            double.parse(
-                '${double.parse(Utf8Decoder().convert(context.read<BleModel>().lng))}')));
-        //  GeoFirePoint point =
-        // geo.point(latitude: newLocalData.latitude, longitude: newLocalData.longitude);
-        // _firestore
-        // .collection('locations')
-        // .doc(_firebaseAuth.currentUser.uid)
-        // .collection('User_Locations')
-        // .add({'position': point.data, 'owner': _firebaseAuth.currentUser.uid});
-      }
-      // });
-    } on PlatformException catch (e) {
-      if (e.code == 'PERMISSION_DENIED') {
-        debugPrint("Permission Denied");
-      }
-    }
-  }
+  //       _controller.animateCamera(CameraUpdate.newCameraPosition(
+  //           new CameraPosition(
+  //               bearing: 192.8334901395799,
+  //               // bearing: 0,
+  //               target: LatLng(
+  //                   double.parse(
+  //                       Utf8Decoder().convert(context.read<BleModel>().lat)),
+  //                   double.parse(
+  //                       Utf8Decoder().convert(context.read<BleModel>().lng))),
+  //               tilt: 0,
+  //               zoom: 18.00)));
+  //       updateMarkerAndCircle(
+  //           LatLng(
+  //               double.parse(
+  //                   Utf8Decoder().convert(context.read<BleModel>().lat)),
+  //               double.parse(
+  //                   Utf8Decoder().convert(context.read<BleModel>().lng))),
+  //           imageData,
+  //           BleSingleton.shared.heading);
+  //       updatePolygon(LatLng(
+  //           double.parse(Utf8Decoder().convert(context.read<BleModel>().lat)),
+  //           double.parse(Utf8Decoder().convert(context.read<BleModel>().lng))));
+  //       polyLinesLatLongs.add(LatLng(
+  //           double.parse(
+  //               '${Utf8Decoder().convert(context.read<BleModel>().lat)}'),
+  //           double.parse(
+  //               '${double.parse(Utf8Decoder().convert(context.read<BleModel>().lng))}')));
+  //       //  GeoFirePoint point =
+  //       // geo.point(latitude: newLocalData.latitude, longitude: newLocalData.longitude);
+  //       // _firestore
+  //       // .collection('locations')
+  //       // .doc(_firebaseAuth.currentUser.uid)
+  //       // .collection('User_Locations')
+  //       // .add({'position': point.data, 'owner': _firebaseAuth.currentUser.uid});
+  //     }
+  //     // });
+  //   } on PlatformException catch (e) {
+  //     if (e.code == 'PERMISSION_DENIED') {
+  //       debugPrint("Permission Denied");
+  //     }
+  //   }
+  // }
 
   // @override
   // void dispose() {
@@ -259,27 +283,64 @@ class _MapLocationState extends State<MapLocation> {
                 })),
         body: (currentPosition != null)
             ? Consumer<BleModel>(builder: (_, position, child) {
-                return GoogleMap(
-                  mapType: MapType.hybrid,
-                  initialCameraPosition: CameraPosition(
-                      target: LatLng(
-                          double.parse(Utf8Decoder().convert(position.lat)),
-                          double.parse(Utf8Decoder().convert(position.lng))),
-                      zoom: 16.0),
-                  markers: Set.of((marker != null) ? [marker] : []),
-                  circles: Set.of((circle != null) ? [circle] : []),
-                  polylines: Set<Polyline>.of(_mapPolylines.values),
-                  myLocationButtonEnabled: false,
-                  zoomGesturesEnabled: true,
-                  mapToolbarEnabled: true,
-                  myLocationEnabled: true,
-                  scrollGesturesEnabled: true,
-                  onMapCreated: _onMapCreated,
-                  // onMapCreated: (GoogleMapController controller) {
-                  //   _controller = controller;
-                  // },
-                );
-              })
+                return FutureBuilder(
+                    future: updateMarkerAndCircle(LatLng(
+                        double.parse(Utf8Decoder().convert(position.lat)),
+                        double.parse(Utf8Decoder().convert(position.lng)))),
+                    initialData: Set.of(<Marker>[]),
+                    builder: (context, snapshot) {
+                        List<Widget> children;
+                      if (snapshot.hasData) {
+                        return GoogleMap(
+                          mapType: MapType.hybrid,
+                          initialCameraPosition: CameraPosition(
+                              target: LatLng(
+                                  double.parse(
+                                      Utf8Decoder().convert(position.lat)),
+                                  double.parse(
+                                      Utf8Decoder().convert(position.lng))),
+                              zoom: 16.0),
+                            markers: snapshot.data,
+                          // markers: Set.of((marker != null) ? [marker] : []),
+                          circles: Set.of((circle != null) ? [circle] : []),
+                          polylines: Set<Polyline>.of(_mapPolylines.values),
+                          myLocationButtonEnabled: false,
+                          zoomGesturesEnabled: true,
+                          mapToolbarEnabled: true,
+                          myLocationEnabled: true,
+                          scrollGesturesEnabled: true,
+                          onMapCreated: _onMapCreated,
+                          // onMapCreated: (GoogleMapController controller) {
+                          //   _controller = controller;
+                          // },
+                        );
+                      } else if (snapshot.hasError) {
+                        children = <Widget>[
+                          Icon(
+                            Icons.error_outline,
+                            color: Colors.red,
+                            size: 60,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: Text('Error: ${snapshot.error}'),
+                          )
+                        ];
+                        } else {
+                          children = <Widget>[
+                            SizedBox(
+                              child: CircularProgressIndicator(),
+                              width: 60,
+                              height: 60,
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.only(top: 16),
+                              child: Text('Awaiting result...'),
+                            )
+                          ];
+                                    }
+                                  });
+                            })
             : Center(
                 child: CircularProgressIndicator(),
               )
