@@ -30,10 +30,11 @@ class _MapLocationState extends State<MapLocation> {
   // Location _locationTracker = Location();
   // Marker marker;
   List<Marker> markers = <Marker>[];
+  List<Polyline> mapPolylines = <Polyline>[];
 
   Circle circle;
   GoogleMapController _controller;
-  Map<PolylineId, Polyline> _mapPolylines = {};
+  // Map<PolylineId, Polyline> _mapPolylines = {};
   int _polylineIdCounter = 1;
   final List<LatLng> points = <LatLng>[];
   final _firestore = FirebaseFirestore.instance;
@@ -130,7 +131,27 @@ class _MapLocationState extends State<MapLocation> {
     return byteData.buffer.asUint8List();
   }
 
-  void updatePolygon(LatLng latlong) {
+  // void updatePolygon(LatLng latlong) {
+  //   final String polylineIdVal = 'polyline_id_$_polylineIdCounter';
+  //   _polylineIdCounter++;
+  //   final PolylineId polylineId = PolylineId(polylineIdVal);
+  //   points.add(LatLng(latlong.latitude, latlong.longitude));
+
+  //   final Polyline polyline = Polyline(
+  //       polylineId: polylineId,
+  //       consumeTapEvents: true,
+  //       color: Colors.red,
+  //       width: 5,
+  //       points: points);
+
+  //   setState(() {
+  //     _mapPolylines[polylineId] = polyline;
+  //   });
+  // }
+
+  Future<Set<Polyline>> updatePolygon(LatLng latlong) async {
+    LatLng latlng = LatLng(latlong.latitude, latlong.longitude);
+
     final String polylineIdVal = 'polyline_id_$_polylineIdCounter';
     _polylineIdCounter++;
     final PolylineId polylineId = PolylineId(polylineIdVal);
@@ -143,39 +164,41 @@ class _MapLocationState extends State<MapLocation> {
         width: 5,
         points: points);
 
-    setState(() {
-      _mapPolylines[polylineId] = polyline;
-    });
+    mapPolylines.add(polyline);
+    return mapPolylines.toSet();
+
+    // setState(() {
+    //   _mapPolylines[polylineId] = polyline;
+    // });
   }
 
   Future<Set<Marker>> updateMarkerAndCircle(LatLng latlong) async {
     LatLng latlng = LatLng(latlong.latitude, latlong.longitude);
     // this.setState(() {
     Marker marker = Marker(
-      markerId: MarkerId("home"),
-      position: latlng,
-      rotation: BleSingleton.shared.heading,
-      draggable: false,
-      zIndex: 2,
-      flat: true,
-      anchor: Offset(0.5, 0.5),
-      icon: BitmapDescriptor.fromBytes(await getMarker())
-    );
+        markerId: MarkerId("home"),
+        position: latlng,
+        rotation: BleSingleton.shared.heading,
+        draggable: false,
+        zIndex: 2,
+        flat: true,
+        anchor: Offset(0.5, 0.5),
+        icon: BitmapDescriptor.fromBytes(await getMarker()));
 
     markers.add(marker);
 
-    final String polylineIdVal = 'polyline_id_$_polylineIdCounter';
-    _polylineIdCounter++;
-    final PolylineId polylineId = PolylineId(polylineIdVal);
-    points.add(LatLng(latlong.latitude, latlong.longitude));
+    // final String polylineIdVal = 'polyline_id_$_polylineIdCounter';
+    // _polylineIdCounter++;
+    // final PolylineId polylineId = PolylineId(polylineIdVal);
+    // points.add(LatLng(latlong.latitude, latlong.longitude));
 
-    final Polyline polyline = Polyline(
-        polylineId: polylineId,
-        consumeTapEvents: true,
-        color: Colors.red,
-        width: 5,
-        points: points);
-    _mapPolylines[polylineId] = polyline;
+    // final Polyline polyline = Polyline(
+    //     polylineId: polylineId,
+    //     consumeTapEvents: true,
+    //     color: Colors.red,
+    //     width: 5,
+    //     points: points);
+    // _mapPolylines[polylineId] = polyline;
     return markers.toSet();
 
     /*
@@ -288,59 +311,69 @@ class _MapLocationState extends State<MapLocation> {
                         double.parse(Utf8Decoder().convert(position.lat)),
                         double.parse(Utf8Decoder().convert(position.lng)))),
                     initialData: Set.of(<Marker>[]),
-                    builder: (context, snapshot) {
-                        List<Widget> children;
-                      if (snapshot.hasData) {
-                        return GoogleMap(
-                          mapType: MapType.hybrid,
-                          initialCameraPosition: CameraPosition(
-                              target: LatLng(
-                                  double.parse(
-                                      Utf8Decoder().convert(position.lat)),
-                                  double.parse(
-                                      Utf8Decoder().convert(position.lng))),
-                              zoom: 16.0),
-                            markers: snapshot.data,
-                          // markers: Set.of((marker != null) ? [marker] : []),
-                          circles: Set.of((circle != null) ? [circle] : []),
-                          polylines: Set<Polyline>.of(_mapPolylines.values),
-                          myLocationButtonEnabled: false,
-                          zoomGesturesEnabled: true,
-                          mapToolbarEnabled: true,
-                          myLocationEnabled: true,
-                          scrollGesturesEnabled: true,
-                          onMapCreated: _onMapCreated,
-                          // onMapCreated: (GoogleMapController controller) {
-                          //   _controller = controller;
-                          // },
-                        );
-                      } else if (snapshot.hasError) {
-                        children = <Widget>[
-                          Icon(
-                            Icons.error_outline,
-                            color: Colors.red,
-                            size: 60,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: Text('Error: ${snapshot.error}'),
-                          )
-                        ];
-                        } else {
-                          children = <Widget>[
-                            SizedBox(
-                              child: CircularProgressIndicator(),
-                              width: 60,
-                              height: 60,
-                            ),
-                            const Padding(
-                              padding: EdgeInsets.only(top: 16),
-                              child: Text('Awaiting result...'),
-                            )
-                          ];
-                                    }
-                                  });
-                            })
+                    builder: (context, snapshotMarker) {
+                     return  FutureBuilder(
+                          future: updatePolygon(LatLng(
+                              double.parse(Utf8Decoder().convert(position.lat)),
+                              double.parse(
+                                  Utf8Decoder().convert(position.lng)))),
+                          initialData: Set.of(<Polyline>[]),
+                          builder: (context, snapshotPolyline) {
+                            List<Widget> children;
+                             if (snapshotMarker.hasData) {
+                               return GoogleMap(
+                                mapType: MapType.hybrid,
+                                initialCameraPosition: CameraPosition(
+                                    target: LatLng(
+                                        double.parse(Utf8Decoder()
+                                            .convert(position.lat)),
+                                        double.parse(Utf8Decoder()
+                                            .convert(position.lng))),
+                                    zoom: 16.0),
+                                markers: snapshotMarker.data,
+                                // markers: Set.of((marker != null) ? [marker] : []),
+                                circles:
+                                    Set.of((circle != null) ? [circle] : []),
+                                polylines: snapshotPolyline.data,
+                                // polylines: Set<Polyline>.of(_mapPolylines.values),
+                                myLocationButtonEnabled: false,
+                                zoomGesturesEnabled: true,
+                                mapToolbarEnabled: true,
+                                myLocationEnabled: true,
+                                scrollGesturesEnabled: true,
+                                onMapCreated: _onMapCreated,
+                                // onMapCreated: (GoogleMapController controller) {
+                                //   _controller = controller;
+                                // },
+                              );
+                            } else if (snapshotMarker.hasError || snapshotPolyline.hasError) {
+                              children = <Widget>[
+                                Icon(
+                                  Icons.error_outline,
+                                  color: Colors.red,
+                                  size: 60,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 16),
+                                  child: Text('Error: ${snapshotMarker.error} + ${snapshotPolyline.error}'),
+                                )
+                              ];
+                            } else {
+                              children = <Widget>[
+                                SizedBox(
+                                  child: CircularProgressIndicator(),
+                                  width: 60,
+                                  height: 60,
+                                ),
+                                const Padding(
+                                  padding: EdgeInsets.only(top: 16),
+                                  child: Text('Awaiting result...'),
+                                )
+                              ];
+                            }
+                          });
+                    });
+              })
             : Center(
                 child: CircularProgressIndicator(),
               )
