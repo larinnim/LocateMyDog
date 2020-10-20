@@ -169,8 +169,8 @@ class BleModel extends ChangeNotifier {
     lat = value;
     BleSingleton._singleton.lat = value;
     BleSingleton._singleton.now = DateTime.now();
-    BleSingleton._singleton.onLocationChanged();
     now = BleSingleton._singleton.now;
+    BleSingleton._singleton.onLocationChanged();
     // This call tells the widgets that are listening to this model to rebuild.
     notifyListeners();
   }
@@ -180,8 +180,8 @@ class BleModel extends ChangeNotifier {
     lng = value;
     BleSingleton._singleton.lng = value;
     BleSingleton._singleton.now = DateTime.now();
-    BleSingleton._singleton.onLocationChanged();
     now = BleSingleton._singleton.now;
+    BleSingleton._singleton.onLocationChanged();
     // This call tells the widgets that are listening to this model to rebuild.
     notifyListeners();
   }
@@ -339,10 +339,11 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                         trailing: IconButton(
                             icon: Icon(Icons.map),
                             tooltip: 'Go to Map',
-                            onPressed: () => Navigator.pushReplacement(context,
-                                    MaterialPageRoute(builder: (context) {
-                                  return MapLocation();
-                                })))),
+                            onPressed: () => Navigator.pushNamed(context, '/blueMap'))),
+                            // onPressed: () => Navigator.pushReplacement(context,
+                            //         MaterialPageRoute(builder: (context) {
+                            //       return MapLocation();
+                            //     })))),
                     ExpansionTile(
                         title: Text(
                           'Current Data',

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 import '../../Services/bluetooth_conect.dart';
 
 class MapLocation extends StatefulWidget {
@@ -20,8 +22,7 @@ class MapLocation extends StatefulWidget {
   _MapLocationState createState() => _MapLocationState();
 }
 
-class _MapLocationState extends State<MapLocation>
-    with AutomaticKeepAliveClientMixin {
+class _MapLocationState extends State<MapLocation> {
   StreamSubscription _locationSubscription;
   BleSingleton _locationTracker = BleSingleton();
   // GlobalKey<_BluetoothConnectionState> _myKey = GlobalKey();
@@ -40,9 +41,7 @@ class _MapLocationState extends State<MapLocation>
       FirebaseFirestore.instance.collection('locations');
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   List<LatLng> polyLinesLatLongs = List<LatLng>(); // our list of geopoints
-
-  @override
-  bool get wantKeepAlive => true;
+  var mapLocation;
 
   @override
   void initState() {
@@ -110,6 +109,7 @@ class _MapLocationState extends State<MapLocation>
 
   void _onMapCreated(GoogleMapController controller) {
     if (_controller == null) _controller = controller;
+    // mapLocation = context.read<BleModel>();
   }
 
   static final CameraPosition initialLocation =
@@ -176,40 +176,55 @@ class _MapLocationState extends State<MapLocation>
       //         imageData,
       //         location.heading);
 
-      if (_locationSubscription != null) {
-        _locationSubscription.cancel();
+      // if (_locationSubscription != null) {
+      //   _locationSubscription.cancel();
+      // }
+
+      // _locationSubscription =
+      //     _locationTracker.onLocationChanged().listen((newLocalData) {
+      if (_controller != null) {
+        // print('Accuracy ${newLocalData.accuracy}');
+        print(
+            'Latitude ${Utf8Decoder().convert(context.read<BleModel>().lat)}');
+        print(
+            'Latitude ${double.parse(Utf8Decoder().convert(context.read<BleModel>().lng))}');
+
+        _controller.animateCamera(CameraUpdate.newCameraPosition(
+            new CameraPosition(
+                bearing: 192.8334901395799,
+                // bearing: 0,
+                target: LatLng(
+                    double.parse(
+                        Utf8Decoder().convert(context.read<BleModel>().lat)),
+                    double.parse(
+                        Utf8Decoder().convert(context.read<BleModel>().lng))),
+                tilt: 0,
+                zoom: 18.00)));
+        updateMarkerAndCircle(
+            LatLng(
+                double.parse(
+                    Utf8Decoder().convert(context.read<BleModel>().lat)),
+                double.parse(
+                    Utf8Decoder().convert(context.read<BleModel>().lng))),
+            imageData,
+            BleSingleton.shared.heading);
+        updatePolygon(LatLng(
+            double.parse(Utf8Decoder().convert(context.read<BleModel>().lat)),
+            double.parse(Utf8Decoder().convert(context.read<BleModel>().lng))));
+        polyLinesLatLongs.add(LatLng(
+            double.parse(
+                '${Utf8Decoder().convert(context.read<BleModel>().lat)}'),
+            double.parse(
+                '${double.parse(Utf8Decoder().convert(context.read<BleModel>().lng))}')));
+        //  GeoFirePoint point =
+        // geo.point(latitude: newLocalData.latitude, longitude: newLocalData.longitude);
+        // _firestore
+        // .collection('locations')
+        // .doc(_firebaseAuth.currentUser.uid)
+        // .collection('User_Locations')
+        // .add({'position': point.data, 'owner': _firebaseAuth.currentUser.uid});
       }
-
-      _locationSubscription = 
-          _locationTracker.onLocationChanged().listen((newLocalData) {
-        if (_controller != null) {
-          // print('Accuracy ${newLocalData.accuracy}');
-          print('Latitude ${newLocalData.latitude}');
-          print('Latitude ${newLocalData.longitude}');
-
-          _controller
-              .animateCamera(CameraUpdate.newCameraPosition(new CameraPosition(
-                  bearing: 192.8334901395799,
-                  // bearing: 0,
-                  target: LatLng(newLocalData.latitude, newLocalData.longitude),
-                  tilt: 0,
-                  zoom: 18.00)));
-          updateMarkerAndCircle(
-              LatLng(newLocalData.latitude, newLocalData.longitude),
-              imageData,
-              newLocalData.heading);
-          updatePolygon(LatLng(newLocalData.latitude, newLocalData.longitude));
-          polyLinesLatLongs.add(LatLng(double.parse('${newLocalData.latitude}'),
-              double.parse('${newLocalData.longitude}')));
-          //  GeoFirePoint point =
-          // geo.point(latitude: newLocalData.latitude, longitude: newLocalData.longitude);
-          // _firestore
-          // .collection('locations')
-          // .doc(_firebaseAuth.currentUser.uid)
-          // .collection('User_Locations')
-          // .add({'position': point.data, 'owner': _firebaseAuth.currentUser.uid});
-        }
-      });
+      // });
     } on PlatformException catch (e) {
       if (e.code == 'PERMISSION_DENIED') {
         debugPrint("Permission Denied");
@@ -217,61 +232,63 @@ class _MapLocationState extends State<MapLocation>
     }
   }
 
-  @override
-  void dispose() {
-    if (_locationSubscription != null) {
-      _locationSubscription.cancel();
-    }
-    super.dispose();
-  }
-
-  // Future<DocumentReference> _addGeoPoint() async {
-  //   var pos = getCurrentLocation();
-  //   GeoFirePoint point =
-  //       geo.point(latitude: pos.latitude, longitude: pos.longitude);
-  //   return _firestore
-  //       .collection('locations')
-  //       .add({'position': point.data, 'name': 'Yay I can be queried!'});
+  // @override
+  // void dispose() {
+  //   if (_locationSubscription != null) {
+  //     _locationSubscription.cancel();
+  //   }
+  //   super.dispose();
   // }
 
   @override
   Widget build(BuildContext context) {
     final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+    // final mapVal = context.watch<BleModel>();
+    final currentPosition = Provider.of<BleModel>(context);
 
     return Scaffold(
-      appBar: AppBar(
-          automaticallyImplyLeading: true,
-          title: Text("Where is  ${_firebaseAuth.currentUser.displayName} ?"),
-          leading: IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () {
-                // Navigate back to the first screen by popping the current route
-                // off the stack.
-                // Navigator.pop(context);
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) {
-                  return BluetoothConnection();
-                }));
-              }
-              // onPressed: () => Navigator.of(context).pop(),
-              )),
-      body: GoogleMap(
-        mapType: MapType.hybrid,
-        initialCameraPosition: initialLocation,
-        markers: Set.of((marker != null) ? [marker] : []),
-        circles: Set.of((circle != null) ? [circle] : []),
-        polylines: Set<Polyline>.of(_mapPolylines.values),
-        myLocationButtonEnabled: false,
-        onMapCreated: _onMapCreated,
-        // onMapCreated: (GoogleMapController controller) {
-        //   _controller = controller;
-        // },
-      ),
-      floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.location_searching),
-          onPressed: () {
-            getCurrentLocation();
-          }),
-    );
+        appBar: AppBar(
+            automaticallyImplyLeading: true,
+            title: Text("Where is  ${_firebaseAuth.currentUser.displayName} ?"),
+            leading: IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () {
+                  // Navigate back to the first screen by popping the current route
+                  // off the stack.
+                  Navigator.pushNamed(context, '/trackwalk');
+                })),
+        body: (currentPosition != null)
+            ? Consumer<BleModel>(builder: (_, position, child) {
+                return GoogleMap(
+                  mapType: MapType.hybrid,
+                  initialCameraPosition: CameraPosition(
+                      target: LatLng(
+                          double.parse(Utf8Decoder().convert(position.lat)),
+                          double.parse(Utf8Decoder().convert(position.lng))),
+                      zoom: 16.0),
+                  markers: Set.of((marker != null) ? [marker] : []),
+                  circles: Set.of((circle != null) ? [circle] : []),
+                  polylines: Set<Polyline>.of(_mapPolylines.values),
+                  myLocationButtonEnabled: false,
+                  zoomGesturesEnabled: true,
+                  mapToolbarEnabled: true,
+                  myLocationEnabled: true,
+                  scrollGesturesEnabled: true,
+                  onMapCreated: _onMapCreated,
+                  // onMapCreated: (GoogleMapController controller) {
+                  //   _controller = controller;
+                  // },
+                );
+              })
+            : Center(
+                child: CircularProgressIndicator(),
+              )
+        // floatingActionButton: FloatingActionButton(
+        //       child: Icon(Icons.location_searching),
+        //       onPressed: () {
+        //         getCurrentLocation();
+        //       });
+        );
   }
 }
+// }
