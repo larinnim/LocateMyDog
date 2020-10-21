@@ -46,78 +46,15 @@ class _MapLocationState extends State<MapLocation> {
   List<LatLng> polyLinesLatLongs = List<LatLng>(); // our list of geopoints
   var mapLocation;
   Uint8List imageData;
+  // BitmapDescriptor icon;
+
   @override
   void initState() {
-    // getimage();
-    // listenNumbers();
     super.initState();
   }
 
-  getimage() async {
-    imageData = await getMarker();
-  }
-
-  // listenNumbers() async {
-  //   // Uint8List imageData = await getMarker();
-  //   // LocationValues _locationData = await _locationTracker.heading;
-  //   // LocationValues _locationValues = await _locationTracker.getLocation();
-
-  //   // Stream<QuerySnapshot> streamNumbers = _firestore
-  //   _firestore
-  //       .collection('locations')
-  //       .doc(_firebaseAuth.currentUser.uid)
-  //       .collection('User_Locations')
-  //       .where("owner", isEqualTo: "${_firebaseAuth.currentUser.uid}")
-  //       .get()
-  //       .then((querySnapshot) {
-  //     var fireBase = querySnapshot.docs;
-
-  //     GeoFirePoint point =
-  //         geo.point(latitude: 46.520374, longitude: -80.954211);
-  //     _firestore
-  //         .collection('locations')
-  //         .doc(_firebaseAuth.currentUser.uid)
-  //         .collection('User_Locations')
-  //         .add(
-  //             {'position': point.data, 'owner': _firebaseAuth.currentUser.uid});
-
-  //     for (var i = 1; i < fireBase.length; i++) {
-  //       GeoPoint point = fireBase[i].data()['position']
-  //           ['geopoint']; //that way to take instance of geopoint
-
-  //       polyLinesLatLongs.add(LatLng(
-  //           double.parse('${point.latitude}'),
-  //           double.parse(
-  //               '${point.longitude}'))); // now we can add our point to list
-
-  //       updateMarkerAndCircle(
-  //           LatLng(double.parse('${point.latitude}'),
-  //               double.parse('${point.longitude}')),
-  //           imageData,
-  //           _locationTracker.heading);
-  //       updatePolygon(LatLng(double.parse('${point.latitude}'),
-  //           double.parse('${point.longitude}')));
-  //     }
-  //   });
-  // Stream<QuerySnapshot> streamNumbers = _firestore
-  //   .collection('locations')
-  //   .doc(_firebaseAuth.currentUser.uid)
-  //   .collection('User_Locations')
-  //   .where("owner", isEqualTo: "${_firebaseAuth.currentUser.uid}")
-  //   .snapshots();
-  // streamNumbers.listen((snapshot) {
-  //   snapshot.docs.forEach((doc) {
-  //     MyModel obj = MyModel.fromDocument(doc);
-  //     numbersList.add(obj);
-  //     setState(() {
-  //     });
-  //   });
-  // });
-  // }
-
   void _onMapCreated(GoogleMapController controller) {
     if (_controller == null) _controller = controller;
-    // mapLocation = context.read<BleModel>();
   }
 
   static final CameraPosition initialLocation =
@@ -126,31 +63,12 @@ class _MapLocationState extends State<MapLocation> {
           );
 
   Future<Uint8List> getMarker() async {
-    ByteData byteData =
-        await DefaultAssetBundle.of(context).load("assets/images/dog.png");
+    ByteData byteData = await DefaultAssetBundle.of(context)
+        .load("assets/images/dogpin.png");
     return byteData.buffer.asUint8List();
   }
 
-  // void updatePolygon(LatLng latlong) {
-  //   final String polylineIdVal = 'polyline_id_$_polylineIdCounter';
-  //   _polylineIdCounter++;
-  //   final PolylineId polylineId = PolylineId(polylineIdVal);
-  //   points.add(LatLng(latlong.latitude, latlong.longitude));
-
-  //   final Polyline polyline = Polyline(
-  //       polylineId: polylineId,
-  //       consumeTapEvents: true,
-  //       color: Colors.red,
-  //       width: 5,
-  //       points: points);
-
-  //   setState(() {
-  //     _mapPolylines[polylineId] = polyline;
-  //   });
-  // }
-
   Future<Set<Polyline>> updatePolygon(LatLng latlong) async {
-    LatLng latlng = LatLng(latlong.latitude, latlong.longitude);
 
     final String polylineIdVal = 'polyline_id_$_polylineIdCounter';
     _polylineIdCounter++;
@@ -166,15 +84,10 @@ class _MapLocationState extends State<MapLocation> {
 
     mapPolylines.add(polyline);
     return mapPolylines.toSet();
-
-    // setState(() {
-    //   _mapPolylines[polylineId] = polyline;
-    // });
   }
 
   Future<Set<Marker>> updateMarkerAndCircle(LatLng latlong) async {
     LatLng latlng = LatLng(latlong.latitude, latlong.longitude);
-    // this.setState(() {
     Marker marker = Marker(
         markerId: MarkerId("home"),
         position: latlng,
@@ -184,113 +97,13 @@ class _MapLocationState extends State<MapLocation> {
         flat: true,
         anchor: Offset(0.5, 0.5),
         icon: BitmapDescriptor.fromBytes(await getMarker()));
-
     markers.add(marker);
-
-    // final String polylineIdVal = 'polyline_id_$_polylineIdCounter';
-    // _polylineIdCounter++;
-    // final PolylineId polylineId = PolylineId(polylineIdVal);
-    // points.add(LatLng(latlong.latitude, latlong.longitude));
-
-    // final Polyline polyline = Polyline(
-    //     polylineId: polylineId,
-    //     consumeTapEvents: true,
-    //     color: Colors.red,
-    //     width: 5,
-    //     points: points);
-    // _mapPolylines[polylineId] = polyline;
     return markers.toSet();
-
-    /*
-      circle = Circle(
-          circleId: CircleId("car"),
-          radius: newLocalData.accuracy,
-          zIndex: 1,
-          strokeColor: Colors.blue,
-          center: latlng,
-          fillColor: Colors.blue.withAlpha(70));
-          */
-    // });
   }
-
-  // void getCurrentLocation() async {
-  //   try {
-  //     Uint8List imageData = await getMarker();
-  //     // Position position = await getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-  //     // var location = await _locationTracker.getLocation();
-
-  //     // updateMarkerAndCircle(LatLng(location.latitude, location.longitude),
-  //     //         imageData,
-  //     //         location.heading);
-
-  //     // if (_locationSubscription != null) {
-  //     //   _locationSubscription.cancel();
-  //     // }
-
-  //     // _locationSubscription =
-  //     //     _locationTracker.onLocationChanged().listen((newLocalData) {
-  //     if (_controller != null) {
-  //       // print('Accuracy ${newLocalData.accuracy}');
-  //       print(
-  //           'Latitude ${Utf8Decoder().convert(context.read<BleModel>().lat)}');
-  //       print(
-  //           'Latitude ${double.parse(Utf8Decoder().convert(context.read<BleModel>().lng))}');
-
-  //       _controller.animateCamera(CameraUpdate.newCameraPosition(
-  //           new CameraPosition(
-  //               bearing: 192.8334901395799,
-  //               // bearing: 0,
-  //               target: LatLng(
-  //                   double.parse(
-  //                       Utf8Decoder().convert(context.read<BleModel>().lat)),
-  //                   double.parse(
-  //                       Utf8Decoder().convert(context.read<BleModel>().lng))),
-  //               tilt: 0,
-  //               zoom: 18.00)));
-  //       updateMarkerAndCircle(
-  //           LatLng(
-  //               double.parse(
-  //                   Utf8Decoder().convert(context.read<BleModel>().lat)),
-  //               double.parse(
-  //                   Utf8Decoder().convert(context.read<BleModel>().lng))),
-  //           imageData,
-  //           BleSingleton.shared.heading);
-  //       updatePolygon(LatLng(
-  //           double.parse(Utf8Decoder().convert(context.read<BleModel>().lat)),
-  //           double.parse(Utf8Decoder().convert(context.read<BleModel>().lng))));
-  //       polyLinesLatLongs.add(LatLng(
-  //           double.parse(
-  //               '${Utf8Decoder().convert(context.read<BleModel>().lat)}'),
-  //           double.parse(
-  //               '${double.parse(Utf8Decoder().convert(context.read<BleModel>().lng))}')));
-  //       //  GeoFirePoint point =
-  //       // geo.point(latitude: newLocalData.latitude, longitude: newLocalData.longitude);
-  //       // _firestore
-  //       // .collection('locations')
-  //       // .doc(_firebaseAuth.currentUser.uid)
-  //       // .collection('User_Locations')
-  //       // .add({'position': point.data, 'owner': _firebaseAuth.currentUser.uid});
-  //     }
-  //     // });
-  //   } on PlatformException catch (e) {
-  //     if (e.code == 'PERMISSION_DENIED') {
-  //       debugPrint("Permission Denied");
-  //     }
-  //   }
-  // }
-
-  // @override
-  // void dispose() {
-  //   if (_locationSubscription != null) {
-  //     _locationSubscription.cancel();
-  //   }
-  //   super.dispose();
-  // }
 
   @override
   Widget build(BuildContext context) {
     final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-    // final mapVal = context.watch<BleModel>();
     final currentPosition = Provider.of<BleModel>(context);
 
     return Scaffold(
@@ -312,16 +125,15 @@ class _MapLocationState extends State<MapLocation> {
                         double.parse(Utf8Decoder().convert(position.lng)))),
                     initialData: Set.of(<Marker>[]),
                     builder: (context, snapshotMarker) {
-                     return  FutureBuilder(
+                      return FutureBuilder(
                           future: updatePolygon(LatLng(
                               double.parse(Utf8Decoder().convert(position.lat)),
                               double.parse(
                                   Utf8Decoder().convert(position.lng)))),
                           initialData: Set.of(<Polyline>[]),
                           builder: (context, snapshotPolyline) {
-                            List<Widget> children;
-                             if (snapshotMarker.hasData) {
-                               return GoogleMap(
+                            if (snapshotMarker.hasData) {
+                              return GoogleMap(
                                 mapType: MapType.hybrid,
                                 initialCameraPosition: CameraPosition(
                                     target: LatLng(
@@ -331,23 +143,19 @@ class _MapLocationState extends State<MapLocation> {
                                             .convert(position.lng))),
                                     zoom: 16.0),
                                 markers: snapshotMarker.data,
-                                // markers: Set.of((marker != null) ? [marker] : []),
                                 circles:
                                     Set.of((circle != null) ? [circle] : []),
                                 polylines: snapshotPolyline.data,
-                                // polylines: Set<Polyline>.of(_mapPolylines.values),
                                 myLocationButtonEnabled: false,
                                 zoomGesturesEnabled: true,
                                 mapToolbarEnabled: true,
                                 myLocationEnabled: true,
                                 scrollGesturesEnabled: true,
                                 onMapCreated: _onMapCreated,
-                                // onMapCreated: (GoogleMapController controller) {
-                                //   _controller = controller;
-                                // },
                               );
-                            } else if (snapshotMarker.hasError || snapshotPolyline.hasError) {
-                              children = <Widget>[
+                            } else if (snapshotMarker.hasError ||
+                                snapshotPolyline.hasError) {
+                              return Column(children: <Widget>[
                                 Icon(
                                   Icons.error_outline,
                                   color: Colors.red,
@@ -355,11 +163,12 @@ class _MapLocationState extends State<MapLocation> {
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.only(top: 16),
-                                  child: Text('Error: ${snapshotMarker.error} + ${snapshotPolyline.error}'),
+                                  child: Text(
+                                      'Error: ${snapshotMarker.error} + ${snapshotPolyline.error}'),
                                 )
-                              ];
+                              ]);
                             } else {
-                              children = <Widget>[
+                              return Column(children: <Widget>[
                                 SizedBox(
                                   child: CircularProgressIndicator(),
                                   width: 60,
@@ -369,7 +178,7 @@ class _MapLocationState extends State<MapLocation> {
                                   padding: EdgeInsets.only(top: 16),
                                   child: Text('Awaiting result...'),
                                 )
-                              ];
+                              ]);
                             }
                           });
                     });
