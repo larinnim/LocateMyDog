@@ -7,11 +7,12 @@ import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_maps/Screens/Profile/MapLocation.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:intl/intl.dart';
+import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
 import 'package:vector_math/vector_math.dart' as vec;
 import 'custom_expansion_tile.dart' as custom;
-import 'dart:io';
+import 'dart:ui' as ui;
 
 class LocationValues {
   /// Latitude in degrees
@@ -169,8 +170,8 @@ class BleModel extends ChangeNotifier {
     lat = value;
     BleSingleton._singleton.lat = value;
     BleSingleton._singleton.now = DateTime.now();
-    BleSingleton._singleton.onLocationChanged();
     now = BleSingleton._singleton.now;
+    BleSingleton._singleton.onLocationChanged();
     // This call tells the widgets that are listening to this model to rebuild.
     notifyListeners();
   }
@@ -180,8 +181,8 @@ class BleModel extends ChangeNotifier {
     lng = value;
     BleSingleton._singleton.lng = value;
     BleSingleton._singleton.now = DateTime.now();
-    BleSingleton._singleton.onLocationChanged();
     now = BleSingleton._singleton.now;
+    BleSingleton._singleton.onLocationChanged();
     // This call tells the widgets that are listening to this model to rebuild.
     notifyListeners();
   }
@@ -315,16 +316,32 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
             return Column(children: <Widget>[
               SizedBox(height: 20.0),
               custom.ExpansionTile(
-                  headerBackgroundColor: Colors.blue,
+                  headerBackgroundColor: Colors.lightBlue,
                   iconColor: Colors.white,
-                  title: Text(
+                  title: ListTile(
+                    title: Text(
                     "Device: " + dev.deviceList[index].device.name,
                     style: TextStyle(
-                        fontSize: 18.0,
+                        fontSize: 17.0,
                         fontWeight: FontWeight.bold,
                         color: Colors.white),
+                    ), 
+                    trailing:
+                    RichText(
+                       text: TextSpan(
+                            children: <InlineSpan>[ 
+                              TextSpan(text: '85%', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)), 
+                              WidgetSpan(
+                                alignment: ui.PlaceholderAlignment.middle, 
+                                child: Icon(LineAwesomeIcons.battery_3_4_full, color: Colors.black87,), 
+                                ),  
+                            ] 
+                        ),
+                    ),
+                    // trailing:Column(children: <Widget>[Text("85%", style: TextStyle(fontSize: 10.0),), Icon(LineAwesomeIcons.battery_3_4_full)]),
                   ),
                   children: <Widget>[
+                    dev.connectedDevices.length > 0 ?
                     ListTile(
                         title: Text("Configure Device WiFi"),
                         trailing: IconButton(
@@ -333,16 +350,19 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                             onPressed: () => Navigator.pushReplacement(context,
                                     MaterialPageRoute(builder: (context) {
                                   return MapLocation(); //TODO create go to wifi
-                                })))),
+                                })))): Column(),
+                    dev.connectedDevices.length > 0 ?
                     ListTile(
                         title: Text("Go to Map"),
                         trailing: IconButton(
                             icon: Icon(Icons.map),
                             tooltip: 'Go to Map',
-                            onPressed: () => Navigator.pushReplacement(context,
-                                    MaterialPageRoute(builder: (context) {
-                                  return MapLocation();
-                                })))),
+                            onPressed: () => Navigator.pushNamed(context, '/blueMap')))
+                            // onPressed: () => Navigator.pushReplacement(context,
+                            //         MaterialPageRoute(builder: (context) {
+                            //       return MapLocation();
+                            //     })))),
+                            : Column(),
                     ExpansionTile(
                         title: Text(
                           'Current Data',
