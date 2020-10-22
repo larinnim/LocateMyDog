@@ -115,8 +115,8 @@ class BleModel extends ChangeNotifier {
   List<BluetoothService> services = [];
   List<BluetoothCharacteristic> characteristics = [];
   List<BluetoothDevice> connectedDevices = [];
-  List<int> lat;
-  List<int> lng;
+  List<int> lat = [];
+  List<int> lng = [];
   DateTime now;
 
   /// An unmodifiable view of the items in the cart.
