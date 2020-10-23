@@ -7,68 +7,76 @@ class SetWiFiConf extends StatefulWidget {
 }
 
 class _SetWiFiConfPageState extends State<SetWiFiConf> {
-
   bool checkbox1 = true;
   bool checkbox2 = false;
   String gender = 'male';
   String dropdownValue = 'A';
   DateTime date = DateTime.now();
   TimeOfDay time = TimeOfDay.now();
-bool val1 = true, val2 = false, val3 = true;
 
-  bool newval1, newval2, newval3; 
-
-   onChangedFunction1(bool newval1) {
-    setState(() {
-      val1 = newval1;
-    });
-  }
-
-   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
-        title: Text(
-          'Wi-Fi'
-        ),
+        title: Text('Wi-Fi'),
       ),
-      body: Column(
-        children: [
-          stringSwitch('Wi-Fi', val1, newval1, onChangedFunction1),
-          
-        ]),
+      body: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: Container(
+              padding: EdgeInsets.all(10.0),
+              child: Column(children: [
+                Text('WiFi SSID'),
+                SizedBox(height: 10.0),
+                TextFormField(
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                      hintText: 'Please type the Wi-Fi SSID',
+                      border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.grey, width: 32.0),
+                          borderRadius: BorderRadius.circular(5.0)),
+                      focusedBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.grey, width: 1.0),
+                          borderRadius: BorderRadius.circular(5.0))),
+                  onChanged: (value) {
+                    //Do something with this value
+                  },
+                ),
+                SizedBox(height: 10.0),
+                Text('Wi-Fi Password'),
+                SizedBox(height: 10.0),
+                TextFormField(
+                  keyboardType: TextInputType.text,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                      hintText: 'Please Type the WiFi Password',
+                      border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.grey, width: 32.0),
+                          borderRadius: BorderRadius.circular(5.0)),
+                      focusedBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.grey, width: 1.0),
+                          borderRadius: BorderRadius.circular(5.0))),
+                ),
+                SizedBox(height: 50.0),
+                MaterialButton(
+                  color: Colors.orange,
+                  child: Text('Submit', style: TextStyle(color: Colors.white)),
+                  onPressed: () {
+                    //Do Something
+                  },
+                ),
+                SizedBox(height: 10.0),
+                      FlatButton(
+                    color: Colors.green,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18.0)),
+                    onPressed: () {},
+                    child: Text("Connect")),
+              ]),
+              )),
     );
   }
 }
-
- Widget stringSwitch(
-      String text, bool val, bool newval, Function onChangedMethod) {
-    return Padding(
-      padding: EdgeInsets.only(top: 22.0, left: 16.0, right: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            text,
-            style: TextStyle(
-                fontSize: 30.0,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.w600,
-                // color: Hexcolor('#676767')
-                ),
-          ),
-          Spacer(),
-          CupertinoSwitch(
-              // trackColor: Hexcolor('#dee7f5'),
-              // activeColor: Hexcolor('#0565ac'),
-              value: val,
-              onChanged: (newval) {
-                onChangedMethod(newval);
-              })
-        ],
-      ),
-    );
-  }
-
-  

@@ -75,9 +75,9 @@ class BleSingleton {
   factory BleSingleton() => _singleton;
   BleSingleton._internal();
   static BleSingleton get shared => _singleton;
-  List<int> lat;
-  List<int> lng;
-  DateTime now;
+  List<int> lat = [];
+  List<int> lng = [];
+  DateTime now = DateTime.now();
   double heading = 90;
   // BlueLocation.private(this.lat, this.lng, this.now);
 
@@ -309,6 +309,8 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
     // and retrieves its model (BLE Model, in this case).
     // Then it uses that model to build widgets, and will trigger
     // rebuilds if the model is updated.
+
+
     return Consumer<BleModel>(builder: (_, dev, child) {
       return ListView.builder(
           itemCount: dev.items.length,
@@ -374,7 +376,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                         ),
                         children: <Widget>[
                           ListTile(
-                              title: dev.lat.length > 0 && dev.lng.length > 0
+                              title: dev.connectedDevices.length > 0 &&  dev.lat.length > 0 && dev.lng.length > 0 && dev.lat != null && dev.lng != null
                                   ? Text("Lat: " +
                                       Utf8Decoder().convert(dev.lat) +
                                       " | Long: " +
