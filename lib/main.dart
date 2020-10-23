@@ -5,6 +5,7 @@ import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Profile/MapLocation.dart';
 import 'package:provider/provider.dart';
 import 'Screens/Profile/profile.dart';
+import 'Services/SetWiFiConf.dart';
 import 'locator.dart';
 import 'Services/bluetooth_conect.dart';
 // void main() => runApp(MyApp());
@@ -35,6 +36,7 @@ class MyApp extends StatelessWidget {
             '/profile': (context) => ProfileScreen(),
             '/trackwalk': (context) => BluetoothConnection(),
             '/blueMap': (context) => MapLocation(),
+            '/wifiConf': (context) => SetWiFiConf(),
           },
           theme: ThemeData(
             primaryColor: Colors.white,

@@ -75,9 +75,9 @@ class BleSingleton {
   factory BleSingleton() => _singleton;
   BleSingleton._internal();
   static BleSingleton get shared => _singleton;
-  List<int> lat;
-  List<int> lng;
-  DateTime now;
+  List<int> lat = [];
+  List<int> lng = [];
+  DateTime now = DateTime.now();
   double heading = 90;
   // BlueLocation.private(this.lat, this.lng, this.now);
 
@@ -115,9 +115,9 @@ class BleModel extends ChangeNotifier {
   List<BluetoothService> services = [];
   List<BluetoothCharacteristic> characteristics = [];
   List<BluetoothDevice> connectedDevices = [];
-  List<int> lat;
-  List<int> lng;
-  DateTime now;
+  List<int> lat = [];
+  List<int> lng = [];
+  DateTime now = DateTime.now();
 
   /// An unmodifiable view of the items in the cart.
   UnmodifiableListView<BleDeviceItem> get items =>
@@ -309,6 +309,8 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
     // and retrieves its model (BLE Model, in this case).
     // Then it uses that model to build widgets, and will trigger
     // rebuilds if the model is updated.
+
+
     return Consumer<BleModel>(builder: (_, dev, child) {
       return ListView.builder(
           itemCount: dev.items.length,
@@ -322,7 +324,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                     title: Text(
                     "Device: " + dev.deviceList[index].device.name,
                     style: TextStyle(
-                        fontSize: 17.0,
+                        fontSize: 18.0,
                         fontWeight: FontWeight.bold,
                         color: Colors.white),
                     ), 
@@ -335,6 +337,14 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                                 alignment: ui.PlaceholderAlignment.middle, 
                                 child: Icon(LineAwesomeIcons.battery_3_4_full, color: Colors.black87,), 
                                 ),  
+                              WidgetSpan(
+                                alignment: ui.PlaceholderAlignment.middle, 
+                                child: Container(child:
+                                Icon(LineAwesomeIcons.wifi, color: Colors.black87,), 
+                                padding: EdgeInsets.all(12.0),
+
+                                ) 
+                              ),  
                             ] 
                         ),
                     ),
@@ -347,10 +357,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                         trailing: IconButton(
                             icon: Icon(Icons.wifi),
                             tooltip: 'Go to WiFI',
-                            onPressed: () => Navigator.pushReplacement(context,
-                                    MaterialPageRoute(builder: (context) {
-                                  return MapLocation(); //TODO create go to wifi
-                                })))): Column(),
+                            onPressed: () => Navigator.pushNamed(context, '/wifiConf'))) : Column(),
                     dev.connectedDevices.length > 0 ?
                     ListTile(
                         title: Text("Go to Map"),
@@ -369,8 +376,8 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                         ),
                         children: <Widget>[
                           ListTile(
-                              title: dev.lat != null && dev.lng != null
-                                  ? Text("Lat :" +
+                              title: dev.connectedDevices.length > 0 &&  dev.lat.length > 0 && dev.lng.length > 0 && dev.lat != null && dev.lng != null
+                                  ? Text("Lat: " +
                                       Utf8Decoder().convert(dev.lat) +
                                       " | Long: " +
                                       Utf8Decoder().convert(dev.lng) +
