@@ -322,7 +322,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                     title: Text(
                     "Device: " + dev.deviceList[index].device.name,
                     style: TextStyle(
-                        fontSize: 17.0,
+                        fontSize: 18.0,
                         fontWeight: FontWeight.bold,
                         color: Colors.white),
                     ), 
@@ -335,6 +335,14 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                                 alignment: ui.PlaceholderAlignment.middle, 
                                 child: Icon(LineAwesomeIcons.battery_3_4_full, color: Colors.black87,), 
                                 ),  
+                              WidgetSpan(
+                                alignment: ui.PlaceholderAlignment.middle, 
+                                child: Container(child:
+                                Icon(LineAwesomeIcons.wifi, color: Colors.black87,), 
+                                padding: EdgeInsets.all(12.0),
+
+                                ) 
+                              ),  
                             ] 
                         ),
                     ),
@@ -347,10 +355,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                         trailing: IconButton(
                             icon: Icon(Icons.wifi),
                             tooltip: 'Go to WiFI',
-                            onPressed: () => Navigator.pushReplacement(context,
-                                    MaterialPageRoute(builder: (context) {
-                                  return MapLocation(); //TODO create go to wifi
-                                })))): Column(),
+                            onPressed: () => Navigator.pushNamed(context, '/wifiConf'))) : Column(),
                     dev.connectedDevices.length > 0 ?
                     ListTile(
                         title: Text("Go to Map"),
@@ -370,7 +375,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                         children: <Widget>[
                           ListTile(
                               title: dev.lat.length > 0 && dev.lng.length > 0
-                                  ? Text("Lat :" +
+                                  ? Text("Lat: " +
                                       Utf8Decoder().convert(dev.lat) +
                                       " | Long: " +
                                       Utf8Decoder().convert(dev.lng) +
