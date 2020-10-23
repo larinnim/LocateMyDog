@@ -117,7 +117,7 @@ class BleModel extends ChangeNotifier {
   List<BluetoothDevice> connectedDevices = [];
   List<int> lat = [];
   List<int> lng = [];
-  DateTime now;
+  DateTime now = DateTime.now();
 
   /// An unmodifiable view of the items in the cart.
   UnmodifiableListView<BleDeviceItem> get items =>
@@ -369,7 +369,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                         ),
                         children: <Widget>[
                           ListTile(
-                              title: dev.lat != null && dev.lng != null
+                              title: dev.lat.length > 0 && dev.lng.length > 0
                                   ? Text("Lat :" +
                                       Utf8Decoder().convert(dev.lat) +
                                       " | Long: " +
