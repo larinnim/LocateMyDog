@@ -4,8 +4,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:flutter_maps/Screens/Profile/MapLocation.dart';
-import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:intl/intl.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:provider/provider.dart';
@@ -250,8 +248,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
       });
 
       print("Connected");
-      setState(() {
-      });
+      setState(() {});
     }).catchError((e) => print("Connection Error $e"));
   }
 
@@ -259,7 +256,16 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
   void scan() async {
     print("scan - Line 340");
     if (!_isScanning) {
-      flutterBlue.startScan(withServices: [Guid(serviceUUID)]);
+      flutterBlue.startScan(
+          withServices: [Guid(serviceUUID)],
+          timeout: new Duration(seconds: 20)).then((value) {
+        new Future.delayed(const Duration(seconds: 5), () {
+          // deleayed code here
+          setState(() {
+            _isScanning = false;
+          });
+        });
+      });
 
       // Listen to scan results
       flutterBlue.scanResults.listen((results) {
@@ -310,7 +316,6 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
     // Then it uses that model to build widgets, and will trigger
     // rebuilds if the model is updated.
 
-
     return Consumer<BleModel>(builder: (_, dev, child) {
       return ListView.builder(
           itemCount: dev.items.length,
@@ -320,63 +325,77 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
               custom.ExpansionTile(
                   headerBackgroundColor: Colors.lightBlue,
                   iconColor: Colors.white,
+                  initiallyExpanded: true,
                   title: ListTile(
                     title: Text(
-                    "Device: " + dev.deviceList[index].device.name,
-                    style: TextStyle(
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
-                    ), 
-                    trailing:
-                    RichText(
-                       text: TextSpan(
-                            children: <InlineSpan>[ 
-                              TextSpan(text: '85%', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)), 
-                              WidgetSpan(
-                                alignment: ui.PlaceholderAlignment.middle, 
-                                child: Icon(LineAwesomeIcons.battery_3_4_full, color: Colors.black87,), 
-                                ),  
-                              WidgetSpan(
-                                alignment: ui.PlaceholderAlignment.middle, 
-                                child: Container(child:
-                                Icon(LineAwesomeIcons.wifi, color: Colors.black87,), 
-                                padding: EdgeInsets.all(12.0),
-
-                                ) 
-                              ),  
-                            ] 
+                      "Device: " + dev.deviceList[index].device.name,
+                      style: TextStyle(
+                          fontSize: 18.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    ),
+                    trailing: RichText(
+                      text: TextSpan(children: <InlineSpan>[
+                        TextSpan(
+                            text: '85%',
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold)),
+                        WidgetSpan(
+                          alignment: ui.PlaceholderAlignment.middle,
+                          child: Icon(
+                            LineAwesomeIcons.battery_3_4_full,
+                            color: Colors.black87,
+                          ),
                         ),
+                        WidgetSpan(
+                            alignment: ui.PlaceholderAlignment.middle,
+                            child: Container(
+                              child: Icon(
+                                LineAwesomeIcons.wifi,
+                                color: Colors.black87,
+                              ),
+                              padding: EdgeInsets.all(12.0),
+                            )),
+                      ]),
                     ),
                     // trailing:Column(children: <Widget>[Text("85%", style: TextStyle(fontSize: 10.0),), Icon(LineAwesomeIcons.battery_3_4_full)]),
                   ),
                   children: <Widget>[
-                    dev.connectedDevices.length > 0 ?
-                    ListTile(
-                        title: Text("Configure Device WiFi"),
-                        trailing: IconButton(
-                            icon: Icon(Icons.wifi),
-                            tooltip: 'Go to WiFI',
-                            onPressed: () => Navigator.pushNamed(context, '/wifiConf'))) : Column(),
-                    dev.connectedDevices.length > 0 ?
-                    ListTile(
-                        title: Text("Go to Map"),
-                        trailing: IconButton(
-                            icon: Icon(Icons.map),
-                            tooltip: 'Go to Map',
-                            onPressed: () => Navigator.pushNamed(context, '/blueMap')))
-                            // onPressed: () => Navigator.pushReplacement(context,
-                            //         MaterialPageRoute(builder: (context) {
-                            //       return MapLocation();
-                            //     })))),
-                            : Column(),
+                    dev.connectedDevices.length > 0
+                        ? ListTile(
+                            title: Text("Configure Device WiFi"),
+                            trailing: IconButton(
+                                icon: Icon(Icons.wifi),
+                                tooltip: 'Go to WiFI',
+                                onPressed: () =>
+                                    Navigator.pushNamed(context, '/wifiConf')))
+                        : Column(),
+                    dev.connectedDevices.length > 0
+                        ? ListTile(
+                            title: Text("Go to Map"),
+                            trailing: IconButton(
+                                icon: Icon(Icons.map),
+                                tooltip: 'Go to Map',
+                                onPressed: () =>
+                                    Navigator.pushNamed(context, '/blueMap')))
+                        // onPressed: () => Navigator.pushReplacement(context,
+                        //         MaterialPageRoute(builder: (context) {
+                        //       return MapLocation();
+                        //     })))),
+                        : Column(),
                     ExpansionTile(
                         title: Text(
                           'Current Data',
                         ),
+                        initiallyExpanded: true,
                         children: <Widget>[
                           ListTile(
-                              title: dev.connectedDevices.length > 0 &&  dev.lat.length > 0 && dev.lng.length > 0 && dev.lat != null && dev.lng != null
+                              title: dev.connectedDevices.length > 0 &&
+                                      dev.lat.length > 0 &&
+                                      dev.lng.length > 0 &&
+                                      dev.lat != null &&
+                                      dev.lng != null
                                   ? Text("Lat: " +
                                       Utf8Decoder().convert(dev.lat) +
                                       " | Long: " +
@@ -408,7 +427,10 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                                           .disconnect()
                                           .then((status) async => {
                                                 context
-                                                    .read<BleModel>().removeConnectedDevice(dev.deviceList[index].device),
+                                                    .read<BleModel>()
+                                                    .removeConnectedDevice(dev
+                                                        .deviceList[index]
+                                                        .device),
                                                 setState(() {})
                                               });
                                     }
@@ -439,6 +461,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Locate My Pet"),
+        centerTitle: true,
         leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {

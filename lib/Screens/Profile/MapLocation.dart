@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -23,12 +22,6 @@ class MapLocation extends StatefulWidget {
 }
 
 class _MapLocationState extends State<MapLocation> {
-  StreamSubscription _locationSubscription;
-  BleSingleton _locationTracker = BleSingleton();
-  // GlobalKey<_BluetoothConnectionState> _myKey = GlobalKey();
-
-  // Location _locationTracker = Location();
-  // Marker marker;
   List<Marker> markers = <Marker>[];
   List<Polyline> mapPolylines = <Polyline>[];
 
@@ -37,12 +30,10 @@ class _MapLocationState extends State<MapLocation> {
   // Map<PolylineId, Polyline> _mapPolylines = {};
   int _polylineIdCounter = 1;
   final List<LatLng> points = <LatLng>[];
-  final _firestore = FirebaseFirestore.instance;
   // FirebaseStorage firestore = FirebaseStorage.instance;
   Geoflutterfire geo = Geoflutterfire();
   CollectionReference reference =
       FirebaseFirestore.instance.collection('locations');
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   List<LatLng> polyLinesLatLongs = List<LatLng>(); // our list of geopoints
   var mapLocation;
   Uint8List imageData;
@@ -57,10 +48,10 @@ class _MapLocationState extends State<MapLocation> {
     if (_controller == null) _controller = controller;
   }
 
-  static final CameraPosition initialLocation =
-      CameraPosition(target: LatLng(46.520374, -80.954211), zoom: 18.00
-          // zoom: 14.4746,
-          );
+  // static final CameraPosition initialLocation =
+  //     CameraPosition(target: LatLng(46.520374, -80.954211), zoom: 18.00
+  //         // zoom: 14.4746,
+  //         );
 
   Future<Uint8List> getMarker() async {
     ByteData byteData = await DefaultAssetBundle.of(context)

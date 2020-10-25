@@ -17,9 +17,6 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
   DateTime date = DateTime.now();
   TimeOfDay time = TimeOfDay.now();
 
-  final String SERVICE_UUID = "d1acf0d0-0a9b-11eb-adc1-0242ac120002";
-  final String CHARACTERISTIC_UUID = "d739cdd2-1641-11eb-adc1-0242ac120002";
-
   TextEditingController wifiNameController = TextEditingController();
   TextEditingController wifiPasswordController = TextEditingController();
 
@@ -42,6 +39,7 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Wi-Fi'),
+        centerTitle: true
       ),
       body: SingleChildScrollView(
           scrollDirection: Axis.vertical,
