@@ -1,5 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'bluetooth_conect.dart';
+import 'dart:convert' show utf8;
 
 class SetWiFiConf extends StatefulWidget {
   @override
@@ -14,6 +17,26 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
   DateTime date = DateTime.now();
   TimeOfDay time = TimeOfDay.now();
 
+  final String SERVICE_UUID = "d1acf0d0-0a9b-11eb-adc1-0242ac120002";
+  final String CHARACTERISTIC_UUID = "d739cdd2-1641-11eb-adc1-0242ac120002";
+
+  TextEditingController wifiNameController = TextEditingController();
+  TextEditingController wifiPasswordController = TextEditingController();
+
+  void submitAction() {
+    var wifiData = '${wifiNameController.text},${wifiPasswordController.text}';
+    writeData(wifiData);
+  }
+
+  Future<void> writeData(String data) async {
+    // final bleData = Provider.of<BleModel>(context);
+
+    if (context.read<BleModel>().characteristics[2] == null) return;
+
+    List<int> bytes = utf8.encode(data);
+    await context.read<BleModel>().characteristics[2].write(bytes);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,60 +46,58 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
       body: SingleChildScrollView(
           scrollDirection: Axis.vertical,
           child: Container(
-              padding: EdgeInsets.all(10.0),
-              child: Column(children: [
-                Text('WiFi SSID'),
-                SizedBox(height: 10.0),
-                TextFormField(
-                  keyboardType: TextInputType.text,
-                  decoration: InputDecoration(
-                      hintText: 'Please type the Wi-Fi SSID',
-                      border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Colors.grey, width: 32.0),
-                          borderRadius: BorderRadius.circular(5.0)),
-                      focusedBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Colors.grey, width: 1.0),
-                          borderRadius: BorderRadius.circular(5.0))),
-                  onChanged: (value) {
-                    //Do something with this value
-                  },
-                ),
-                SizedBox(height: 10.0),
-                Text('Wi-Fi Password'),
-                SizedBox(height: 10.0),
-                TextFormField(
-                  keyboardType: TextInputType.text,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                      hintText: 'Please Type the WiFi Password',
-                      border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Colors.grey, width: 32.0),
-                          borderRadius: BorderRadius.circular(5.0)),
-                      focusedBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Colors.grey, width: 1.0),
-                          borderRadius: BorderRadius.circular(5.0))),
-                ),
-                SizedBox(height: 50.0),
-                MaterialButton(
-                  color: Colors.orange,
-                  child: Text('Submit', style: TextStyle(color: Colors.white)),
-                  onPressed: () {
-                    //Do Something
-                  },
-                ),
-                SizedBox(height: 10.0),
-                      FlatButton(
-                    color: Colors.green,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0)),
-                    onPressed: () {},
-                    child: Text("Connect")),
-              ]),
-              )),
+            padding: EdgeInsets.all(10.0),
+            child: Column(children: [
+              Text('WiFi SSID'),
+              SizedBox(height: 10.0),
+              TextFormField(
+                controller: wifiNameController,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                    hintText: 'Please type the Wi-Fi SSID',
+                    border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey, width: 32.0),
+                        borderRadius: BorderRadius.circular(5.0)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey, width: 1.0),
+                        borderRadius: BorderRadius.circular(5.0))),
+                onChanged: (value) {
+                  //Do something with this value
+                },
+              ),
+              SizedBox(height: 10.0),
+              Text('Wi-Fi Password'),
+              SizedBox(height: 10.0),
+              TextFormField(
+                controller: wifiPasswordController,
+                keyboardType: TextInputType.text,
+                obscureText: true,
+                decoration: InputDecoration(
+                    hintText: 'Please Type the WiFi Password',
+                    border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey, width: 32.0),
+                        borderRadius: BorderRadius.circular(5.0)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey, width: 1.0),
+                        borderRadius: BorderRadius.circular(5.0))),
+              ),
+              SizedBox(height: 50.0),
+              MaterialButton(
+                color: Colors.orange,
+                child: Text('Submit', style: TextStyle(color: Colors.white)),
+                onPressed: () {
+                  submitAction();
+                },
+              ),
+              SizedBox(height: 10.0),
+              FlatButton(
+                  color: Colors.green,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18.0)),
+                  onPressed: () {},
+                  child: Text("Connect")),
+            ]),
+          )),
     );
   }
 }
