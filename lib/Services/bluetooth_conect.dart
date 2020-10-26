@@ -256,6 +256,8 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
   void scan() async {
     print("scan - Line 340");
     if (!_isScanning) {
+      // flutterBlue.startScan(
+      //     withServices: [Guid(serviceUUID)]);
       flutterBlue.startScan(
           withServices: [Guid(serviceUUID)],
           timeout: new Duration(seconds: 20)).then((value) {
