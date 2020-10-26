@@ -37,10 +37,7 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Wi-Fi'),
-        centerTitle: true
-      ),
+      appBar: AppBar(title: Text('Wi-Fi'), centerTitle: true),
       body: SingleChildScrollView(
           scrollDirection: Axis.vertical,
           child: Container(

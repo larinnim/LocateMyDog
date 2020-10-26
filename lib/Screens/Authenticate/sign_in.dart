@@ -77,7 +77,7 @@ class _State extends State<SignIn> {
                         curve: Curves.easeIn);
                   },
                   goToForgotPW: () {
-                        pageController.animateToPage(3,
+                    pageController.animateToPage(3,
                         duration: Duration(milliseconds: 200),
                         curve: Curves.easeIn);
                   },

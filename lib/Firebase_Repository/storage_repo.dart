@@ -29,5 +29,4 @@ class StorageRepo {
         .child("user/profile_pic/$userId")
         .getDownloadURL();
   }
-
 }

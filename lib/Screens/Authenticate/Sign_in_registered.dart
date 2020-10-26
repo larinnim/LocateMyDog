@@ -64,6 +64,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
       print('cant check');
     }
   }
+
   void _signIn({String em, String pw}) async {
     await locator
         .get<UserController>()
@@ -75,7 +76,8 @@ class _SignInRegisteredState extends State<SignInRegistered> {
         user: FirebaseAuth.instance.currentUser,
         wantsTouchID: _useTouchID,
         password: password,
-      );}));
+      );
+    }));
   }
 
   @override

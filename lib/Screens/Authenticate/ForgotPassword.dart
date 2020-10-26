@@ -32,7 +32,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                   child: Text('OK'),
                   onPressed: () {
                     Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (context) {
+                        MaterialPageRoute(builder: (context) {
                       return Material(child: Wrapper());
                     }));
                   },

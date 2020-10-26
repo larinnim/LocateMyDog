@@ -464,16 +464,10 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
       appBar: AppBar(
         title: Text("Locate My Pet"),
         centerTitle: true,
+        backgroundColor: Colors.blueGrey,
         leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {
-              // Navigate back to the first screen by popping the current route
-              // off the stack.
-              // Navigator.pop(context);
-              // Navigator.pushReplacement(context,
-              //     MaterialPageRoute(builder: (context) {
-              //   return ProfileScreen();
-              // }));
               Navigator.pushNamed(context, '/profile');
             }),
       ),

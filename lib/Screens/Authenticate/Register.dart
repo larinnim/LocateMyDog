@@ -31,10 +31,6 @@ class _RegisterState extends State<Register> {
       if (authResult.user != null) {
         AppUser(authResult.user.uid, displayName: authResult.user.displayName);
       }
-      // authResult.user != null
-      //     ? AppUser(authResult.user.uid,
-      //         displayName: authResult.user.displayName)
-      //     : null;
       // create a new document for the user with the uid
       await DatabaseService(uid: authResult.user.uid)
           .updateUserData(dogname, ownername, dogbreed);

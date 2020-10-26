@@ -11,12 +11,6 @@ import 'package:provider/provider.dart';
 import '../../Services/bluetooth_conect.dart';
 
 class MapLocation extends StatefulWidget {
-  // final User user;
-  // final bool wantsTouchID;
-  // final String password;
-
-  // MapLocation({@required this.user, @required this.wantsTouchID, this.password});
-
   @override
   _MapLocationState createState() => _MapLocationState();
 }
@@ -54,13 +48,12 @@ class _MapLocationState extends State<MapLocation> {
   //         );
 
   Future<Uint8List> getMarker() async {
-    ByteData byteData = await DefaultAssetBundle.of(context)
-        .load("assets/images/dogpin.png");
+    ByteData byteData =
+        await DefaultAssetBundle.of(context).load("assets/images/dogpin.png");
     return byteData.buffer.asUint8List();
   }
 
   Future<Set<Polyline>> updatePolygon(LatLng latlong) async {
-
     final String polylineIdVal = 'polyline_id_$_polylineIdCounter';
     _polylineIdCounter++;
     final PolylineId polylineId = PolylineId(polylineIdVal);

@@ -27,7 +27,7 @@ class AuthRepo {
       {String email, String password}) async {
     String errorMessage;
     var authResult;
-    
+
     try {
       authResult = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
