@@ -237,13 +237,13 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
       context.read<BleModel>().services.forEach((service) {
         context.read<BleModel>().characteristics = service.characteristics;
       });
-      await context.read<BleModel>().characteristics[0].setNotifyValue(true);
-      await context.read<BleModel>().characteristics[1].setNotifyValue(true);
+      await context.read<BleModel>().characteristics.elementAt(0).setNotifyValue(true);
+      await context.read<BleModel>().characteristics.elementAt(1).setNotifyValue(true);
 
-      context.read<BleModel>().characteristics[0].value.listen((value) {
+      context.read<BleModel>().characteristics.elementAt(0).value.listen((value) {
         context.read<BleModel>().addLat(value);
       });
-      context.read<BleModel>().characteristics[1].value.listen((value) {
+      context.read<BleModel>().characteristics.elementAt(1).value.listen((value) {
         context.read<BleModel>().addLng(value);
       });
 

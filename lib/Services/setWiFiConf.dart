@@ -10,10 +10,6 @@ class SetWiFiConf extends StatefulWidget {
 }
 
 class _SetWiFiConfPageState extends State<SetWiFiConf> {
-  bool checkbox1 = true;
-  bool checkbox2 = false;
-  String gender = 'male';
-  String dropdownValue = 'A';
   DateTime date = DateTime.now();
   TimeOfDay time = TimeOfDay.now();
 
@@ -28,10 +24,10 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
   Future<void> writeData(String data) async {
     // final bleData = Provider.of<BleModel>(context);
 
-    if (context.read<BleModel>().characteristics[2] == null) return;
+    if (context.read<BleModel>().characteristics.elementAt(2) == null) return;
 
     List<int> bytes = utf8.encode(data);
-    await context.read<BleModel>().characteristics[2].write(bytes);
+    await context.read<BleModel>().characteristics.elementAt(2).write(bytes);
   }
 
   @override

@@ -31,6 +31,8 @@ class AuthRepo {
     try {
       authResult = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
+      return AppUser(authResult.user.uid,
+          displayName: authResult.user.displayName);
     } catch (error) {
       switch (error.code) {
         case "ERROR_INVALID_EMAIL":
@@ -54,10 +56,8 @@ class AuthRepo {
         default:
           errorMessage = "An undefined Error happened.";
       }
+      return null;
     }
-
-    return AppUser(authResult.user.uid,
-        displayName: authResult.user.displayName);
   }
 
   Future<AppUser> getUser() async {

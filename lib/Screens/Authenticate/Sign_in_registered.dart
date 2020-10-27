@@ -68,7 +68,10 @@ class _SignInRegisteredState extends State<SignInRegistered> {
   void _signIn({String em, String pw}) async {
     await locator
         .get<UserController>()
-        .signInWithEmailAndPassword(email: em, password: pw);
+        .signInWithEmailAndPassword(email: em, password: pw).catchError((error, stackTrace) {
+      // error is SecondError
+      print("outer: $error");
+    });
 
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
       return Signed(
