@@ -8,6 +8,7 @@ import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../locator.dart';
 
 class SignInRegistered extends StatefulWidget {
@@ -68,19 +69,40 @@ class _SignInRegisteredState extends State<SignInRegistered> {
   void _signIn({String em, String pw}) async {
     await locator
         .get<UserController>()
-        .signInWithEmailAndPassword(email: em, password: pw).catchError((error, stackTrace) {
+        .signInWithEmailAndPassword(email: em, password: pw)
+        .catchError((error, stackTrace) {
       // error is SecondError
       print("outer: $error");
     });
 
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-      return Signed(
-        // user: authResult.user,
-        user: FirebaseAuth.instance.currentUser,
-        wantsTouchID: _useTouchID,
-        password: password,
+    if (FirebaseAuth.instance.currentUser != null) {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+        return Signed(
+          // user: authResult.user,
+          user: FirebaseAuth.instance.currentUser,
+          wantsTouchID: _useTouchID,
+          password: password,
+        );
+      }));
+    } else {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Try reading data from the counter key. If it doesn't exist, return 0.
+      final siginError = prefs.getString("siginError");
+
+      bool checkValue = prefs.containsKey('value');
+      print("Is there any key? " + checkValue.toString());
+
+      showDialog(context: context, child:
+          new AlertDialog(
+            title: new Text("Sign In Error"),
+            content: new Text(siginError),
+          )
       );
-    }));
+      print("No user");
+       //Remove String
+      prefs.remove("siginError");
+    }
   }
 
   @override

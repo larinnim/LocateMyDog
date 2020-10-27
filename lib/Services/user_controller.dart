@@ -40,10 +40,10 @@ class UserController {
   Future<void> signInWithEmailAndPassword(
       {String email, String password}) async {
     _currentUser = await _authRepo.signInWithEmailAndPassword(
-        email: email, password: password).catchError((error, stackTrace) {
-      // error is SecondError
-      print("outer: $error");
-    });
-    _currentUser.avatarUrl = await getDownloadUrl();
+        email: email, password: password);
+
+    if (_currentUser != null) {
+      _currentUser.avatarUrl = await getDownloadUrl();
+    }
   }
 }

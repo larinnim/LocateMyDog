@@ -464,7 +464,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
       appBar: AppBar(
         title: Text("Locate My Pet"),
         centerTitle: true,
-        backgroundColor: Colors.blueGrey,
+        // backgroundColor: Colors.blueGrey,
         leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {

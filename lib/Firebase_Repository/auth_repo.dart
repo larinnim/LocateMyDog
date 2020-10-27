@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthRepo {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
@@ -35,27 +36,31 @@ class AuthRepo {
           displayName: authResult.user.displayName);
     } catch (error) {
       switch (error.code) {
-        case "ERROR_INVALID_EMAIL":
+        case "invalid-email":
           errorMessage = "Your email address appears to be malformed.";
           break;
-        case "ERROR_WRONG_PASSWORD":
+        case "wrong-password":
           errorMessage = "Your password is wrong.";
           break;
-        case "ERROR_USER_NOT_FOUND":
+        case "user-not-found":
           errorMessage = "User with this email doesn't exist.";
           break;
-        case "ERROR_USER_DISABLED":
+        case "user-disabled":
           errorMessage = "User with this email has been disabled.";
           break;
-        case "ERROR_TOO_MANY_REQUESTS":
+        case "too-many-requests":
           errorMessage = "Too many requests. Try again later.";
           break;
-        case "ERROR_OPERATION_NOT_ALLOWED":
+        case "operation-not-allowed":
           errorMessage = "Signing in with Email and Password is not enabled.";
           break;
         default:
           errorMessage = "An undefined Error happened.";
       }
+      // obtain shared preferences
+      final prefs = await SharedPreferences.getInstance();
+        // set value
+        prefs.setString('siginError', errorMessage);
       return null;
     }
   }
