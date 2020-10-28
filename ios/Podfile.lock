@@ -431,6 +431,10 @@ PODS:
     - Flutter
   - PromisesObjC (1.2.10)
   - Protobuf (3.11.4)
+  - shared_preferences (0.0.1):
+    - Flutter
+  - wifi (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
@@ -451,6 +455,8 @@ DEPENDENCIES:
   - local_auth (from `.symlinks/plugins/local_auth/ios`)
   - location (from `.symlinks/plugins/location/ios`)
   - permission_handler (from `.symlinks/plugins/permission_handler/ios`)
+  - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
+  - wifi (from `.symlinks/plugins/wifi/ios`)
 
 SPEC REPOS:
   trunk:
@@ -521,6 +527,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/location/ios"
   permission_handler:
     :path: ".symlinks/plugins/permission_handler/ios"
+  shared_preferences:
+    :path: ".symlinks/plugins/shared_preferences/ios"
+  wifi:
+    :path: ".symlinks/plugins/wifi/ios"
 
 SPEC CHECKSUMS:
   abseil: 6c8eb7892aefa08d929b39f9bb108e5367e3228f
@@ -570,6 +580,8 @@ SPEC CHECKSUMS:
   permission_handler: eac8e15b4a1a3fba55b761d19f3f4e6b005d15b6
   PromisesObjC: b14b1c6b68e306650688599de8a45e49fae81151
   Protobuf: 176220c526ad8bd09ab1fb40a978eac3fef665f7
+  shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
+  wifi: d7d77c94109e36c4175d845f0a5964eadba71060
 
 PODFILE CHECKSUM: ffd7293eb7d5907b54a367fd400872baeef513a5
 

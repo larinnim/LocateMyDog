@@ -82,9 +82,10 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
           // onTap: _getWifiName(),
           onTap: () {
             setState(() {
-              _wifiName =  ssidList[index - 1].ssid;
+              _wifiName = ssidList[index - 1].ssid;
             });
-          } ,
+          },
+          tileColor: Colors.white,
           leading: Image.asset('images/wifi${ssidList[index - 1].level}.png',
               width: 28, height: 21),
           title: Text(
@@ -136,13 +137,29 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
 
   @override
   Widget build(BuildContext context) {
+    var cupertinoVal = true;
     return Scaffold(
+      backgroundColor: Color(0xffd3d3d3),
       appBar: AppBar(
         title: Text('Wifi'),
         centerTitle: true,
       ),
       body: SafeArea(
-        child: Column(children: <Widget>[
+        child: Column(
+          children: <Widget>[
+          ListTile(
+            tileColor: Colors.white,
+            title: Text('WiFi'),
+            trailing: CupertinoSwitch(
+              value: cupertinoVal,
+              onChanged: (bool value) {
+                setState(() {
+                  cupertinoVal = false;
+                });
+              },
+            ),
+            onTap: () {},
+          ),
           Expanded(
             child: ListView.builder(
               scrollDirection: Axis.vertical,
