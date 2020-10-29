@@ -18,7 +18,7 @@ class Register extends StatefulWidget {
 
 class _RegisterState extends State<Register> {
   bool _termsAgreed = false;
-  bool saveAttempted = false;
+  // bool saveAttempted = false;
   String email, password, passwordConfirm, dogname, ownername, dogbreed;
   final formKey = GlobalKey<FormState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -28,10 +28,9 @@ class _RegisterState extends State<Register> {
         .createUserWithEmailAndPassword(email: email, password: pw)
         .then((authResult) async {
       authResult.user.updateProfile(displayName: dogname);
-      authResult.user != null
-          ? AppUser(authResult.user.uid,
-              displayName: authResult.user.displayName)
-          : null;
+      if (authResult.user != null) {
+        AppUser(authResult.user.uid, displayName: authResult.user.displayName);
+      }
       // create a new document for the user with the uid
       await DatabaseService(uid: authResult.user.uid)
           .updateUserData(dogname, ownername, dogbreed);
@@ -73,7 +72,8 @@ class _RegisterState extends State<Register> {
           child: Column(
             children: <Widget>[
               TextFormField(
-                autovalidate: saveAttempted,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                // autovalidate: saveAttempted,
                 onChanged: (textValue) {
                   setState(() {
                     dogname = textValue;
@@ -83,6 +83,7 @@ class _RegisterState extends State<Register> {
                   if (dogNameVal.isEmpty) {
                     return 'This field is mandatory';
                   }
+                  return null;
                 },
                 decoration: InputDecoration(
                     errorStyle: TextStyle(color: Colors.white),
@@ -97,7 +98,7 @@ class _RegisterState extends State<Register> {
               ),
               SizedBox(height: 12.0),
               TextFormField(
-                autovalidate: saveAttempted,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 onChanged: (textValue) {
                   setState(() {
                     ownername = textValue;
@@ -107,6 +108,7 @@ class _RegisterState extends State<Register> {
                   if (dogOwnerVal.isEmpty) {
                     return 'This field is mandatory';
                   }
+                  return null;
                 },
                 decoration: InputDecoration(
                     errorStyle: TextStyle(color: Colors.white),
@@ -121,7 +123,7 @@ class _RegisterState extends State<Register> {
               ),
               SizedBox(height: 12.0),
               TextFormField(
-                autovalidate: saveAttempted,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 onChanged: (textValue) {
                   setState(() {
                     dogbreed = textValue;
@@ -131,6 +133,7 @@ class _RegisterState extends State<Register> {
                   if (dogBreedVal.isEmpty) {
                     return 'This field is mandatory';
                   }
+                  return null;
                 },
                 decoration: InputDecoration(
                     errorStyle: TextStyle(color: Colors.white),
@@ -145,7 +148,7 @@ class _RegisterState extends State<Register> {
               ),
               SizedBox(height: 12.0),
               TextFormField(
-                autovalidate: saveAttempted,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 onChanged: (textValue) {
                   setState(() {
                     email = textValue;
@@ -180,7 +183,7 @@ class _RegisterState extends State<Register> {
               ),
               SizedBox(height: 20.0),
               TextFormField(
-                autovalidate: saveAttempted,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 onChanged: (textValue) {
                   setState(() {
                     password = textValue;
@@ -209,7 +212,7 @@ class _RegisterState extends State<Register> {
               ),
               SizedBox(height: 12.0),
               TextFormField(
-                autovalidate: saveAttempted,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 onChanged: (textValue) {
                   setState(() {
                     passwordConfirm = textValue;
@@ -270,9 +273,9 @@ class _RegisterState extends State<Register> {
                     SizedBox(width: 38.0),
                     InkWell(
                       onTap: () {
-                        setState(() {
-                          saveAttempted = true;
-                        });
+                        // setState(() {
+                        //   saveAttempted = true;
+                        // });
                         if (formKey.currentState.validate()) {
                           formKey.currentState.save();
                           _createUser(email: email, pw: password);

@@ -41,6 +41,9 @@ class UserController {
       {String email, String password}) async {
     _currentUser = await _authRepo.signInWithEmailAndPassword(
         email: email, password: password);
-    _currentUser.avatarUrl = await getDownloadUrl();
+
+    if (_currentUser != null) {
+      _currentUser.avatarUrl = await getDownloadUrl();
+    }
   }
 }

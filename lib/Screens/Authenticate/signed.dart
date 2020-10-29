@@ -58,16 +58,5 @@ class _SignedPageState extends State<Signed> {
   Widget build(BuildContext context) {
     if (widget.wantsTouchID) {}
     return ProfileScreen();
-  //   return Material(
-  //     child: SafeArea(
-  //     child: Container(
-  //       child: Center(
-  //         child: Text(
-  //           'Welcome ${widget.user.email}',
-  //           style: TextStyle(fontSize: 24.0),
-  //         ),
-  //       ),
-  //     ),
-  //   ));
   }
 }

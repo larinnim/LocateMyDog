@@ -46,10 +46,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         decoration: BoxDecoration(
             color: Theme.of(context).primaryColor,
             borderRadius: BorderRadius.circular(kSpacingUnit.w * 3)
-            // borderRadius: BorderRadius.only(
-            //   bottomLeft: Radius.circular(20.0),
-            //   bottomRight: Radius.circular(20.0),
-            // ),
             ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -121,9 +117,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     InkWell(
                       onTap: () {
-                        Navigator.push(context, new MaterialPageRoute(
-                        builder: (context) => new BluetoothConnection())
-                      );
+                        Navigator.push(
+                            context,
+                            new MaterialPageRoute(
+                                builder: (context) =>
+                                    new BluetoothConnection()));
                         // Navigator.pushNamed(context, '/trackWalk');
                         // Navigator.pushReplacement(context,
                         //     MaterialPageRoute(builder: (context) {

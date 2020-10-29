@@ -11,5 +11,6 @@ final locator = GetIt.instance;
 void setupServices() {
   locator.registerSingleton<AuthRepo>(AuthRepo(), signalsReady: true);
   locator.registerSingleton<StorageRepo>(StorageRepo(), signalsReady: true);
-  locator.registerSingleton<UserController>(UserController(), signalsReady: true);
+  locator.registerSingleton<UserController>(UserController(),
+      signalsReady: true);
 }
