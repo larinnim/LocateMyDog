@@ -227,29 +227,51 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
 
   void connectDev(BluetoothDevice dev) async {
     //sleep(const Duration(seconds: 1));
-    print("connectDev - Line 243");
-    await dev.connect().then((status) async {
-      //add connected device to the list
-      context.read<BleModel>().addconnectedDevices(dev);
+    // List<BluetoothDevice> connectedDevices = await flutterBlue.connectedDevices;
 
-      context.read<BleModel>().services = await dev.discoverServices();
-      //Only works if I have 1 service. Review the logic if there is more than 1
-      context.read<BleModel>().services.forEach((service) {
-        context.read<BleModel>().characteristics = service.characteristics;
-      });
-      await context.read<BleModel>().characteristics.elementAt(0).setNotifyValue(true);
-      await context.read<BleModel>().characteristics.elementAt(1).setNotifyValue(true);
+    if (!context.read<BleModel>().connectedDevices.contains(dev)) {
+      print("connectDev - Line 243");
+      await dev.connect().then((status) async {
+        //add connected device to the list
+        context.read<BleModel>().addconnectedDevices(dev);
 
-      context.read<BleModel>().characteristics.elementAt(0).value.listen((value) {
-        context.read<BleModel>().addLat(value);
-      });
-      context.read<BleModel>().characteristics.elementAt(1).value.listen((value) {
-        context.read<BleModel>().addLng(value);
-      });
+        context.read<BleModel>().services = await dev.discoverServices();
+        //Only works if I have 1 service. Review the logic if there is more than 1
+        context.read<BleModel>().services.forEach((service) {
+          context.read<BleModel>().characteristics = service.characteristics;
+        });
+        await context
+            .read<BleModel>()
+            .characteristics
+            .elementAt(0)
+            .setNotifyValue(true);
+        await context
+            .read<BleModel>()
+            .characteristics
+            .elementAt(1)
+            .setNotifyValue(true);
 
-      print("Connected");
-      setState(() {});
-    }).catchError((e) => print("Connection Error $e"));
+        context
+            .read<BleModel>()
+            .characteristics
+            .elementAt(0)
+            .value
+            .listen((value) {
+          context.read<BleModel>().addLat(value);
+        });
+        context
+            .read<BleModel>()
+            .characteristics
+            .elementAt(1)
+            .value
+            .listen((value) {
+          context.read<BleModel>().addLng(value);
+        });
+
+        print("Connected");
+        setState(() {});
+      }).catchError((e) => print("Connection Error $e"));
+    }
   }
 
   //스캔 ON/OFF
@@ -366,21 +388,31 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                   children: <Widget>[
                     dev.connectedDevices.length > 0
                         ? ListTile(
+                            onTap: () {
+                              Navigator.pushNamed(context, '/wifiConf');
+                            },
                             title: Text("Configure Device WiFi"),
                             trailing: IconButton(
-                                icon: Icon(Icons.wifi),
-                                tooltip: 'Go to WiFI',
-                                onPressed: () =>
-                                    Navigator.pushNamed(context, '/wifiConf')))
+                              icon: Icon(Icons.wifi),
+                              tooltip: 'Go to WiFI',
+                              // onPressed: () => {},
+                              onPressed: () =>
+                              Navigator.pushNamed(context, '/wifiConf')
+                            ))
                         : Column(),
                     dev.connectedDevices.length > 0
                         ? ListTile(
+                            onTap: () {
+                              Navigator.pushNamed(context, '/blueMap');
+                            },
                             title: Text("Go to Map"),
                             trailing: IconButton(
-                                icon: Icon(Icons.map),
-                                tooltip: 'Go to Map',
-                                onPressed: () =>
-                                    Navigator.pushNamed(context, '/blueMap')))
+                              icon: Icon(Icons.map),
+                              tooltip: 'Go to Map',
+                              // onPressed: () => {},
+                              onPressed: () =>
+                                  Navigator.pushNamed(context, '/blueMap')
+                            ))
                         // onPressed: () => Navigator.pushReplacement(context,
                         //         MaterialPageRoute(builder: (context) {
                         //       return MapLocation();
@@ -393,11 +425,12 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                         initiallyExpanded: true,
                         children: <Widget>[
                           ListTile(
-                              title: dev.connectedDevices.length > 0 &&
-                                      dev.lat.length > 0 &&
-                                      dev.lng.length > 0 &&
+                              title: dev.connectedDevices != null &&
+                                      dev.connectedDevices.length > 0 &&
                                       dev.lat != null &&
-                                      dev.lng != null
+                                      dev.lng != null &&
+                                      dev.lat.length > 0 &&
+                                      dev.lng.length > 0
                                   ? Text("Lat: " +
                                       Utf8Decoder().convert(dev.lat) +
                                       " | Long: " +

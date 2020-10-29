@@ -16,9 +16,11 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
   DateTime date = DateTime.now();
   TimeOfDay time = TimeOfDay.now();
   List<WifiResult> ssidList = [];
+  List<String> processedSSIDList = [];
   String ssid = '', password = '';
   TextEditingController wifiNameController = TextEditingController();
   TextEditingController wifiPasswordController = TextEditingController();
+  bool _visible = false;
 
   @override
   void initState() {
@@ -32,73 +34,112 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
         Row(
           children: <Widget>[
             Expanded(
-                child: Column(children: <Widget>[
-              TextField(
-                decoration: InputDecoration(
-                  border: UnderlineInputBorder(),
-                  filled: true,
-                  icon: Icon(Icons.wifi),
-                  hintText: 'Your wifi ssid',
-                  // labelText: 'ssid',
-                  labelText: _wifiName,
-                  // suffixIcon: Padding(
-                  //   //suffixIcon, this way it don't disapear when the TextField is unfocused
-                  //   padding: EdgeInsets.only(
-                  //       top: 20), //padding to put closer to the line
-                  //   child: Text(
-                  //     _wifiName,
-                  //     style: TextStyle(
-                  //       color: Colors.grey,
-                  //     ),
-                  //   ),
-                  // ),`
-                ),
-                keyboardType: TextInputType.text,
-                readOnly: true,
-                // onChanged: (value) {
-                //   ssid = value;
-                // },
-              ),
-              TextField(
-                decoration: InputDecoration(
-                  border: UnderlineInputBorder(),
-                  filled: true,
-                  icon: Icon(Icons.lock_outline),
-                  hintText: 'Your wifi password',
-                  labelText: 'password',
-                ),
-                keyboardType: TextInputType.text,
-                onChanged: (value) {
-                  password = value;
+              child: Visibility(
+                child: Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: Column(children: <Widget>[
+                      TextField(
+                        decoration: InputDecoration(
+                          border: UnderlineInputBorder(),
+                          filled: true,
+                          icon: Icon(Icons.wifi),
+                          hintText: _wifiName,
+                          // labelText: 'ssid',
+                          // labelText: _wifiName,
+                          // suffixIcon: Padding(
+                          //   //suffixIcon, this way it don't disapear when the TextField is unfocused
+                          //   padding: EdgeInsets.only(
+                          //       top: 20), //padding to put closer to the line
+                          //   child: Text(
+                          //     _wifiName,
+                          //     style: TextStyle(
+                          //       color: Colors.grey,
+                          //     ),
+                          //   ),
+                          // ),`
+                        ),
+                        keyboardType: TextInputType.text,
+                        readOnly: true,
+                        // onChanged: (value) {
+                        //   ssid = value;
+                        // },
+                      ),
+                      TextField(
+                        decoration: InputDecoration(
+                          border: UnderlineInputBorder(),
+                          filled: true,
+                          icon: Icon(Icons.lock_outline),
+                          hintText: 'Your wifi password',
+                          // labelText: 'password',
+                        ),
+                        keyboardType: TextInputType.text,
+                        onChanged: (value) {
+                          password = value;
+                        },
+                      ),
+                         SizedBox(height: 50.0),
+              MaterialButton(
+                color: Colors.orange,
+                child: Text('Submit', style: TextStyle(color: Colors.white)),
+                onPressed: () {
+                  submitAction();
                 },
               ),
-            ])),
+                    ])),
+                maintainSize: true,
+                maintainAnimation: true,
+                maintainState: true,
+                visible: _visible,
+              ),
+            ),
           ],
         )
       ]);
     } else {
-      return Column(children: <Widget>[
-        ListTile(
-          // onTap: _getWifiName(),
-          onTap: () {
-            setState(() {
-              _wifiName = ssidList[index - 1].ssid;
-            });
-          },
-          tileColor: Colors.white,
-          leading: Image.asset('images/wifi${ssidList[index - 1].level}.png',
-              width: 28, height: 21),
-          title: Text(
-            ssidList[index - 1].ssid,
-            style: TextStyle(
-              color: Colors.black87,
-              fontSize: 16.0,
-            ),
-          ),
-          dense: true,
-        ),
-        Divider(),
-      ]);
+    //   processedSSIDList.add(ssidList[index - 1].ssid);
+    //   print("The length:" + processedSSIDList.length.toString());
+      return ssidList[index - 1].ssid != ""
+          ? Container(
+              color: Color(0xffd3d3d3),
+              child: Column(children: <Widget>[
+                Visibility(
+                  child: Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: Row(children: <Widget>[
+                      Flexible(
+                        child: ListTile(
+                          // onTap: _getWifiName(),
+                          onTap: () {
+                            setState(() {
+                              _wifiName = ssidList[index - 1].ssid;
+                            });
+                          },
+                          tileColor: Colors.white,
+                          leading: Image.asset(
+                              'images/wifi${ssidList[index - 1].level}.png',
+                              width: 28,
+                              height: 21),
+                          title: Text(
+                            ssidList[index - 1].ssid,
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontSize: 16.0,
+                            ),
+                          ),
+                          dense: true,
+                        ),
+                      ),
+                      Divider(),
+                    ]),
+                  ),
+                  maintainSize: true,
+                  maintainAnimation: true,
+                  maintainState: true,
+                  visible: _visible,
+                )
+              ]),
+            )
+          : Column();
     }
   }
 
@@ -116,7 +157,9 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
   void loadData() async {
     Wifi.list('').then((list) {
       setState(() {
-        ssidList = list;
+        ssidList = [
+          ...{...list}
+        ];
       });
     });
   }
@@ -135,31 +178,46 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
     await context.read<BleModel>().characteristics.elementAt(2).write(bytes);
   }
 
+  void _toggle() {
+    setState(() {
+      _visible = !_visible;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     var cupertinoVal = true;
     return Scaffold(
       backgroundColor: Color(0xffd3d3d3),
       appBar: AppBar(
-        title: Text('Wifi'),
+        title: Text('WiFi'),
         centerTitle: true,
       ),
       body: SafeArea(
-        child: Column(
-          children: <Widget>[
-          ListTile(
-            tileColor: Colors.white,
-            title: Text('WiFi'),
-            trailing: CupertinoSwitch(
-              value: cupertinoVal,
-              onChanged: (bool value) {
-                setState(() {
-                  cupertinoVal = false;
-                });
-              },
+        child: Column(children: <Widget>[
+          Padding(
+            padding: EdgeInsets.all(12.0),
+            child: ListTile(
+              tileColor: Colors.white,
+              title: Text('WiFi'),
+              trailing: CupertinoSwitch(
+                value: _visible,
+                onChanged: (bool value) {
+                  _toggle();
+                  // setState(() {
+                  //   _visible = !_visible;
+                  //   cupertinoVal = false;
+                  // });
+                },
+              ),
+              onTap: () {},
             ),
-            onTap: () {},
           ),
+          // Visibility(
+          //   maintainSize: true,
+          //   maintainAnimation: true,
+          //   maintainState: true,
+          //   visible: _visible,
           Expanded(
             child: ListView.builder(
               scrollDirection: Axis.vertical,
@@ -167,10 +225,24 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
               padding: EdgeInsets.all(8.0),
               itemCount: ssidList.length + 1,
               itemBuilder: (BuildContext context, int index) {
+                //Verify if the SSID is not duplicated
+                // if (index >= 1 && index<= ssid.length) {
+                print("Index" + index.toString());
+                // processedSSIDList.add(ssidList[index].ssid);
+                // if (!processedSSIDList.contains(ssidList[index])) {
                 return itemSSID(index);
+                //   }
+                //   else {
+                //     return Column();
+                //   }
+                // }
+                // else {
+                //     return Column();
+                //   }
               },
             ),
           ),
+          // ),
         ]),
       ),
     );
