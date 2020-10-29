@@ -43,34 +43,20 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
                           border: UnderlineInputBorder(),
                           filled: true,
                           icon: Icon(Icons.wifi),
-                          hintText: _wifiName,
-                          // labelText: 'ssid',
-                          // labelText: _wifiName,
-                          // suffixIcon: Padding(
-                          //   //suffixIcon, this way it don't disapear when the TextField is unfocused
-                          //   padding: EdgeInsets.only(
-                          //       top: 20), //padding to put closer to the line
-                          //   child: Text(
-                          //     _wifiName,
-                          //     style: TextStyle(
-                          //       color: Colors.grey,
-                          //     ),
-                          //   ),
-                          // ),`
+                          hintText: _wifiName == "" ? "Tap your network" : _wifiName,
                         ),
                         keyboardType: TextInputType.text,
                         readOnly: true,
-                        // onChanged: (value) {
-                        //   ssid = value;
-                        // },
                       ),
                       TextField(
+                        obscureText: true,
+                        enableSuggestions: false,
+                        autocorrect: false,
                         decoration: InputDecoration(
                           border: UnderlineInputBorder(),
                           filled: true,
                           icon: Icon(Icons.lock_outline),
                           hintText: 'Your wifi password',
-                          // labelText: 'password',
                         ),
                         keyboardType: TextInputType.text,
                         onChanged: (value) {
@@ -96,8 +82,6 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
         )
       ]);
     } else {
-    //   processedSSIDList.add(ssidList[index - 1].ssid);
-    //   print("The length:" + processedSSIDList.length.toString());
       return ssidList[index - 1].ssid != ""
           ? Container(
               color: Color(0xffd3d3d3),
@@ -108,15 +92,15 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
                     child: Row(children: <Widget>[
                       Flexible(
                         child: ListTile(
-                          // onTap: _getWifiName(),
                           onTap: () {
                             setState(() {
                               _wifiName = ssidList[index - 1].ssid;
                             });
                           },
                           tileColor: Colors.white,
-                          leading: Image.asset(
-                              'images/wifi${ssidList[index - 1].level}.png',
+                          leading: 
+                          Image.asset(
+                              'assets/images/wifi${ssidList[index - 1].level}.png',
                               width: 28,
                               height: 21),
                           title: Text(
@@ -158,7 +142,7 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
     Wifi.list('').then((list) {
       setState(() {
         ssidList = [
-          ...{...list}
+          ...{...list} // Get distinct values
         ];
       });
     });
@@ -186,7 +170,6 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
 
   @override
   Widget build(BuildContext context) {
-    var cupertinoVal = true;
     return Scaffold(
       backgroundColor: Color(0xffd3d3d3),
       appBar: AppBar(
@@ -204,20 +187,11 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
                 value: _visible,
                 onChanged: (bool value) {
                   _toggle();
-                  // setState(() {
-                  //   _visible = !_visible;
-                  //   cupertinoVal = false;
-                  // });
                 },
               ),
               onTap: () {},
             ),
           ),
-          // Visibility(
-          //   maintainSize: true,
-          //   maintainAnimation: true,
-          //   maintainState: true,
-          //   visible: _visible,
           Expanded(
             child: ListView.builder(
               scrollDirection: Axis.vertical,
@@ -228,21 +202,10 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
                 //Verify if the SSID is not duplicated
                 // if (index >= 1 && index<= ssid.length) {
                 print("Index" + index.toString());
-                // processedSSIDList.add(ssidList[index].ssid);
-                // if (!processedSSIDList.contains(ssidList[index])) {
                 return itemSSID(index);
-                //   }
-                //   else {
-                //     return Column();
-                //   }
-                // }
-                // else {
-                //     return Column();
-                //   }
               },
             ),
           ),
-          // ),
         ]),
       ),
     );
