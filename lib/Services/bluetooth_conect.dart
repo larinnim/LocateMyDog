@@ -244,12 +244,12 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
             .read<BleModel>()
             .characteristics
             .elementAt(0)
-            .setNotifyValue(true);
+            .setNotifyValue(true); //ESP32 - Latitude
         await context
             .read<BleModel>()
             .characteristics
             .elementAt(1)
-            .setNotifyValue(true);
+            .setNotifyValue(true); //ESP32 - Longitude
 
         context
             .read<BleModel>()
@@ -257,7 +257,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
             .elementAt(0)
             .value
             .listen((value) {
-          context.read<BleModel>().addLat(value);
+          context.read<BleModel>().addLat(value); // Add lat to provider
         });
         context
             .read<BleModel>()
@@ -265,7 +265,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
             .elementAt(1)
             .value
             .listen((value) {
-          context.read<BleModel>().addLng(value);
+          context.read<BleModel>().addLng(value); // Add lng to provider
         });
 
         print("Connected");

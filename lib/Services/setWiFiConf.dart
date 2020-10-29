@@ -149,17 +149,18 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
   }
 
   void submitAction() {
-    var wifiData = '${wifiNameController.text},${wifiPasswordController.text}';
+    // var wifiData = '${wifiNameController.text},${wifiPasswordController.text}';
+    var wifiData = '$_wifiName,$password';
     writeData(wifiData);
   }
 
   Future<void> writeData(String data) async {
     // final bleData = Provider.of<BleModel>(context);
 
-    if (context.read<BleModel>().characteristics.elementAt(2) == null) return;
+    if (context.read<BleModel>().characteristics.elementAt(2) == null) return; //WiFi Characteristic
 
     List<int> bytes = utf8.encode(data);
-    await context.read<BleModel>().characteristics.elementAt(2).write(bytes);
+    await context.read<BleModel>().characteristics.elementAt(2).write(bytes);//Write WiFi to ESP32
   }
 
   void _toggle() {
