@@ -77,6 +77,7 @@ class BleSingleton {
   List<int> lng = [];
   DateTime now = DateTime.now();
   double heading = 90;
+  List<BluetoothDevice> connectedDevices = [];
   // BlueLocation.private(this.lat, this.lng, this.now);
 
   Stream<LocationValues> _onLocationChanged;
@@ -139,6 +140,7 @@ class BleModel extends ChangeNotifier {
     BleSingleton._singleton.lat = null;
     BleSingleton._singleton.lng = null;
     BleSingleton._singleton.now = null;
+    BleSingleton._singleton.connectedDevices..remove(device);
     notifyListeners();
   }
 
@@ -159,6 +161,7 @@ class BleModel extends ChangeNotifier {
   void addconnectedDevices(BluetoothDevice device) {
     print("addconnectedDevices - Line 159");
     connectedDevices.add(device);
+    BleSingleton._singleton.connectedDevices.add(device);
     // This call tells the widgets that are listening to this model to rebuild.
     notifyListeners();
   }
@@ -229,7 +232,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
     //sleep(const Duration(seconds: 1));
     // List<BluetoothDevice> connectedDevices = await flutterBlue.connectedDevices;
 
-    if (!context.read<BleModel>().connectedDevices.contains(dev)) {
+    if (!BleSingleton._singleton.connectedDevices.contains(dev)) {
       print("connectDev - Line 243");
       await dev.connect().then((status) async {
         //add connected device to the list
@@ -393,12 +396,11 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                             },
                             title: Text("Configure Device WiFi"),
                             trailing: IconButton(
-                              icon: Icon(Icons.wifi),
-                              tooltip: 'Go to WiFI',
-                              // onPressed: () => {},
-                              onPressed: () =>
-                              Navigator.pushNamed(context, '/wifiConf')
-                            ))
+                                icon: Icon(Icons.wifi),
+                                tooltip: 'Go to WiFI',
+                                // onPressed: () => {},
+                                onPressed: () =>
+                                    Navigator.pushNamed(context, '/wifiConf')))
                         : Column(),
                     dev.connectedDevices.length > 0
                         ? ListTile(
@@ -407,12 +409,11 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                             },
                             title: Text("Go to Map"),
                             trailing: IconButton(
-                              icon: Icon(Icons.map),
-                              tooltip: 'Go to Map',
-                              // onPressed: () => {},
-                              onPressed: () =>
-                                  Navigator.pushNamed(context, '/blueMap')
-                            ))
+                                icon: Icon(Icons.map),
+                                tooltip: 'Go to Map',
+                                // onPressed: () => {},
+                                onPressed: () =>
+                                    Navigator.pushNamed(context, '/blueMap')))
                         // onPressed: () => Navigator.pushReplacement(context,
                         //         MaterialPageRoute(builder: (context) {
                         //       return MapLocation();
