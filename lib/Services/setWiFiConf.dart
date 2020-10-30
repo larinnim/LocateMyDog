@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:percent_indicator/percent_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:wifi/wifi.dart';
 import 'bluetooth_conect.dart';
@@ -21,6 +22,8 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
   TextEditingController wifiNameController = TextEditingController();
   TextEditingController wifiPasswordController = TextEditingController();
   bool _visible = false;
+  bool _loading = true;
+  dynamic _percentage = 0.8;
 
   @override
   void initState() {
@@ -43,7 +46,8 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
                           border: UnderlineInputBorder(),
                           filled: true,
                           icon: Icon(Icons.wifi),
-                          hintText: _wifiName == "" ? "Tap your network" : _wifiName,
+                          hintText:
+                              _wifiName == "" ? "Tap your network" : _wifiName,
                         ),
                         keyboardType: TextInputType.text,
                         readOnly: true,
@@ -63,14 +67,25 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
                           password = value;
                         },
                       ),
-                         SizedBox(height: 50.0),
-              MaterialButton(
-                color: Colors.orange,
-                child: Text('Submit', style: TextStyle(color: Colors.white)),
-                onPressed: () {
-                  submitAction();
-                },
-              ),
+                      SizedBox(height: 40.0),
+                      MaterialButton(
+                        color: Colors.orange,
+                        child: Text('Submit',
+                            style: TextStyle(color: Colors.white)),
+                        onPressed: () {
+                          submitAction();
+                        },
+                      ),
+                      SizedBox(height: 20.0),
+                      Visibility(
+                        child: Row(children: <Widget>[
+                          getPercentageIndicator(context, _percentage, ((_percentage * 100).round().toString() + "%"))
+                        ]),
+                        maintainSize: true,
+                        maintainAnimation: true,
+                        maintainState: true,
+                        visible: _loading,
+                      ),
                     ])),
                 maintainSize: true,
                 maintainAnimation: true,
@@ -98,8 +113,7 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
                             });
                           },
                           tileColor: Colors.white,
-                          leading: 
-                          Image.asset(
+                          leading: Image.asset(
                               'assets/images/wifi${ssidList[index - 1].level}.png',
                               width: 28,
                               height: 21),
@@ -127,17 +141,6 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
     }
   }
 
-  // Future<Null> _getWifiName(String arg) async {
-  void _getWifiName(String arg) {
-    // int l = await Wifi.level;
-    // String wifiName = await Wifi.ssid;
-    setState(() {
-      // level = l;
-      _wifiName = arg;
-    });
-    // return arg;
-  }
-
   void loadData() async {
     Wifi.list('').then((list) {
       setState(() {
@@ -154,13 +157,32 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
     writeData(wifiData);
   }
 
+  getPercentageIndicator(context, var1, var2) {
+    return LinearPercentIndicator(
+      width: MediaQuery.of(context).size.width - 50,
+      animation: true,
+      lineHeight: 20.0,
+      animationDuration: 2000,
+      percent: var1,
+      center: Text(var2),
+      linearStrokeCap: LinearStrokeCap.roundAll,
+      progressColor: Colors.green,
+      backgroundColor: Colors.green.withOpacity(0.2),
+    );
+  }
+
   Future<void> writeData(String data) async {
     // final bleData = Provider.of<BleModel>(context);
 
-    if (context.read<BleModel>().characteristics.elementAt(2) == null) return; //WiFi Characteristic
+    if (context.read<BleModel>().characteristics.elementAt(2) == null)
+      return; //WiFi Characteristic
 
     List<int> bytes = utf8.encode(data);
-    await context.read<BleModel>().characteristics.elementAt(2).write(bytes);//Write WiFi to ESP32
+    await context
+        .read<BleModel>()
+        .characteristics
+        .elementAt(2)
+        .write(bytes); //Write WiFi to ESP32
   }
 
   void _toggle() {
