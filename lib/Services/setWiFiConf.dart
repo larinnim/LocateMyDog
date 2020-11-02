@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:wifi/wifi.dart';
@@ -29,6 +31,29 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
   void initState() {
     super.initState();
     loadData();
+    // readDatabase();
+  }
+
+  void readDatabase() {
+    FirebaseFirestore.instance
+        .collection("locateDog/3heCcuuJTpVhYqTp2wHDS5Nq4IL2/RealTimeData")
+        .snapshots()
+        .listen((event) {
+      var date = DateTime.fromMillisecondsSinceEpoch(event.docs[0]['timestamp'] * 1000);
+
+      context.read<WiFiModel>().addLat(event.docs[0]['latitude']);
+      context.read<WiFiModel>().addLng(event.docs[0]['longitude']);
+      context.read<WiFiModel>().addRSSI(event.docs[0]['rssi']);
+      context.read<WiFiModel>().addSSID(event.docs[0]['ssid']);
+      context.read<WiFiModel>().addTimeStamp(date);
+
+      print(event.docs[0]['latitude']);
+      print(event.docs[0]['longitude']);
+      print(event.docs[0]['rssi']);
+      print(event.docs[0]['ssid']);
+      print(event.docs[0]['date']);
+
+    });
   }
 
   Widget itemSSID(index) {
@@ -79,7 +104,8 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
                       SizedBox(height: 20.0),
                       Visibility(
                         child: Row(children: <Widget>[
-                          getPercentageIndicator(context, _percentage, ((_percentage * 100).round().toString() + "%"))
+                          getPercentageIndicator(context, _percentage,
+                              ((_percentage * 100).round().toString() + "%"))
                         ]),
                         maintainSize: true,
                         maintainAnimation: true,
@@ -210,6 +236,7 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
                 value: _visible,
                 onChanged: (bool value) {
                   _toggle();
+                  readDatabase();
                 },
               ),
               onTap: () {},

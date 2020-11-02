@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:intl/intl.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:provider/provider.dart';
@@ -73,8 +74,8 @@ class BleSingleton {
   factory BleSingleton() => _singleton;
   BleSingleton._internal();
   static BleSingleton get shared => _singleton;
-  List<int> lat = [];
-  List<int> lng = [];
+  double lat;
+  double lng;
   DateTime now = DateTime.now();
   double heading = 90;
   List<BluetoothDevice> connectedDevices = [];
@@ -114,9 +115,9 @@ class BleModel extends ChangeNotifier {
   List<BluetoothService> services = [];
   List<BluetoothCharacteristic> characteristics = [];
   List<BluetoothDevice> connectedDevices = [];
-  List<int> lat = [];
-  List<int> lng = [];
-  DateTime now = DateTime.now();
+  double lat;
+  double lng;
+  DateTime timestampBLE = DateTime.now();
 
   /// An unmodifiable view of the items in the cart.
   UnmodifiableListView<BleDeviceItem> get items =>
@@ -166,23 +167,23 @@ class BleModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addLat(List<int> value) {
+  void addLat(double value) {
     //print("addLat - Line 166");
     lat = value;
     BleSingleton._singleton.lat = value;
     BleSingleton._singleton.now = DateTime.now();
-    now = BleSingleton._singleton.now;
+    timestampBLE = BleSingleton._singleton.now;
     BleSingleton._singleton.onLocationChanged();
     // This call tells the widgets that are listening to this model to rebuild.
     notifyListeners();
   }
 
-  void addLng(List<int> value) {
+  void addLng(double value) {
     //print("addLgn - Line 177");
     lng = value;
     BleSingleton._singleton.lng = value;
     BleSingleton._singleton.now = DateTime.now();
-    now = BleSingleton._singleton.now;
+    timestampBLE = BleSingleton._singleton.now;
     BleSingleton._singleton.onLocationChanged();
     // This call tells the widgets that are listening to this model to rebuild.
     notifyListeners();
@@ -260,7 +261,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
             .elementAt(0)
             .value
             .listen((value) {
-          context.read<BleModel>().addLat(value); // Add lat to provider
+          context.read<BleModel>().addLat(double.parse(Utf8Decoder().convert(value))); // Add lat to provider
         });
         context
             .read<BleModel>()
@@ -268,7 +269,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
             .elementAt(1)
             .value
             .listen((value) {
-          context.read<BleModel>().addLng(value); // Add lng to provider
+          context.read<BleModel>().addLng(double.parse(Utf8Decoder().convert(value))); // Add lng to provider
         });
 
         print("Connected");
@@ -343,9 +344,12 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
     // Then it uses that model to build widgets, and will trigger
     // rebuilds if the model is updated.
 
-    return Consumer<BleModel>(builder: (_, dev, child) {
+    // var dataBLE = Provider.of<BleModel>(context);
+    // var dataWiFi = Provider.of<WiFiModel>(context);
+    
+    return Consumer2<BleModel, WiFiModel>(builder: (_,bleProvider, wifiProvider , child) {
       return ListView.builder(
-          itemCount: dev.items.length,
+          itemCount: bleProvider.items.length,
           itemBuilder: (context, index) {
             return Column(children: <Widget>[
               SizedBox(height: 20.0),
@@ -355,7 +359,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                   initiallyExpanded: true,
                   title: ListTile(
                     title: Text(
-                      "Device: " + dev.deviceList[index].device.name,
+                      "Device: " + bleProvider.deviceList[index].device.name,
                       style: TextStyle(
                           fontSize: 18.0,
                           fontWeight: FontWeight.bold,
@@ -389,7 +393,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                     // trailing:Column(children: <Widget>[Text("85%", style: TextStyle(fontSize: 10.0),), Icon(LineAwesomeIcons.battery_3_4_full)]),
                   ),
                   children: <Widget>[
-                    dev.connectedDevices.length > 0
+                    bleProvider.connectedDevices.length > 0
                         ? ListTile(
                             onTap: () {
                               Navigator.pushNamed(context, '/wifiConf');
@@ -402,7 +406,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                                 onPressed: () =>
                                     Navigator.pushNamed(context, '/wifiConf')))
                         : Column(),
-                    dev.connectedDevices.length > 0
+                    bleProvider.connectedDevices.length > 0
                         ? ListTile(
                             onTap: () {
                               Navigator.pushNamed(context, '/blueMap');
@@ -426,19 +430,46 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                         initiallyExpanded: true,
                         children: <Widget>[
                           ListTile(
-                              title: dev.connectedDevices != null &&
-                                      dev.connectedDevices.length > 0 &&
-                                      dev.lat != null &&
-                                      dev.lng != null &&
-                                      dev.lat.length > 0 &&
-                                      dev.lng.length > 0
+                              title: (bleProvider.lat != null && wifiProvider == null) ||
+                               (bleProvider.timestampBLE != null && wifiProvider.timestampWiFi != null && bleProvider.timestampBLE.isAfter(wifiProvider.timestampWiFi))
+                              
+                              //  (bleProvider.connectedDevices != null &&
+                              //         wifiProvider.lat == null &&
+                              //         bleProvider.connectedDevices.length > 0 &&
+                              //         bleProvider.lat != null &&
+                              //         bleProvider.lng != null &&
+                              //         bleProvider.lat.length > 0 &&
+                              //         bleProvider.lng.length > 0)  || 
+
+                              //         (bleProvider.connectedDevices != null &&
+                              //         wifiProvider.lat != null &&
+                              //         bleProvider.connectedDevices.length > 0 &&
+                              //         bleProvider.lat != null &&
+                              //         bleProvider.lng != null &&
+                              //         bleProvider.lat.length > 0 &&
+                              //         bleProvider.lng.length > 0)
                                   ? Text("Lat: " +
-                                      Utf8Decoder().convert(dev.lat) +
+                                      bleProvider.lat.toString() +
+                                      // Utf8Decoder().convert(bleProvider.lat) +
                                       " | Long: " +
-                                      Utf8Decoder().convert(dev.lng) +
+                                      bleProvider.lng.toString() +
+                                      // Utf8Decoder().convert(bleProvider.lng) +
                                       " at : " +
-                                      DateFormat('hh:mm:ss').format(dev.now))
-                                  : Text(
+                                      DateFormat('hh:mm:ss').format(bleProvider.timestampBLE))
+                                  :
+                                (bleProvider.lat == null && wifiProvider != null) ||
+                                wifiProvider.timestampWiFi.isAfter(bleProvider.timestampBLE) 
+                                  ?
+                                  Text("Lat: " +
+                                      wifiProvider.lat.toString() +
+                                      // Utf8Decoder().convert(wifiProvider.lat) +
+                                      " | Long: " +
+                                      wifiProvider.lng.toString() +
+                                      // Utf8Decoder().convert(wifiProvider.lng) +
+                                      " at : " +
+                                      DateFormat('hh:mm:ss').format(wifiProvider.timestampWiFi))
+                                  :
+                                   Text(
                                       "No Data. Please Connect",
                                       style: TextStyle(
                                           fontFamily: 'Raleway',
@@ -446,38 +477,38 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                                           color: Colors.grey),
                                     ),
                               trailing: FlatButton(
-                                color: dev.connectedDevices == null ||
-                                        !dev.connectedDevices.contains(
-                                            dev.deviceList[index].device)
+                                color: bleProvider.connectedDevices == null ||
+                                        !bleProvider.connectedDevices.contains(
+                                            bleProvider.deviceList[index].device)
                                     ? Colors.green
                                     : Colors.red,
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(18.0)),
                                 onPressed: () {
-                                  if (dev.connectedDevices != null) {
-                                    if (!dev.connectedDevices.contains(
-                                        dev.deviceList[index].device)) {
-                                      connectDev(dev.deviceList[index].device);
+                                  if (bleProvider.connectedDevices != null) {
+                                    if (!bleProvider.connectedDevices.contains(
+                                        bleProvider.deviceList[index].device)) {
+                                      connectDev(bleProvider.deviceList[index].device);
                                     } else {
-                                      dev.deviceList[index].device
+                                      bleProvider.deviceList[index].device
                                           .disconnect()
                                           .then((status) async => {
                                                 context
                                                     .read<BleModel>()
-                                                    .removeConnectedDevice(dev
+                                                    .removeConnectedDevice(bleProvider
                                                         .deviceList[index]
                                                         .device),
                                                 setState(() {})
                                               });
                                     }
                                   } else {
-                                    connectDev(dev.deviceList[index].device);
+                                    connectDev(bleProvider.deviceList[index].device);
                                   }
                                 },
                                 child: Text(
-                                  dev.connectedDevices == null ||
-                                          !dev.connectedDevices.contains(
-                                              dev.deviceList[index].device)
+                                  bleProvider.connectedDevices == null ||
+                                          !bleProvider.connectedDevices.contains(
+                                              bleProvider.deviceList[index].device)
                                       ? "Connect"
                                       : "Disconnect",
                                   style: TextStyle(
