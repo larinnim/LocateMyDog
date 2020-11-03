@@ -34,27 +34,27 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
     // readDatabase();
   }
 
-  void readDatabase() {
-    FirebaseFirestore.instance
-        .collection("locateDog/3heCcuuJTpVhYqTp2wHDS5Nq4IL2/RealTimeData")
-        .snapshots()
-        .listen((event) {
-      var date = DateTime.fromMillisecondsSinceEpoch(event.docs[0]['timestamp'] * 1000);
+  // void readDatabase() {
+  //   FirebaseFirestore.instance
+  //       .collection("locateDog/3heCcuuJTpVhYqTp2wHDS5Nq4IL2/RealTimeData")
+  //       .snapshots()
+  //       .listen((event) {
+  //     var date = DateTime.fromMillisecondsSinceEpoch(event.docs[0]['timestamp'] * 1000);
 
-      context.read<WiFiModel>().addLat(event.docs[0]['latitude']);
-      context.read<WiFiModel>().addLng(event.docs[0]['longitude']);
-      context.read<WiFiModel>().addRSSI(event.docs[0]['rssi']);
-      context.read<WiFiModel>().addSSID(event.docs[0]['ssid']);
-      context.read<WiFiModel>().addTimeStamp(date);
+  //     context.read<WiFiModel>().addLat(event.docs[0]['latitude']);
+  //     context.read<WiFiModel>().addLng(event.docs[0]['longitude']);
+  //     context.read<WiFiModel>().addRSSI(event.docs[0]['rssi']);
+  //     context.read<WiFiModel>().addSSID(event.docs[0]['ssid']);
+  //     context.read<WiFiModel>().addTimeStamp(date);
 
-      print(event.docs[0]['latitude']);
-      print(event.docs[0]['longitude']);
-      print(event.docs[0]['rssi']);
-      print(event.docs[0]['ssid']);
-      print(event.docs[0]['date']);
+  //     print(event.docs[0]['latitude']);
+  //     print(event.docs[0]['longitude']);
+  //     print(event.docs[0]['rssi']);
+  //     print(event.docs[0]['ssid']);
+  //     print(event.docs[0]['date']);
 
-    });
-  }
+  //   });
+  // }
 
   Widget itemSSID(index) {
     if (index == 0) {
@@ -236,7 +236,7 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
                 value: _visible,
                 onChanged: (bool value) {
                   _toggle();
-                  readDatabase();
+                  // readDatabase();
                 },
               ),
               onTap: () {},

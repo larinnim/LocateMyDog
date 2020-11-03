@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Services/bluetooth_conect.dart';
@@ -12,6 +15,7 @@ import 'package:flutter_screenutil/screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 import '../../locator.dart';
 import 'MapLocation.dart';
@@ -24,6 +28,40 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   AppUser _currentUser = locator.get<UserController>().currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    readDatabase();
+    // readDatabase();
+  }
+
+  void readDatabase() {
+    FirebaseFirestore.instance
+        .collection('locateDog')
+        .doc("3heCcuuJTpVhYqTp2wHDS5Nq4IL2")
+        .snapshots()
+        .listen((DocumentSnapshot documentSnapshot) {
+
+      Map<String, dynamic> firestoreInfo = documentSnapshot.data();
+
+      var date = DateTime.fromMillisecondsSinceEpoch(
+          firestoreInfo["timestamp"] * 1000).toLocal();
+
+      context.read<WiFiModel>().addLat(firestoreInfo["latitude"]);
+      context.read<WiFiModel>().addLng(firestoreInfo["longitude"]);
+      context.read<WiFiModel>().addRSSI(firestoreInfo["rssi"]);
+      context.read<WiFiModel>().addSSID(firestoreInfo["ssid"]);
+      context.read<WiFiModel>().addTimeStamp(date);
+
+      print(firestoreInfo["latitude"]);
+      print(firestoreInfo["latitude"]);
+      print(firestoreInfo["latitude"]);
+      print(firestoreInfo["latitude"]);
+      print(firestoreInfo["latitude"]);
+
+    }).onError((e) => print("ERROR reading snapshot" +e));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +83,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Container(
         decoration: BoxDecoration(
             color: Theme.of(context).primaryColor,
-            borderRadius: BorderRadius.circular(kSpacingUnit.w * 3)
-            ),
+            borderRadius: BorderRadius.circular(kSpacingUnit.w * 3)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[

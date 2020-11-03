@@ -430,7 +430,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                         initiallyExpanded: true,
                         children: <Widget>[
                           ListTile(
-                              title: (bleProvider.lat != null && wifiProvider == null) ||
+                              title: (bleProvider.lat != null && wifiProvider.lat == null) ||
                                (bleProvider.timestampBLE != null && wifiProvider.timestampWiFi != null && bleProvider.timestampBLE.isAfter(wifiProvider.timestampWiFi))
                               
                               //  (bleProvider.connectedDevices != null &&
@@ -457,8 +457,8 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                                       " at : " +
                                       DateFormat('hh:mm:ss').format(bleProvider.timestampBLE))
                                   :
-                                (bleProvider.lat == null && wifiProvider != null) ||
-                                wifiProvider.timestampWiFi.isAfter(bleProvider.timestampBLE) 
+                                (bleProvider.lat == null && wifiProvider.lat != null) ||
+                                wifiProvider.timestampWiFi != null && bleProvider.timestampBLE != null && wifiProvider.timestampWiFi.isAfter(bleProvider.timestampBLE) 
                                   ?
                                   Text("Lat: " +
                                       wifiProvider.lat.toString() +

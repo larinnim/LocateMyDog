@@ -37,6 +37,7 @@ app.get('/locateDog/:locateDogId', async (request, response) => {
 app.patch('/locateDog/:locateDogId/', async(req, res) => {
     try{
         await firebaseHelper.firestore.updateDocument(db, locateDogCollection, req.params.locateDogId, req.body);
+        res.send("Updated!");
     }catch(error){
         res.send(error);
     }
