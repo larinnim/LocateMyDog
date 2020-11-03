@@ -117,7 +117,7 @@ class BleModel extends ChangeNotifier {
   List<BluetoothDevice> connectedDevices = [];
   double lat;
   double lng;
-  DateTime timestampBLE = DateTime.now();
+  DateTime timestampBLE;
 
   /// An unmodifiable view of the items in the cart.
   UnmodifiableListView<BleDeviceItem> get items =>
@@ -433,21 +433,6 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                               title: (bleProvider.lat != null && wifiProvider.lat == null) ||
                                (bleProvider.timestampBLE != null && wifiProvider.timestampWiFi != null && bleProvider.timestampBLE.isAfter(wifiProvider.timestampWiFi))
                               
-                              //  (bleProvider.connectedDevices != null &&
-                              //         wifiProvider.lat == null &&
-                              //         bleProvider.connectedDevices.length > 0 &&
-                              //         bleProvider.lat != null &&
-                              //         bleProvider.lng != null &&
-                              //         bleProvider.lat.length > 0 &&
-                              //         bleProvider.lng.length > 0)  || 
-
-                              //         (bleProvider.connectedDevices != null &&
-                              //         wifiProvider.lat != null &&
-                              //         bleProvider.connectedDevices.length > 0 &&
-                              //         bleProvider.lat != null &&
-                              //         bleProvider.lng != null &&
-                              //         bleProvider.lat.length > 0 &&
-                              //         bleProvider.lng.length > 0)
                                   ? Text("Lat: " +
                                       bleProvider.lat.toString() +
                                       // Utf8Decoder().convert(bleProvider.lat) +
