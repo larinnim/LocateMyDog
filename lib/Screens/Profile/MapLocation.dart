@@ -105,15 +105,19 @@ class _MapLocationState extends State<MapLocation> {
             ? Consumer<BleModel>(builder: (_, position, child) {
                 return FutureBuilder(
                     future: updateMarkerAndCircle(LatLng(
-                        double.parse(Utf8Decoder().convert(position.lat)),
-                        double.parse(Utf8Decoder().convert(position.lng)))),
+                      position.lat,
+                      position.lng)),
+                        // double.parse(Utf8Decoder().convert(position.lat)),
+                        // double.parse(Utf8Decoder().convert(position.lng)))),
                     initialData: Set.of(<Marker>[]),
                     builder: (context, snapshotMarker) {
                       return FutureBuilder(
                           future: updatePolygon(LatLng(
-                              double.parse(Utf8Decoder().convert(position.lat)),
-                              double.parse(
-                                  Utf8Decoder().convert(position.lng)))),
+                            position.lat,
+                            position.lng)),
+                              // double.parse(Utf8Decoder().convert(position.lat)),
+                              // double.parse(
+                              //     Utf8Decoder().convert(position.lng)))),
                           initialData: Set.of(<Polyline>[]),
                           builder: (context, snapshotPolyline) {
                             if (snapshotMarker.hasData) {
@@ -121,10 +125,12 @@ class _MapLocationState extends State<MapLocation> {
                                 mapType: MapType.hybrid,
                                 initialCameraPosition: CameraPosition(
                                     target: LatLng(
-                                        double.parse(Utf8Decoder()
-                                            .convert(position.lat)),
-                                        double.parse(Utf8Decoder()
-                                            .convert(position.lng))),
+                                     position.lat,
+                                     position.lng),
+                                        // double.parse(Utf8Decoder()
+                                        //     .convert(position.lat)),
+                                        // double.parse(Utf8Decoder()
+                                        //     .convert(position.lng))),
                                     zoom: 16.0),
                                 markers: snapshotMarker.data,
                                 circles:

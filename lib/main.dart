@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Profile/MapLocation.dart';
 import 'package:provider/provider.dart';
@@ -28,6 +29,8 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (context) => BleModel()),
+          ChangeNotifierProvider(create: (context) => WiFiModel()),
+
         ],
         child: MaterialApp(
             debugShowCheckedModeBanner: false,

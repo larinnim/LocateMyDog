@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_maps/Models/WiFiModel.dart';
+import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:wifi/wifi.dart';
@@ -21,7 +24,7 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
   String ssid = '', password = '';
   TextEditingController wifiNameController = TextEditingController();
   TextEditingController wifiPasswordController = TextEditingController();
-  bool _visible = false;
+  bool _visible = true;
   bool _loading = true;
   dynamic _percentage = 0.8;
 
@@ -79,7 +82,8 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
                       SizedBox(height: 20.0),
                       Visibility(
                         child: Row(children: <Widget>[
-                          getPercentageIndicator(context, _percentage, ((_percentage * 100).round().toString() + "%"))
+                          getPercentageIndicator(context, _percentage,
+                              ((_percentage * 100).round().toString() + "%"))
                         ]),
                         maintainSize: true,
                         maintainAnimation: true,
@@ -97,56 +101,82 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
         )
       ]);
     } else {
-      return ssidList[index - 1].ssid != ""
-          ? Container(
-              color: Color(0xffd3d3d3),
-              child: Column(children: <Widget>[
-                Visibility(
-                  child: Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: Row(children: <Widget>[
-                      Flexible(
-                        child: ListTile(
-                          onTap: () {
-                            setState(() {
-                              _wifiName = ssidList[index - 1].ssid;
-                            });
-                          },
-                          tileColor: Colors.white,
-                          leading: Image.asset(
-                              'assets/images/wifi${ssidList[index - 1].level}.png',
-                              width: 28,
-                              height: 21),
-                          title: Text(
-                            ssidList[index - 1].ssid,
-                            style: TextStyle(
-                              color: Colors.black87,
-                              fontSize: 16.0,
+      return Consumer<WiFiModel>(builder: (_, wifiProvider, child) {
+        return ssidList[index - 1].ssid != ""
+            ? Container(
+                color: Color(0xffd3d3d3),
+                child: Column(children: <Widget>[
+                  Visibility(
+                    child: Padding(
+                      padding: EdgeInsets.all(12.0),
+                      child: Row(children: <Widget>[
+                        Flexible(
+                          child: ListTile(
+                            onTap: () {
+                              setState(() {
+                                _wifiName = ssidList[index - 1].ssid;
+                              });
+                            },
+                            tileColor: Colors.white,
+                            leading: Image.asset(
+                                'assets/images/wifi${ssidList[index - 1].level}.png',
+                                width: 28,
+                                height: 21),
+                            title: Text(
+                              ssidList[index - 1].ssid,
+                              style: TextStyle(
+                                color: Colors.black87,
+                                fontSize: 16.0,
+                              ),
                             ),
+                            trailing: wifiProvider.ssid.toString() ==
+                                    ssidList[index - 1].ssid.toString()
+                                ? Wrap(
+                                    children: <Widget>[
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          "Connected",
+                                          style: TextStyle(color: Colors.green),
+                                        ),
+                                      ),
+                                      Icon(
+                                        LineAwesomeIcons.check_circle_1,
+                                        color: Colors.green,
+                                      )
+                                    ],
+                                  )
+                                : Wrap(),
+                            dense: true,
                           ),
-                          dense: true,
                         ),
-                      ),
-                      Divider(),
-                    ]),
-                  ),
-                  maintainSize: true,
-                  maintainAnimation: true,
-                  maintainState: true,
-                  visible: _visible,
-                )
-              ]),
-            )
-          : Column();
+                        Divider(),
+                      ]),
+                    ),
+                    maintainSize: true,
+                    maintainAnimation: true,
+                    maintainState: true,
+                    visible: _visible,
+                  )
+                ]),
+              )
+            : Column();
+      });
     }
   }
 
   void loadData() async {
     Wifi.list('').then((list) {
       setState(() {
-        ssidList = [
-          ...{...list} // Get distinct values
-        ];
+        List<WifiResult> resArr = [];
+        list.forEach((item) {
+          var i = resArr.indexWhere((x) => x.ssid == item.ssid);
+          if (i <= -1) {
+            resArr.add(item);
+            print(item.ssid);
+          }
+        });
+        ssidList = resArr;
       });
     });
   }
@@ -185,12 +215,6 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
         .write(bytes); //Write WiFi to ESP32
   }
 
-  void _toggle() {
-    setState(() {
-      _visible = !_visible;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -201,20 +225,6 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
       ),
       body: SafeArea(
         child: Column(children: <Widget>[
-          Padding(
-            padding: EdgeInsets.all(12.0),
-            child: ListTile(
-              tileColor: Colors.white,
-              title: Text('WiFi'),
-              trailing: CupertinoSwitch(
-                value: _visible,
-                onChanged: (bool value) {
-                  _toggle();
-                },
-              ),
-              onTap: () {},
-            ),
-          ),
           Expanded(
             child: ListView.builder(
               scrollDirection: Axis.vertical,
@@ -222,9 +232,6 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
               padding: EdgeInsets.all(8.0),
               itemCount: ssidList.length + 1,
               itemBuilder: (BuildContext context, int index) {
-                //Verify if the SSID is not duplicated
-                // if (index >= 1 && index<= ssid.length) {
-                print("Index" + index.toString());
                 return itemSSID(index);
               },
             ),
