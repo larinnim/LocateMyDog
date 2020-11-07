@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -102,35 +103,62 @@ class _MapLocationState extends State<MapLocation> {
                   Navigator.pushNamed(context, '/trackwalk');
                 })),
         body: (currentPosition != null)
-            ? Consumer<BleModel>(builder: (_, position, child) {
+            ?
+            Consumer2<BleModel, WiFiModel>(builder: (_,bleProvider, wifiProvider , child) {
+            //  Consumer<BleModel>(builder: (_, position, child) {
                 return FutureBuilder(
-                    future: updateMarkerAndCircle(LatLng(
-                      position.lat,
-                      position.lng)),
-                        // double.parse(Utf8Decoder().convert(position.lat)),
-                        // double.parse(Utf8Decoder().convert(position.lng)))),
+                    future:
+                   (bleProvider.timestampBLE != null && wifiProvider.timestampWiFi != null && bleProvider.timestampBLE.isAfter(wifiProvider.timestampWiFi))?
+                    updateMarkerAndCircle(LatLng(
+                      bleProvider.lat,
+                      bleProvider.lng)) : (bleProvider.timestampBLE == null && wifiProvider.timestampWiFi != null) ? 
+                      updateMarkerAndCircle(LatLng(
+                      wifiProvider.lat,
+                      wifiProvider.lng)) : (bleProvider != null && wifiProvider == null) ? 
+                      updateMarkerAndCircle(LatLng(
+                      bleProvider.lat,
+                      bleProvider.lng)): updateMarkerAndCircle(LatLng(
+                      wifiProvider.lat,
+                      wifiProvider.lng)),
                     initialData: Set.of(<Marker>[]),
                     builder: (context, snapshotMarker) {
                       return FutureBuilder(
-                          future: updatePolygon(LatLng(
-                            position.lat,
-                            position.lng)),
-                              // double.parse(Utf8Decoder().convert(position.lat)),
-                              // double.parse(
-                              //     Utf8Decoder().convert(position.lng)))),
+                      future: 
+                   (bleProvider.timestampBLE != null && wifiProvider.timestampWiFi != null && bleProvider.timestampBLE.isAfter(wifiProvider.timestampWiFi))?
+                          updatePolygon(LatLng(
+                            bleProvider.lat,
+                            bleProvider.lng)) : (bleProvider.timestampBLE == null && wifiProvider.timestampWiFi != null) ? 
+                            updatePolygon(LatLng(
+                            wifiProvider.lat,
+                            wifiProvider.lng)) : (bleProvider != null && wifiProvider == null) ?  updateMarkerAndCircle(LatLng(
+                            bleProvider.lat,
+                            bleProvider.lng)): updateMarkerAndCircle(LatLng(
+                            wifiProvider.lat,
+                            wifiProvider.lng)),
                           initialData: Set.of(<Polyline>[]),
                           builder: (context, snapshotPolyline) {
                             if (snapshotMarker.hasData) {
                               return GoogleMap(
                                 mapType: MapType.hybrid,
-                                initialCameraPosition: CameraPosition(
+                                initialCameraPosition:
+                   (bleProvider.timestampBLE != null && wifiProvider.timestampWiFi != null && bleProvider.timestampBLE.isAfter(wifiProvider.timestampWiFi))?
+                                CameraPosition(
                                     target: LatLng(
-                                     position.lat,
-                                     position.lng),
-                                        // double.parse(Utf8Decoder()
-                                        //     .convert(position.lat)),
-                                        // double.parse(Utf8Decoder()
-                                        //     .convert(position.lng))),
+                                     bleProvider.lat,
+                                     bleProvider.lng),
+                                    zoom: 16.0) : (bleProvider.timestampBLE == null && wifiProvider.timestampWiFi != null) ? 
+                                     CameraPosition(
+                                    target: LatLng(
+                                     wifiProvider.lat,
+                                     wifiProvider.lng),
+                                    zoom: 16.0) : (bleProvider != null && wifiProvider == null) ?  CameraPosition(
+                                    target: LatLng(
+                                     bleProvider.lat,
+                                     bleProvider.lng),
+                                    zoom: 16.0) : CameraPosition(
+                                    target: LatLng(
+                                     bleProvider.lat,
+                                     bleProvider.lng),
                                     zoom: 16.0),
                                 markers: snapshotMarker.data,
                                 circles:

@@ -47,8 +47,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       var date = DateTime.fromMillisecondsSinceEpoch(
           int.parse(firestoreInfo["timestamp"]) * 1000).toLocal();
 
-      context.read<WiFiModel>().addLat(firestoreInfo["latitude"]);
-      context.read<WiFiModel>().addLng(firestoreInfo["longitude"]);
+      context.read<WiFiModel>().addLat(firestoreInfo["latitude"].toDouble());
+      context.read<WiFiModel>().addLng(firestoreInfo["longitude"].toDouble());
       context.read<WiFiModel>().addRSSI(firestoreInfo["rssi"]);
       context.read<WiFiModel>().addSSID(firestoreInfo["ssid"]);
       context.read<WiFiModel>().addTimeStamp(date);

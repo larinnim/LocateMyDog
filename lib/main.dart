@@ -6,6 +6,7 @@ import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Profile/MapLocation.dart';
 import 'package:provider/provider.dart';
 import 'Screens/Profile/profile.dart';
+import 'Screens/SplashScreen.dart';
 import 'Services/SetWiFiConf.dart';
 import 'locator.dart';
 import 'Services/bluetooth_conect.dart';
@@ -46,7 +47,8 @@ class MyApp extends StatelessWidget {
               visualDensity: VisualDensity.adaptivePlatformDensity,
             ),
             home: Material(
-              child: Wrapper(),
+                child: SplashScreen(),
+              // child: Wrapper(),
             )));
   }
 }
