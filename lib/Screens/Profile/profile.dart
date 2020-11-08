@@ -41,11 +41,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         .doc("3heCcuuJTpVhYqTp2wHDS5Nq4IL2")
         .snapshots()
         .listen((DocumentSnapshot documentSnapshot) {
-
       Map<String, dynamic> firestoreInfo = documentSnapshot.data();
 
       var date = DateTime.fromMillisecondsSinceEpoch(
-          int.parse(firestoreInfo["timestamp"]) * 1000).toLocal();
+              int.parse(firestoreInfo["timestamp"]) * 1000)
+          .toLocal();
 
       context.read<WiFiModel>().addLat(firestoreInfo["latitude"].toDouble());
       context.read<WiFiModel>().addLng(firestoreInfo["longitude"].toDouble());
@@ -58,8 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       print(firestoreInfo["latitude"]);
       print(firestoreInfo["latitude"]);
       print(firestoreInfo["latitude"]);
-
-    }).onError((e) => print("ERROR reading snapshot" +e));
+    }).onError((e) => print("ERROR reading snapshot" + e));
   }
 
   @override
@@ -86,6 +85,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
+            // Image.network(_currentUser?.avatarUrl, loadingBuilder:
+            //     (BuildContext context, Widget child,
+            //         ImageChunkEvent loadingProgress) {
+            //   if (loadingProgress == null) return child;
+            //   return Center(
+            //     child: CircularProgressIndicator(
+            //       value: loadingProgress.expectedTotalBytes != null
+            //           ? loadingProgress.cumulativeBytesLoaded /
+            //               loadingProgress.expectedTotalBytes
+            //           : null,
+            //     ),
+            //   );
+            // }),
             Avatar(
               avatarUrl: _currentUser?.avatarUrl,
               onTap: () async {

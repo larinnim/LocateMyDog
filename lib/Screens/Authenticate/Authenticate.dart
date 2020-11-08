@@ -18,7 +18,7 @@ class _AuthenticateState extends State<Authenticate> {
             Color.fromRGBO(255, 123, 67, 1.0),
             Color.fromRGBO(245, 50, 111, 1.0)
           ])),
-      child: SignIn(),
+      child: Scaffold(resizeToAvoidBottomPadding: false, body: SignIn(), backgroundColor: Colors.black,),
     );
   }
 }
