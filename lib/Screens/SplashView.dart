@@ -28,9 +28,6 @@ class VideoState extends State<SplashView> with SingleTickerProviderStateMixin{
   @override
   void initState() {
     super.initState();
-
-
-
     animationController = new AnimationController(
         vsync: this, duration: new Duration(seconds: 1));
     animation =

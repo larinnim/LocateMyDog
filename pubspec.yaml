@@ -49,6 +49,7 @@ dependencies:
   wifi: ^0.1.5
   percent_indicator: "^2.1.7+2"
   lottie: ^0.7.0+1
+  flutter_barcode_scanner: ^1.0.1
 
   flutter:
     sdk: flutter

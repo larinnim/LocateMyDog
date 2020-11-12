@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
+import 'package:flutter_maps/Screens/Tutorial/step1.dart';
 import 'package:lottie/lottie.dart';
 
 
@@ -13,6 +14,12 @@ class LottiePage extends StatefulWidget {
 
 class _LottiePageState extends State<LottiePage> {
 
+   @override
+  void initState() {
+    super.initState();
+    startTime();
+  }
+
   startTime() async {
     var _duration = new Duration(seconds: 2);
     return new Timer(_duration, navigationPage);
@@ -20,7 +27,9 @@ class _LottiePageState extends State<LottiePage> {
 
   void navigationPage() {
     Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => Wrapper(),));
+            MaterialPageRoute(builder: (context) => Step1(),));
+
+        // MaterialPageRoute(builder: (context) => Wrapper(),));
   }
   
   @override
