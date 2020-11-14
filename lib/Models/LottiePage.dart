@@ -27,9 +27,9 @@ class _LottiePageState extends State<LottiePage> {
 
   void navigationPage() {
     Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => Step1(),));
+            // MaterialPageRoute(builder: (context) => Step1(),));
 
-        // MaterialPageRoute(builder: (context) => Wrapper(),));
+        MaterialPageRoute(builder: (context) => Wrapper(),));
   }
   
   @override

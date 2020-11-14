@@ -1,9 +1,12 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/Authenticate/signed.dart';
+import 'package:flutter_maps/Screens/Tutorial/step1.dart';
+import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -76,14 +79,71 @@ class _SignInRegisteredState extends State<SignInRegistered> {
     });
 
     if (FirebaseAuth.instance.currentUser != null) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-        return Signed(
-          // user: authResult.user,
-          user: FirebaseAuth.instance.currentUser,
-          wantsTouchID: _useTouchID,
-          password: password,
-        );
-      }));
+      //check if docs.length > 0 a subcollection cannot be null, nor empty. If a collection does not contain any documents, it does not exist at all.
+      // final prefs = await SharedPreferences.getInstance();
+
+      // final gatewaySSID = prefs.getString('gatewaySSID') ?? '';
+      // obtain shared preferences
+      final prefs = await SharedPreferences.getInstance();
+
+      // set value
+      // ;
+      // prefs.getString('endDeviceSSID') ?? '';
+
+      await FirebaseFirestore.instance
+          .collection('locateDog')
+          .doc(FirebaseAuth.instance.currentUser.uid)
+          .get()
+          .then((doc) {
+        if (doc.exists) {
+          FirebaseFirestore.instance
+            ..collection('locateDog')
+                .doc(FirebaseAuth.instance.currentUser.uid)
+                .collection('gateway')
+                .limit(1)
+                .get()
+                .then((sub) {
+              if (sub.docs.length > 0) {
+                FirebaseFirestore.instance
+                  ..collection('locateDog')
+                      .doc(FirebaseAuth.instance.currentUser.uid)
+                      .collection('endDevice')
+                      .limit(1)
+                      .get()
+                      .then((endSub) {
+                    if (endSub.docs.length > 0) {
+                       print('Gatway Collection and EndDevice exists!');
+                // obtain shared preferences
+                Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (context) {
+                  return Signed(
+                    // user: authResult.user,
+                    user: FirebaseAuth.instance.currentUser,
+                    wantsTouchID: _useTouchID,
+                    password: password,
+                  );
+                }));
+                    }
+                  });
+              } else {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => Step1(),
+                ));
+              }
+            });
+        }
+      });
+      // var docResult = await FirebaseFirestore.instance
+      //     .collection("locateDog")
+      //     .doc(FirebaseAuth.instance.currentUser.uid)
+      //     .collection('sub-collection')
+      //     .limit(1)
+      //     .get()
+      //     .then(sub => {
+      //     if (sub.docs.length > 0) {
+      //       console.log('usernames subcollection exists!');
+      //     }
+      //   });
     } else {
       final prefs = await SharedPreferences.getInstance();
 
@@ -93,14 +153,14 @@ class _SignInRegisteredState extends State<SignInRegistered> {
       bool checkValue = prefs.containsKey('value');
       print("Is there any key? " + checkValue.toString());
 
-      showDialog(context: context, child:
-          new AlertDialog(
+      showDialog(
+          context: context,
+          child: new AlertDialog(
             title: new Text("Sign In Error"),
             content: new Text(siginError),
-          )
-      );
+          ));
       print("No user");
-       //Remove String
+      //Remove String
       prefs.remove("siginError");
     }
   }

@@ -4,41 +4,22 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
-import 'package:flutter_maps/Screens/Tutorial/step2.dart';
+import 'package:flutter_maps/Models/user.dart';
+import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Services/database.dart';
+import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import './step1.dart';
+import '../../locator.dart';
 
-// class FirestoreSetUp {
-//   static final FirestoreSetUp _singleton = FirestoreSetUp._internal();
-
-//   factory FirestoreSetUp() {
-//     return _singleton;
-//   }
-
-//   FirestoreSetUp._internal();
-// }
-
-// class FirestoreSetUp {
-//   String gateway = "";
-//   String endDevice = "";
-  
-//   FirestoreSetUp._privateConstructor();
-
-//   static final FirestoreSetUp _instance = FirestoreSetUp._privateConstructor();
-
-//   static FirestoreSetUp get instance => _instance;
-// }
-
-class Step1 extends StatefulWidget {
+class Step2 extends StatefulWidget {
   @override
-  _Step1State createState() => new _Step1State();
+  _Step2State createState() => new _Step2State();
 }
 
-class _Step1State extends State<Step1> {
-  String _gateway = 'Unknown';
-  // String _endDevice = 'Unknown';
-
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+class _Step2State extends State<Step2> {
+  String _endDevice = 'Unknown';
 
   @override
   initState() {
@@ -58,7 +39,7 @@ class _Step1State extends State<Step1> {
               Row(
                 children: [
                   Text(
-                    'Step 1 of 3',
+                    'Step 2 of 3',
                     style: TextStyle(
                         color: Colors.grey,
                         fontSize: 20.0,
@@ -94,13 +75,13 @@ class _Step1State extends State<Step1> {
                         onPressed: scanQR,
                         // onPressed: ,
 
-                        child: const Text('Scan Gateway')),
+                        child: const Text('SCAN End Device')),
                   ),
                   Padding(
                     padding:
                         EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     child: Text(
-                      _gateway,
+                      _endDevice,
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -118,10 +99,7 @@ class _Step1State extends State<Step1> {
       barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
           "#ff6666", "Cancel", true, ScanMode.QR);
       print(barcodeScanRes);
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => Step2(),
-      ));
-      // createRecord();
+      createRecord();
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
@@ -132,36 +110,38 @@ class _Step1State extends State<Step1> {
     if (!mounted) return;
 
     setState(() {
-      _gateway = barcodeScanRes;
-      FirestoreSetUp.instance.gateway = _gateway;
+      _endDevice = barcodeScanRes;
+      FirestoreSetUp.instance.endDevice = _endDevice;
     });
   }
 
-  // void createRecord() async {
-  //   await FirebaseFirestore.instance.collection("locateDog").doc(_firebaseAuth.currentUser.uid).collection(_gateway);
-  // .doc(uid)
-  // .set(_scanBarcode);
-
-  // await FirebaseFirestore.instance
-  //     .collection('locateDog')
-  //     .doc('ifYourIdCostumized')
-  //     .update({field: _scanBarcode});
-  // .then(function () {
-  //     console.log("Document successfully updated!");
-  // }).catch(function (error) {
-  //     // console.error("Error removing document: ", error);
-
-  // });
-  // .set({
-  //   'title': 'Mastering Flutter',
-  //   'description': 'Programming Guide for Dart'
-  // });
-
-  // DocumentReference ref =
-  //     await FirebaseFirestore.instance.collection("books").add({
-  //   'title': 'Flutter in Action',
-  //   'description': 'Complete Programming Guide to learn Flutter'
-  // });
-  // print(ref.documentID);
-  // }
+  //Create Firestore record
+  void createRecord() async {
+    await FirebaseFirestore.instance
+        .collection("locateDog")
+        .doc(FirebaseAuth.instance.currentUser.uid)
+        .collection("gateway")
+        .doc(FirestoreSetUp.instance.gateway).set({
+          "timestamp": ""
+        }).then((value) async => {
+  await FirebaseFirestore.instance
+    .collection("locateDog")
+    .doc(FirebaseAuth.instance.currentUser.uid)
+    .collection("endDevice")
+    .doc(FirestoreSetUp.instance.endDevice).set({
+      'latitude': 0.0,
+      'longitude': 0.0,
+      'rssi': 0,
+      'ssid': "",
+      "timestamp": ""}).then((value) {
+      print("New struture on Firebase");
+        Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => ProfileScreen(),
+      ));
+    }).catchError((error, stackTrace) {
+      print("Error setting up new Firebase structure: $error");
+    })}) .catchError((error, stackTrace) {
+      print("Error setting up new Firebase structure: $error");
+    });
+  }
 }

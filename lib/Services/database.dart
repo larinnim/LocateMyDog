@@ -13,5 +13,17 @@ class DatabaseService {
     return await locateCollection
         .doc(uid)
         .set({'dogname': dogname, 'ownername': ownername, 'breed': breed});
+
   }
+}
+
+class FirestoreSetUp {
+  String gateway = "";
+  String endDevice = "";
+  
+  FirestoreSetUp._privateConstructor();
+
+  static final FirestoreSetUp _instance = FirestoreSetUp._privateConstructor();
+
+  static FirestoreSetUp get instance => _instance;
 }
