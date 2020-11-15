@@ -62,7 +62,7 @@ class _Step1State extends State<Step1> {
               Row(
                 children: [
                   Text(
-                    'Step 1 of 4',
+                    'Step 1 of 3',
                     style: TextStyle(
                         color: Colors.grey,
                         fontSize: 20.0,
@@ -131,10 +131,11 @@ class _Step1State extends State<Step1> {
     });
   }
 
+// Characteristc 0: Latitude
+// Characteristic 1: Longitude
+//Characteristic 2: Wifi Data
+//Characteristic 3: End Device
   void connectDev(BluetoothDevice dev) async {
-    //sleep(const Duration(seconds: 1));
-    // List<BluetoothDevice> connectedDevices = await flutterBlue.connectedDevices;
-
     if (!BleSingleton.shared.connectedDevices.contains(dev)) {
       print("connectDev - Line 243");
       await dev.connect().then((status) async {

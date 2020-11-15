@@ -1,12 +1,16 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Tutorial/step4.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import '../../Services/bluetooth_conect.dart';
 
 // class FirestoreSetUp {
 //   static final FirestoreSetUp _singleton = FirestoreSetUp._internal();
@@ -21,7 +25,7 @@ import 'package:flutter_test/flutter_test.dart';
 // class FirestoreSetUp {
 //   String gateway = "";
 //   String endDevice = "";
-  
+
 //   FirestoreSetUp._privateConstructor();
 
 //   static final FirestoreSetUp _instance = FirestoreSetUp._privateConstructor();
@@ -35,7 +39,7 @@ class Step3 extends StatefulWidget {
 }
 
 class _Step3State extends State<Step3> {
-  String _gateway = 'Unknown';
+  String _endDevice = 'Unknown';
   // String _endDevice = 'Unknown';
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -92,15 +96,13 @@ class _Step3State extends State<Step3> {
                         textColor: Colors.white,
                         splashColor: Colors.blueGrey,
                         onPressed: scanQR,
-                        // onPressed: ,
-
-                        child: const Text('Scan Gateway')),
+                        child: const Text('Scan End Deivce')),
                   ),
                   Padding(
                     padding:
                         EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     child: Text(
-                      _gateway,
+                      _endDevice,
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -118,10 +120,9 @@ class _Step3State extends State<Step3> {
       barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
           "#ff6666", "Cancel", true, ScanMode.QR);
       print(barcodeScanRes);
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => Step4(),
-      ));
-      // createRecord();
+
+      writeData(barcodeScanRes);
+      
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
@@ -132,36 +133,24 @@ class _Step3State extends State<Step3> {
     if (!mounted) return;
 
     setState(() {
-      _gateway = barcodeScanRes;
-      FirestoreSetUp.instance.gateway = _gateway;
+      _endDevice = barcodeScanRes;
+      FirestoreSetUp.instance.endDevice = _endDevice;
     });
   }
 
-  // void createRecord() async {
-  //   await FirebaseFirestore.instance.collection("locateDog").doc(_firebaseAuth.currentUser.uid).collection(_gateway);
-  // .doc(uid)
-  // .set(_scanBarcode);
+  Future<void> writeData(String data) async {
+    if (context.read<BleModel>().characteristics.elementAt(3) == null)
+      return; //End Device Characteristic
 
-  // await FirebaseFirestore.instance
-  //     .collection('locateDog')
-  //     .doc('ifYourIdCostumized')
-  //     .update({field: _scanBarcode});
-  // .then(function () {
-  //     console.log("Document successfully updated!");
-  // }).catch(function (error) {
-  //     // console.error("Error removing document: ", error);
+    List<int> bytes = utf8.encode(data);
+    await context
+        .read<BleModel>()
+        .characteristics
+        .elementAt(3)
+        .write(bytes); //Write End Device to ESP32
 
-  // });
-  // .set({
-  //   'title': 'Mastering Flutter',
-  //   'description': 'Programming Guide for Dart'
-  // });
-
-  // DocumentReference ref =
-  //     await FirebaseFirestore.instance.collection("books").add({
-  //   'title': 'Flutter in Action',
-  //   'description': 'Complete Programming Guide to learn Flutter'
-  // });
-  // print(ref.documentID);
-  // }
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => Wrapper(),
+      ));
+  }
 }

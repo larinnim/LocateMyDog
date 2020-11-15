@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
+import 'package:flutter_maps/Screens/Tutorial/step3.dart';
 import 'package:flutter_maps/Screens/Tutorial/step4.dart';
 import 'package:flutter_maps/Services/bluetooth_conect.dart';
 import 'package:flutter_maps/Services/database.dart';
@@ -32,6 +33,7 @@ class _Step2State extends State<Step2> {
   dynamic _percentage = 0.8;
   bool _loading = true;
   bool _visible = true;
+  var timestampWifiLocal;
 
   @override
   initState() {
@@ -47,15 +49,14 @@ class _Step2State extends State<Step2> {
             child: SafeArea(
                 child: Padding(
                     padding:
-                        EdgeInsets.symmetric(
-                            horizontal: 28.0, vertical: 40.0),
+                        EdgeInsets.symmetric(horizontal: 28.0, vertical: 40.0),
                     child: Container(
                         height: MediaQuery.of(context).size.height,
                         child: Column(children: <Widget>[
                           Row(
                             children: [
                               Text(
-                                'Step 2 of 4',
+                                'Step 2 of 3',
                                 style: TextStyle(
                                     color: Colors.grey,
                                     fontSize: 20.0,
@@ -214,10 +215,30 @@ class _Step2State extends State<Step2> {
     }
   }
 
-  void submitAction() {
+  Future<void> submitAction() async {
     // var wifiData = '${wifiNameController.text},${wifiPasswordController.text}';
     var wifiData = '$_wifiName,$password';
     writeData(wifiData);
+    timestampWifiLocal = DateTime.now();
+    var document = await FirebaseFirestore.instance
+        .collection('locateDog')
+        .doc(FirebaseAuth.instance.currentUser.uid)
+        .get()
+        .then((value) {})
+        .catchError((e) {
+      print("Error retrieving from Firebase $e");
+    });
+    FirestoreSetUp.instance.gateway = document.data["gateway"];
+    //after 2 seconds verify if timestamp of Wifi is newer on the database
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      if (DateTime.fromMillisecondsSinceEpoch(
+              document.data['wifiTimestamp'] * 1000)
+          .isAfter(timestampWifiLocal)) {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => Step3(),
+        ));
+      }
+    });
   }
 
   void loadData() async {

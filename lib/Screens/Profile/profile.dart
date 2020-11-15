@@ -38,7 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void readDatabase() {
     FirebaseFirestore.instance
         .collection('locateDog')
-        .doc("3heCcuuJTpVhYqTp2wHDS5Nq4IL2")
+        .doc(_currentUser.uid)
         .snapshots()
         .listen((DocumentSnapshot documentSnapshot) {
       Map<String, dynamic> firestoreInfo = documentSnapshot.data();
