@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/Authenticate/signed.dart';
 import 'package:flutter_maps/Screens/Tutorial/step1.dart';
+import 'package:flutter_maps/Screens/Tutorial/step3.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';

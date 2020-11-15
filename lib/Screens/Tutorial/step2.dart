@@ -1,17 +1,24 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
-import 'package:flutter_maps/Models/user.dart';
-import 'package:flutter_maps/Screens/Profile/profile.dart';
+import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_maps/Models/WiFiModel.dart';
+import 'package:flutter_maps/Screens/Tutorial/step4.dart';
+import 'package:flutter_maps/Services/bluetooth_conect.dart';
 import 'package:flutter_maps/Services/database.dart';
-import 'package:flutter_maps/Services/user_controller.dart';
+import 'package:flutter_maps/Services/setWiFiConf.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import './step1.dart';
-import '../../locator.dart';
+import 'package:line_awesome_flutter/line_awesome_flutter.dart';
+import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
+import 'package:wifi/wifi.dart';
+import '../../Services/custom_expansion_tile.dart' as custom;
 
 class Step2 extends StatefulWidget {
   @override
@@ -19,129 +26,239 @@ class Step2 extends StatefulWidget {
 }
 
 class _Step2State extends State<Step2> {
-  String _endDevice = 'Unknown';
+  List<WifiResult> ssidList = [];
+  String _wifiName = '';
+  String ssid = '', password = '';
+  dynamic _percentage = 0.8;
+  bool _loading = true;
+  bool _visible = true;
 
   @override
   initState() {
     super.initState();
+    loadData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Material(
-        type: MaterialType.transparency,
+        color: Colors.white,
         child: new Container(
-          decoration: BoxDecoration(color: Colors.white),
-          child: SafeArea(
-              child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 28.0, vertical: 40.0),
-            child: Column(children: <Widget>[
-              Row(
-                children: [
-                  Text(
-                    'Step 2 of 3',
-                    style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 20.0,
-                        fontFamily: 'RobotoMono'),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: 20.0,
-              ),
-              Row(
-                children: [
-                  Text(
-                    'Scan QR Code',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 30.0,
-                        fontFamily: 'RobotoMono'),
-                  )
-                ],
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Padding(
+            child: SafeArea(
+                child: Padding(
                     padding:
-                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: RaisedButton(
-                        color: Colors.blue,
-                        textColor: Colors.white,
-                        splashColor: Colors.blueGrey,
-                        onPressed: scanQR,
-                        // onPressed: ,
+                        EdgeInsets.symmetric(
+                            horizontal: 28.0, vertical: 40.0),
+                    child: Container(
+                        height: MediaQuery.of(context).size.height,
+                        child: Column(children: <Widget>[
+                          Row(
+                            children: [
+                              Text(
+                                'Step 2 of 4',
+                                style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 20.0,
+                                    fontFamily: 'RobotoMono'),
+                              )
+                            ],
+                          ),
+                          SizedBox(
+                            height: 20.0,
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                'Connect Gateway to WiFi',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 30.0,
+                                    fontFamily: 'RobotoMono'),
+                              )
+                            ],
+                          ),
+                          Expanded(
+                            child: ListView.builder(
+                              scrollDirection: Axis.vertical,
+                              itemCount: ssidList.length + 1,
+                              itemBuilder: (BuildContext context, int index) {
+                                // return ListTile(
+                                //   title: Text('Hello'),
+                                // );
+                                return itemSSID(index);
+                              },
+                            ),
+                          ),
+                        ]))))));
+  }
 
-                        child: const Text('SCAN End Device')),
-                  ),
-                  Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Text(
-                      _endDevice,
-                      textAlign: TextAlign.center,
+  Widget itemSSID(index) {
+    if (index == 0) {
+      return Column(children: [
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Visibility(
+                child: Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: Column(children: <Widget>[
+                      TextField(
+                        decoration: InputDecoration(
+                          border: UnderlineInputBorder(),
+                          filled: true,
+                          icon: Icon(Icons.wifi),
+                          hintText:
+                              _wifiName == "" ? "Tap your network" : _wifiName,
+                        ),
+                        keyboardType: TextInputType.text,
+                        readOnly: true,
+                      ),
+                      TextField(
+                        obscureText: true,
+                        enableSuggestions: false,
+                        autocorrect: false,
+                        decoration: InputDecoration(
+                          border: UnderlineInputBorder(),
+                          filled: true,
+                          icon: Icon(Icons.lock_outline),
+                          hintText: 'Your wifi password',
+                        ),
+                        keyboardType: TextInputType.text,
+                        onChanged: (value) {
+                          password = value;
+                        },
+                      ),
+                      SizedBox(height: 40.0),
+                      MaterialButton(
+                        color: Colors.orange,
+                        child: Text('Submit',
+                            style: TextStyle(color: Colors.white)),
+                        onPressed: () {
+                          submitAction();
+                        },
+                      ),
+                      SizedBox(height: 20.0),
+                    ])),
+                maintainSize: true,
+                maintainAnimation: true,
+                maintainState: true,
+                visible: _visible,
+              ),
+            ),
+          ],
+        )
+      ]);
+    } else {
+      return Consumer<WiFiModel>(builder: (_, wifiProvider, child) {
+        return ssidList[index - 1].ssid != ""
+            ? Container(
+                color: Color(0xffd3d3d3),
+                child: Column(children: <Widget>[
+                  Visibility(
+                    child: Padding(
+                      padding: EdgeInsets.all(12.0),
+                      child: Row(children: <Widget>[
+                        Flexible(
+                          child: ListTile(
+                            onTap: () {
+                              setState(() {
+                                _wifiName = ssidList[index - 1].ssid;
+                              });
+                            },
+                            tileColor: Colors.white,
+                            leading: Image.asset(
+                                'assets/images/wifi${ssidList[index - 1].level}.png',
+                                width: 28,
+                                height: 21),
+                            title: Text(
+                              ssidList[index - 1].ssid,
+                              style: TextStyle(
+                                color: Colors.black87,
+                                fontSize: 16.0,
+                              ),
+                            ),
+                            trailing: wifiProvider.ssid.toString() ==
+                                    ssidList[index - 1].ssid.toString()
+                                ? Wrap(
+                                    children: <Widget>[
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          "Connected",
+                                          style: TextStyle(color: Colors.green),
+                                        ),
+                                      ),
+                                      Icon(
+                                        LineAwesomeIcons.check_circle_1,
+                                        color: Colors.green,
+                                      )
+                                    ],
+                                  )
+                                : Wrap(),
+                            dense: true,
+                          ),
+                        ),
+                        Divider(),
+                      ]),
                     ),
-                  ),
-                ],
-              ),
-            ]),
-          )),
-        ));
-  }
-
-  Future<void> scanQR() async {
-    String barcodeScanRes;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    try {
-      barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-          "#ff6666", "Cancel", true, ScanMode.QR);
-      print(barcodeScanRes);
-      createRecord();
-    } on PlatformException {
-      barcodeScanRes = 'Failed to get platform version.';
+                    maintainSize: true,
+                    maintainAnimation: true,
+                    maintainState: true,
+                    visible: _visible,
+                  )
+                ]),
+              )
+            : Column();
+      });
+      // }
     }
+  }
 
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
+  void submitAction() {
+    // var wifiData = '${wifiNameController.text},${wifiPasswordController.text}';
+    var wifiData = '$_wifiName,$password';
+    writeData(wifiData);
+  }
 
-    setState(() {
-      _endDevice = barcodeScanRes;
-      FirestoreSetUp.instance.endDevice = _endDevice;
+  void loadData() async {
+    Wifi.list('').then((list) {
+      setState(() {
+        List<WifiResult> resArr = [];
+        list.forEach((item) {
+          var i = resArr.indexWhere((x) => x.ssid == item.ssid);
+          if (i <= -1) {
+            resArr.add(item);
+            print(item.ssid);
+          }
+        });
+        ssidList = resArr;
+      });
     });
   }
 
-  //Create Firestore record
-  void createRecord() async {
-    await FirebaseFirestore.instance
-        .collection("locateDog")
-        .doc(FirebaseAuth.instance.currentUser.uid)
-        .collection("gateway")
-        .doc(FirestoreSetUp.instance.gateway).set({
-          "timestamp": ""
-        }).then((value) async => {
-  await FirebaseFirestore.instance
-    .collection("locateDog")
-    .doc(FirebaseAuth.instance.currentUser.uid)
-    .collection("endDevice")
-    .doc(FirestoreSetUp.instance.endDevice).set({
-      'latitude': 0.0,
-      'longitude': 0.0,
-      'rssi': 0,
-      'ssid': "",
-      "timestamp": ""}).then((value) {
-      print("New struture on Firebase");
-        Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => ProfileScreen(),
-      ));
-    }).catchError((error, stackTrace) {
-      print("Error setting up new Firebase structure: $error");
-    })}) .catchError((error, stackTrace) {
-      print("Error setting up new Firebase structure: $error");
-    });
+  getPercentageIndicator(context, var1, var2) {
+    return LinearPercentIndicator(
+      width: MediaQuery.of(context).size.width - 50,
+      animation: true,
+      lineHeight: 20.0,
+      animationDuration: 2000,
+      percent: var1,
+      center: Text(var2),
+      linearStrokeCap: LinearStrokeCap.roundAll,
+      progressColor: Colors.green,
+      backgroundColor: Colors.green.withOpacity(0.2),
+    );
+  }
+
+  Future<void> writeData(String data) async {
+    if (context.read<BleModel>().characteristics.elementAt(2) == null)
+      return; //WiFi Characteristic
+
+    List<int> bytes = utf8.encode(data);
+    await context
+        .read<BleModel>()
+        .characteristics
+        .elementAt(2)
+        .write(bytes); //Write WiFi to ESP32
   }
 }

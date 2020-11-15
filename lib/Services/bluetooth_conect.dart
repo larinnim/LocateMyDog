@@ -141,7 +141,7 @@ class BleModel extends ChangeNotifier {
     BleSingleton._singleton.lat = null;
     BleSingleton._singleton.lng = null;
     BleSingleton._singleton.now = null;
-    BleSingleton._singleton.connectedDevices..remove(device);
+    BleSingleton._singleton.connectedDevices.remove(device);
     notifyListeners();
   }
 
