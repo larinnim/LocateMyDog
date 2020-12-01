@@ -13,11 +13,24 @@ class Wrapper extends StatelessWidget {
       return Authenticate();
     } else {
       print("In Profile screen");
-      var endDeviceName = "IATS-$FirestoreSetUp.instance.endDevice";
-      collectionQuery = FirebaseFirestore.instance
-          .collection('locateDog')
-          .where(FirestoreSetUp.instance.gateway, "array-contains",
-              {userId: "xyz", userName: "abc"});
+      // var endDeviceName = "IATS-{$FirestoreSetUp.instance.endDevice}";
+
+      // if (FirestoreSetUp.instance.gateway != null) {
+      //   var document = FirebaseFirestore.instance
+      //       .collection('locateDog')
+      //       .doc(FirebaseAuth.instance.currentUser.uid)
+      //       .get()
+      //       .then((value) {
+      //     print("End Device: " +
+      //         value.data()[FirestoreSetUp.instance.gateway][endDeviceName]);
+      //   }).catchError((e) {
+      //     print("Error retrieving from Firebase $e");
+      //   });
+      // }
+      // collectionQuery = FirebaseFirestore.instance
+      //     .collection('locateDog')
+      //     .where(FirestoreSetUp.instance.gateway, "array-contains",
+      //         {userId: "xyz", userName: "abc"});
 
       return ProfileScreen();
     }

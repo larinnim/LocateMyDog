@@ -224,15 +224,22 @@ class _Step2State extends State<Step2> {
         .collection('locateDog')
         .doc(FirebaseAuth.instance.currentUser.uid)
         .get()
-        .then((value) {})
+        .then((value) {
+          // print("BREED: " + value.data()["breed"]);
+        })
         .catchError((e) {
       print("Error retrieving from Firebase $e");
     });
+
+  //   FirebaseFirestore.instance.collection("locateDog").get().then((querySnapshot) {
+  //   querySnapshot.docs.forEach((result) {
+  //     print(result.data());
+  //   });
+  // });
     FirestoreSetUp.instance.gateway = document.data["gateway"];
     //after 2 seconds verify if timestamp of Wifi is newer on the database
     Future.delayed(const Duration(milliseconds: 2000), () {
-      if (DateTime.fromMillisecondsSinceEpoch(
-              document.data['wifiTimestamp'] * 1000)
+      if (document.data['wifiTimestamp']
           .isAfter(timestampWifiLocal)) {
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => Step3(),

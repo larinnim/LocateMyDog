@@ -23,6 +23,8 @@ const locateDogCollection = 'locateDog';
 
 export const webApi = functions.https.onRequest(main);
 
+// const time = admin.firestore.FieldValue.serverTimestamp();
+
 app.get('/locateDog/:locateDogId', async (request, response) => {
 
     try{
@@ -34,11 +36,37 @@ app.get('/locateDog/:locateDogId', async (request, response) => {
     }
 })
 
+// app.patch('/locateDog/:locateDogId/', async(req, res) => {
+//     try{
+//         await firebaseHelper.firestore.updateDocument(db, locateDogCollection, req.params.locateDogId, req.body);
+//         res.send("Updated!");
+//     }catch(error){
+//         res.send(error);
+//     }
+// })
 app.patch('/locateDog/:locateDogId/', async(req, res) => {
     try{
-        await firebaseHelper.firestore.updateDocument(db, locateDogCollection, req.params.locateDogId, req.body);
-        res.send("Updated!");
+        await firebaseHelper.firestore.updateDocument(db, locateDogCollection, req.params.locateDogId, req.body)
+        .then((value) => {
+            // Update the timestamp field with the value from the server
+            db.collection('locateDog').doc(req.params.locateDogId).set({
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            }, {merge:true}).then(()=>{console.log('Write succeeded!');}).catch(()=>{console.log('ERROR!');});
+        }).catch((error)=>{console.log('Error!');});
+        // res.send("Updated!");
+
+        res.send("Updated!" + req.params.locateDogId + admin.firestore.FieldValue.serverTimestamp());
     }catch(error){
         res.send(error);
     }
 })
+// app.patch('/locateDog/:locateDogId/', (req, res) => {
+//     (async () => {
+//         try{
+//             await db.collection('locateDog').doc('/' + req.body.id + '/').update
+//         } 
+//         catch(error){
+
+//         }
+//     })();
+// });

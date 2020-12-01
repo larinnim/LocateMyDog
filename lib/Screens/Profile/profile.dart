@@ -43,9 +43,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         .listen((DocumentSnapshot documentSnapshot) {
       Map<String, dynamic> firestoreInfo = documentSnapshot.data();
 
-      var date = DateTime.fromMillisecondsSinceEpoch(
-              int.parse(firestoreInfo["timestamp"]) * 1000)
-          .toLocal();
+      // var date = DateTime.fromMillisecondsSinceEpoch(
+      //         int.parse(firestoreInfo["timestamp"]) * 1000)
+      //     .toLocal();
+      var date = firestoreInfo["timestamp"];
 
       context.read<WiFiModel>().addLat(firestoreInfo["latitude"].toDouble());
       context.read<WiFiModel>().addLng(firestoreInfo["longitude"].toDouble());

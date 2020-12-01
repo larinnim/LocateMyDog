@@ -47,8 +47,8 @@ class MyApp extends StatelessWidget {
               visualDensity: VisualDensity.adaptivePlatformDensity,
             ),
             home: Material(
-                child: SplashView(),
-              // child: Wrapper(),
+                // child: SplashView(),
+              child: Wrapper(),
             )));
   }
 }
