@@ -1,11 +1,16 @@
 import 'dart:async';
+import 'dart:isolate';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
+import 'package:flutter_maps/Services/Geofence/geofencing.dart';
+import 'package:flutter_maps/Services/Geofence/location.dart';
+import 'package:flutter_maps/Services/Geofence/platform_settings.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +24,24 @@ class MapLocation extends StatefulWidget {
 class _MapLocationState extends State<MapLocation> {
   List<Marker> markers = <Marker>[];
   List<Polyline> mapPolylines = <Polyline>[];
+  List<String> registeredGeofences = [];
+  double radius = 150.0; // geofence radius
+  ReceivePort port = ReceivePort();
+  String geofenceState = 'N/A';
+
+  final List<GeofenceEvent> triggers = <GeofenceEvent>[
+    GeofenceEvent.enter,
+    GeofenceEvent.dwell,
+    GeofenceEvent.exit
+  ];
+
+  final AndroidGeofencingSettings androidSettings = AndroidGeofencingSettings(
+    initialTrigger: <GeofenceEvent>[
+      GeofenceEvent.enter,
+      GeofenceEvent.exit,
+      GeofenceEvent.dwell
+    ],
+    loiteringDelay: 1000 * 60);
 
   Circle circle;
   GoogleMapController _controller;
@@ -37,6 +60,29 @@ class _MapLocationState extends State<MapLocation> {
   @override
   void initState() {
     super.initState();
+    IsolateNameServer.registerPortWithName(
+      port.sendPort, 'geofencing_send_port');
+      port.listen((dynamic data) {
+      print('Event: $data');
+      setState(() {
+        geofenceState = data;
+      });
+    });
+    initPlatformState();
+  }
+
+  // Platform messages are asynchronous, so we initialize in an async method.
+  Future<void> initPlatformState() async {
+    print('Initializing...');
+    await GeofencingManager.initialize();
+    print('Initialization done');
+  }
+
+  static void callback(List<String> ids, Location l, GeofenceEvent e) async {
+    print('Fences: $ids Location $l Event: $e');
+    final SendPort send =
+    IsolateNameServer.lookupPortByName('geofencing_send_port');
+    send?.send(e.toString());
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -68,6 +114,19 @@ class _MapLocationState extends State<MapLocation> {
         points: points);
 
     mapPolylines.add(polyline);
+
+    GeofencingManager.registerGeofence(
+      GeofenceRegion(
+          'mtv', latlong.latitude, latlong.longitude, radius, triggers,
+          androidSettings: androidSettings),
+      callback).then((_) {
+      GeofencingManager.getRegisteredGeofenceIds().then((value) {
+        setState(() {
+          registeredGeofences = value;
+        });
+      });
+    });
+
     return mapPolylines.toSet();
   }
 
