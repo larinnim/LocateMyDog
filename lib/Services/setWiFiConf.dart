@@ -204,15 +204,24 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
   Future<void> writeData(String data) async {
     // final bleData = Provider.of<BleModel>(context);
 
-    if (context.read<BleModel>().characteristics.elementAt(2) == null)
-      return; //WiFi Characteristic
+    context.read<BleModel>().characteristics.forEach((characteristic) {
+      print("charact: " + characteristic.uuid.toString());
+      // context.read<BleModel>().characteristics = service.characteristics;
+    });
+    // if (context.read<BleModel>().characteristics.elementAt(2) == null)
+    //   return; //WiFi Characteristic
 
     List<int> bytes = utf8.encode(data);
-    await context
+     await context
         .read<BleModel>()
         .characteristics
-        .elementAt(2)
-        .write(bytes); //Write WiFi to ESP32
+        .elementAt(0)
+        .write(bytes);
+    // await context
+    //     .read<BleModel>()
+    //     .characteristics
+    //     .elementAt(2)
+    //     .write(bytes); //Write WiFi to ESP32
   }
 
   @override

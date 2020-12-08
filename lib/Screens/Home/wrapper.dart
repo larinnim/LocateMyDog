@@ -32,7 +32,7 @@ class Wrapper extends StatelessWidget {
       //     .where(FirestoreSetUp.instance.gateway, "array-contains",
       //         {userId: "xyz", userName: "abc"});
 
-      return ProfileScreen();
+      return  ProfileScreen();
     }
   }
 }

@@ -249,11 +249,11 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
             .characteristics
             .elementAt(0)
             .setNotifyValue(true); //ESP32 - Latitude
-        await context
-            .read<BleModel>()
-            .characteristics
-            .elementAt(1)
-            .setNotifyValue(true); //ESP32 - Longitude
+        // await context
+        //     .read<BleModel>()
+        //     .characteristics
+        //     .elementAt(1)
+        //     .setNotifyValue(true); //ESP32 - Longitude
 
         context
             .read<BleModel>()
@@ -261,16 +261,18 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
             .elementAt(0)
             .value
             .listen((value) {
-          context.read<BleModel>().addLat(double.parse(Utf8Decoder().convert(value))); // Add lat to provider
+          context.read<BleModel>().addLat(double.parse(
+              Utf8Decoder().convert(value))); // Add lat to provider
         });
-        context
-            .read<BleModel>()
-            .characteristics
-            .elementAt(1)
-            .value
-            .listen((value) {
-          context.read<BleModel>().addLng(double.parse(Utf8Decoder().convert(value))); // Add lng to provider
-        });
+        // context
+        //     .read<BleModel>()
+        //     .characteristics
+        //     .elementAt(1)
+        //     .value
+        //     .listen((value) {
+        //   context.read<BleModel>().addLng(double.parse(
+        //       Utf8Decoder().convert(value))); // Add lng to provider
+        // });
 
         print("Connected");
         setState(() {});
@@ -282,19 +284,9 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
   void scan() async {
     print("scan - Line 340");
     if (!_isScanning) {
-    
-      // flutterBlue.startScan(
-      //     withServices: [Guid(serviceUUID)],
-      //     timeout: new Duration(seconds: 20)).then((value) {
-      //   new Future.delayed(const Duration(seconds: 5), () {
-      //     // deleayed code here
-      //     setState(() {
-      //       _isScanning = false;
-      //     });
-      //   });
-      // });
-
-     flutterBlue.startScan().then((value) {
+      flutterBlue.startScan(
+          withServices: [Guid(serviceUUID)],
+          timeout: new Duration(seconds: 20)).then((value) {
         new Future.delayed(const Duration(seconds: 5), () {
           // deleayed code here
           setState(() {
@@ -302,6 +294,15 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
           });
         });
       });
+
+      // flutterBlue.startScan().then((value) {
+      //   new Future.delayed(const Duration(seconds: 5), () {
+      //     // deleayed code here
+      //     setState(() {
+      //       _isScanning = false;
+      //     });
+      //   });
+      // });
 
       // Listen to scan results
       flutterBlue.scanResults.listen((results) {
@@ -354,8 +355,9 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
 
     // var dataBLE = Provider.of<BleModel>(context);
     // var dataWiFi = Provider.of<WiFiModel>(context);
-    
-    return Consumer2<BleModel, WiFiModel>(builder: (_,bleProvider, wifiProvider , child) {
+
+    return Consumer2<BleModel, WiFiModel>(
+        builder: (_, bleProvider, wifiProvider, child) {
       return ListView.builder(
           itemCount: bleProvider.items.length,
           itemBuilder: (context, index) {
@@ -438,9 +440,12 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                         initiallyExpanded: true,
                         children: <Widget>[
                           ListTile(
-                              title: (bleProvider.lat != null && wifiProvider.lat == null) ||
-                               (bleProvider.timestampBLE != null && wifiProvider.timestampWiFi != null && bleProvider.timestampBLE.isAfter(wifiProvider.timestampWiFi))
-                              
+                              title: (bleProvider.lat != null &&
+                                          wifiProvider.lat == null) ||
+                                      (bleProvider.timestampBLE != null &&
+                                          wifiProvider.timestampWiFi != null &&
+                                          bleProvider.timestampBLE.isAfter(
+                                              wifiProvider.timestampWiFi))
                                   ? Text("Lat: " +
                                       bleProvider.lat.toString() +
                                       // Utf8Decoder().convert(bleProvider.lat) +
@@ -448,31 +453,37 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                                       bleProvider.lng.toString() +
                                       // Utf8Decoder().convert(bleProvider.lng) +
                                       " at : " +
-                                      DateFormat('hh:mm:ss').format(bleProvider.timestampBLE))
-                                  :
-                                (bleProvider.lat == null && wifiProvider.lat != null) ||
-                                wifiProvider.timestampWiFi != null && bleProvider.timestampBLE != null && wifiProvider.timestampWiFi.isAfter(bleProvider.timestampBLE) 
-                                  ?
-                                  Text("Lat: " +
-                                      wifiProvider.lat.toString() +
-                                      // Utf8Decoder().convert(wifiProvider.lat) +
-                                      " | Long: " +
-                                      wifiProvider.lng.toString() +
-                                      // Utf8Decoder().convert(wifiProvider.lng) +
-                                      " at : " +
-                                      DateFormat('hh:mm:ss').format(wifiProvider.timestampWiFi))
-                                  :
-                                   Text(
-                                      "No Data. Please Connect",
-                                      style: TextStyle(
-                                          fontFamily: 'Raleway',
-                                          fontSize: 13,
-                                          color: Colors.grey),
-                                    ),
+                                      DateFormat('hh:mm:ss')
+                                          .format(bleProvider.timestampBLE))
+                                  : (bleProvider.lat == null &&
+                                              wifiProvider.lat != null) ||
+                                          wifiProvider.timestampWiFi != null &&
+                                              bleProvider.timestampBLE !=
+                                                  null &&
+                                              wifiProvider.timestampWiFi
+                                                  .isAfter(
+                                                      bleProvider.timestampBLE)
+                                      ? Text("Lat: " +
+                                          wifiProvider.lat.toString() +
+                                          // Utf8Decoder().convert(wifiProvider.lat) +
+                                          " | Long: " +
+                                          wifiProvider.lng.toString() +
+                                          // Utf8Decoder().convert(wifiProvider.lng) +
+                                          " at : " +
+                                          DateFormat('hh:mm:ss').format(
+                                              wifiProvider.timestampWiFi))
+                                      : Text(
+                                          "No Data. Please Connect",
+                                          style: TextStyle(
+                                              fontFamily: 'Raleway',
+                                              fontSize: 13,
+                                              color: Colors.grey),
+                                        ),
                               trailing: FlatButton(
                                 color: bleProvider.connectedDevices == null ||
                                         !bleProvider.connectedDevices.contains(
-                                            bleProvider.deviceList[index].device)
+                                            bleProvider
+                                                .deviceList[index].device)
                                     ? Colors.green
                                     : Colors.red,
                                 shape: RoundedRectangleBorder(
@@ -481,27 +492,31 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                                   if (bleProvider.connectedDevices != null) {
                                     if (!bleProvider.connectedDevices.contains(
                                         bleProvider.deviceList[index].device)) {
-                                      connectDev(bleProvider.deviceList[index].device);
+                                      connectDev(
+                                          bleProvider.deviceList[index].device);
                                     } else {
                                       bleProvider.deviceList[index].device
                                           .disconnect()
                                           .then((status) async => {
                                                 context
                                                     .read<BleModel>()
-                                                    .removeConnectedDevice(bleProvider
-                                                        .deviceList[index]
-                                                        .device),
+                                                    .removeConnectedDevice(
+                                                        bleProvider
+                                                            .deviceList[index]
+                                                            .device),
                                                 setState(() {})
                                               });
                                     }
                                   } else {
-                                    connectDev(bleProvider.deviceList[index].device);
+                                    connectDev(
+                                        bleProvider.deviceList[index].device);
                                   }
                                 },
                                 child: Text(
                                   bleProvider.connectedDevices == null ||
-                                          !bleProvider.connectedDevices.contains(
-                                              bleProvider.deviceList[index].device)
+                                          !bleProvider.connectedDevices
+                                              .contains(bleProvider
+                                                  .deviceList[index].device)
                                       ? "Connect"
                                       : "Disconnect",
                                   style: TextStyle(
