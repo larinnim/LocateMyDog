@@ -283,18 +283,9 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
     print("scan - Line 340");
     if (!_isScanning) {
     
-      // flutterBlue.startScan(
-      //     withServices: [Guid(serviceUUID)],
-      //     timeout: new Duration(seconds: 20)).then((value) {
-      //   new Future.delayed(const Duration(seconds: 5), () {
-      //     // deleayed code here
-      //     setState(() {
-      //       _isScanning = false;
-      //     });
-      //   });
-      // });
-
-     flutterBlue.startScan().then((value) {
+      flutterBlue.startScan(
+          withServices: [Guid(serviceUUID)],
+          timeout: new Duration(seconds: 20)).then((value) {
         new Future.delayed(const Duration(seconds: 5), () {
           // deleayed code here
           setState(() {
@@ -302,6 +293,15 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
           });
         });
       });
+
+    //  flutterBlue.startScan().then((value) {
+    //     new Future.delayed(const Duration(seconds: 5), () {
+    //       // deleayed code here
+    //       setState(() {
+    //         _isScanning = false;
+    //       });
+    //     });
+    //   });
 
       // Listen to scan results
       flutterBlue.scanResults.listen((results) {
