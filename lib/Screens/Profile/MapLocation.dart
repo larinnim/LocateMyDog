@@ -68,7 +68,18 @@ class _MapLocationState extends State<MapLocation> {
         points: points);
 
     mapPolylines.add(polyline);
+
+
     return mapPolylines.toSet();
+
+  }
+
+  void startServiceInPlatform() async {
+    if(Platform.isAndroid){
+      var methodChannel = MethodChannel("io.flutter.plugins");
+      String data = await methodChannel.invokeMethod("startService");
+      debugPrint(data);
+    }
   }
 
   Future<Set<Marker>> updateMarkerAndCircle(LatLng latlong) async {
