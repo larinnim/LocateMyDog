@@ -174,6 +174,7 @@ class BleModel extends ChangeNotifier {
     BleSingleton._singleton.now = DateTime.now();
     timestampBLE = BleSingleton._singleton.now;
     BleSingleton._singleton.onLocationChanged();
+      print("Battery Level: " + value.toString());
     // This call tells the widgets that are listening to this model to rebuild.
     notifyListeners();
   }
