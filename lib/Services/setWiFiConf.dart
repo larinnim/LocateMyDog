@@ -212,16 +212,16 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
     //   return; //WiFi Characteristic
 
     List<int> bytes = utf8.encode(data);
-     await context
-        .read<BleModel>()
-        .characteristics
-        .elementAt(0)
-        .write(bytes);
-    // await context
+    //  await context
     //     .read<BleModel>()
     //     .characteristics
-    //     .elementAt(2)
-    //     .write(bytes); //Write WiFi to ESP32
+    //     .elementAt(0)
+    //     .write(bytes);
+    await context
+        .read<BleModel>()
+        .characteristics
+        .elementAt(2)
+        .write(bytes); //Write WiFi to ESP32
   }
 
   @override

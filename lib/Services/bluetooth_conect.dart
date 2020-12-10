@@ -174,6 +174,7 @@ class BleModel extends ChangeNotifier {
     BleSingleton._singleton.now = DateTime.now();
     timestampBLE = BleSingleton._singleton.now;
     BleSingleton._singleton.onLocationChanged();
+    print("Battery Level: " + value.toString());
     // This call tells the widgets that are listening to this model to rebuild.
     notifyListeners();
   }
@@ -244,16 +245,18 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
         context.read<BleModel>().services.forEach((service) {
           context.read<BleModel>().characteristics = service.characteristics;
         });
+        
         await context
             .read<BleModel>()
             .characteristics
             .elementAt(0)
             .setNotifyValue(true); //ESP32 - Latitude
-        // await context
-        //     .read<BleModel>()
-        //     .characteristics
-        //     .elementAt(1)
-        //     .setNotifyValue(true); //ESP32 - Longitude
+
+        await context
+            .read<BleModel>()
+            .characteristics
+            .elementAt(1)
+            .setNotifyValue(true); //ESP32 - Longitude
 
         context
             .read<BleModel>()
@@ -264,15 +267,15 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
           context.read<BleModel>().addLat(double.parse(
               Utf8Decoder().convert(value))); // Add lat to provider
         });
-        // context
-        //     .read<BleModel>()
-        //     .characteristics
-        //     .elementAt(1)
-        //     .value
-        //     .listen((value) {
-        //   context.read<BleModel>().addLng(double.parse(
-        //       Utf8Decoder().convert(value))); // Add lng to provider
-        // });
+        context
+            .read<BleModel>()
+            .characteristics
+            .elementAt(1)
+            .value
+            .listen((value) {
+          context.read<BleModel>().addLng(double.parse(
+              Utf8Decoder().convert(value))); // Add lng to provider
+        });
 
         print("Connected");
         setState(() {});
