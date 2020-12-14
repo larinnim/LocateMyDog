@@ -38,9 +38,14 @@ class _RegisterState extends State<Register> {
           .updateUserData(dogname, ownername, dogbreed);
       print('yay! ${authResult.user}');
       
-      Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => Step1(),
+      // Navigator.of(context).push(MaterialPageRoute(
+      //     builder: (context) => Step1(),
+      // ));
+
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => ProfileScreen(),
       ));
+
       // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
       //   return Container(color: Colors.yellow, child: ProfileScreen());
       // }));

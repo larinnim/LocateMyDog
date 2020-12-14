@@ -40,7 +40,7 @@ dependencies:
   geoflutterfire: ^2.2.1
   geolocator: ^6.0.0+4
   flutter_ble_lib: ^2.3.0
-  flutter_blue: ^0.7.2
+  flutter_blue: ^0.7.3
   permission_handler: ^5.0.1+1
   flutter_launcher_icons: "^0.8.1"
   convert: ^2.1.1
@@ -50,6 +50,7 @@ dependencies:
   percent_indicator: "^2.1.7+2"
   lottie: ^0.7.0+1
   flutter_barcode_scanner: ^1.0.1
+  firebase_messaging: ^7.0.3
 
   flutter:
     sdk: flutter

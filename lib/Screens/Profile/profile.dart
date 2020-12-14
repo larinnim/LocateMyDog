@@ -48,6 +48,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       //     .toLocal();
 
       // var date = firestoreInfo["timestamp"];
+      // var date1 = firestoreInfo["timestamp"];
 
       var date = DateTime.fromMillisecondsSinceEpoch(firestoreInfo["timestamp"].millisecondsSinceEpoch);
       
