@@ -8,6 +8,7 @@ import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Screens/Tutorial/step1.dart';
 import 'package:flutter_maps/Screens/Tutorial/step3.dart';
 import 'package:flutter_maps/Services/database.dart';
+import 'package:flutter_maps/Services/push_notification.dart';
 
 class Register extends StatefulWidget {
   final Function cancelBackToHome;
@@ -41,8 +42,9 @@ class _RegisterState extends State<Register> {
       // Navigator.of(context).push(MaterialPageRoute(
       //     builder: (context) => Step1(),
       // ));
+      PushNotificationsManager().init();
 
-        Navigator.of(context).push(MaterialPageRoute(
+      Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => ProfileScreen(),
       ));
 

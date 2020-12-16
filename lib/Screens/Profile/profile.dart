@@ -10,6 +10,7 @@ import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Services/bluetooth_conect.dart';
 import 'package:flutter_maps/Services/constants.dart';
+import 'package:flutter_maps/Services/push_notification.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:flutter_screenutil/screenutil.dart';
 import 'package:image_picker/image_picker.dart';
@@ -33,6 +34,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     readDatabase();
+    PushNotificationsManager().init();
+
   }
 
   void readDatabase() {
