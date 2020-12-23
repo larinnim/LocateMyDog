@@ -33,12 +33,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    readDatabase();
+    /////****** NOT SURE WHAT readDatabase does ************* */
+    // readDatabase();
     PushNotificationsManager().init();
-
   }
 
   void readDatabase() {
+    // FirebaseFirestore.instance
+    //   .collection('locateDog').where(field)
+
     FirebaseFirestore.instance
         .collection('locateDog')
         .doc(_currentUser.uid)
@@ -52,20 +55,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       // var date = firestoreInfo["timestamp"];
       // var date1 = firestoreInfo["timestamp"];
+      // collectionRef.where('name', '>=', 'bar').where('name', '<=', 'foo')
 
-      var date = DateTime.fromMillisecondsSinceEpoch(firestoreInfo["timestamp"].millisecondsSinceEpoch);
-      
-      context.read<WiFiModel>().addLat(firestoreInfo["latitude"].toDouble());
-      context.read<WiFiModel>().addLng(firestoreInfo["longitude"].toDouble());
-      context.read<WiFiModel>().addRSSI(firestoreInfo["rssi"]);
-      context.read<WiFiModel>().addSSID(firestoreInfo["ssid"]);
-      context.read<WiFiModel>().addTimeStamp(date);
+      // firestoreInfo.map((key, value) {
+      //   if (key.contains('IAT')) {
+      //     print('CONTAINS');
+      //   }
+      // });
 
-      print(firestoreInfo["latitude"]);
-      print(firestoreInfo["latitude"]);
-      print(firestoreInfo["latitude"]);
-      print(firestoreInfo["latitude"]);
-      print(firestoreInfo["latitude"]);
+      // var date = DateTime.fromMillisecondsSinceEpoch(
+      //     firestoreInfo["timestamp"].millisecondsSinceEpoch);
+
+      // context.read<WiFiModel>().addLat(firestoreInfo["latitude"].toDouble());
+      // context.read<WiFiModel>().addLng(firestoreInfo["longitude"].toDouble());
+      // context.read<WiFiModel>().addRSSI(firestoreInfo["rssi"]);
+      // context.read<WiFiModel>().addSSID(firestoreInfo["ssid"]);
+      // context.read<WiFiModel>().addTimeStamp(date);
+
+      // print(firestoreInfo["latitude"]);
+      // print(firestoreInfo["latitude"]);
+      // print(firestoreInfo["latitude"]);
+      // print(firestoreInfo["latitude"]);
+      // print(firestoreInfo["latitude"]);
     }).onError((e) => print("ERROR reading snapshot" + e));
   }
 

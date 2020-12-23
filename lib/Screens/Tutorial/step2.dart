@@ -217,30 +217,29 @@ class _Step2State extends State<Step2> {
 
   Future<void> submitAction() async {
     // var wifiData = '${wifiNameController.text},${wifiPasswordController.text}';
+    writeUserID();//Send UserID as well
     var wifiData = '$_wifiName,$password';
-    writeData(wifiData);
+    writeWIFI(wifiData);
     timestampWifiLocal = DateTime.now();
     var document = await FirebaseFirestore.instance
         .collection('locateDog')
         .doc(FirebaseAuth.instance.currentUser.uid)
         .get()
         .then((value) {
-          // print("BREED: " + value.data()["breed"]);
-        })
-        .catchError((e) {
+      // print("BREED: " + value.data()["breed"]);
+    }).catchError((e) {
       print("Error retrieving from Firebase $e");
     });
 
-  //   FirebaseFirestore.instance.collection("locateDog").get().then((querySnapshot) {
-  //   querySnapshot.docs.forEach((result) {
-  //     print(result.data());
-  //   });
-  // });
+    //   FirebaseFirestore.instance.collection("locateDog").get().then((querySnapshot) {
+    //   querySnapshot.docs.forEach((result) {
+    //     print(result.data());
+    //   });
+    // });
     FirestoreSetUp.instance.gateway = document.data["gateway"];
     //after 2 seconds verify if timestamp of Wifi is newer on the database
     Future.delayed(const Duration(milliseconds: 2000), () {
-      if (document.data['wifiTimestamp']
-          .isAfter(timestampWifiLocal)) {
+      if (document.data['wifiTimestamp'].isAfter(timestampWifiLocal)) {
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => Step3(),
         ));
@@ -278,7 +277,7 @@ class _Step2State extends State<Step2> {
     );
   }
 
-  Future<void> writeData(String data) async {
+  Future<void> writeWIFI(String data) async {
     if (context.read<BleModel>().characteristics.elementAt(2) == null)
       return; //WiFi Characteristic
 
@@ -288,5 +287,18 @@ class _Step2State extends State<Step2> {
         .characteristics
         .elementAt(2)
         .write(bytes); //Write WiFi to ESP32
+  }
+
+  Future<void> writeUserID() async {
+    if (context.read<BleModel>().characteristics.elementAt(3) == null)
+      return; //UserID Characteristic
+
+    List<int> bytes = utf8.encode(FirebaseAuth.instance.currentUser.uid);
+
+    await context
+        .read<BleModel>()
+        .characteristics
+        .elementAt(3)
+        .write(bytes); //Write UserID to ESP32
   }
 }
