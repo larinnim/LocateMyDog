@@ -179,7 +179,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       },
                       child: ProfileListItem(
                         icon: LineAwesomeIcons.search_location,
-                        text: 'Find ${_firebaseAuth.currentUser.displayName}',
+                        text: 'Map',
+                        // text: 'Find ${_firebaseAuth.currentUser.displayName}',
                       ),
                     ),
                     InkWell(
@@ -196,8 +197,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // }));
                       },
                       child: ProfileListItem(
-                        icon: LineAwesomeIcons.walking,
-                        text: 'Track Walk',
+                        icon: LineAwesomeIcons.wired_network,
+                        text: 'Connect',
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            new MaterialPageRoute(
+                                builder: (context) =>
+                                    new BluetoothConnection()));
+                      },
+                      child: ProfileListItem(
+                      icon: IconData(59174, fontFamily: 'MaterialIcons'),
+                      text: 'Create Fence',
                       ),
                     ),
                     ProfileListItem(
