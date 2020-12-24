@@ -5,7 +5,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
+import 'package:flutter_maps/Screens/Tutorial/step1.dart';
+import 'package:flutter_maps/Screens/Tutorial/step3.dart';
 import 'package:flutter_maps/Services/database.dart';
+import 'package:flutter_maps/Services/push_notification.dart';
 
 class Register extends StatefulWidget {
   final Function cancelBackToHome;
@@ -35,10 +38,20 @@ class _RegisterState extends State<Register> {
       await DatabaseService(uid: authResult.user.uid)
           .updateUserData(dogname, ownername, dogbreed);
       print('yay! ${authResult.user}');
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-        return Container(color: Colors.yellow, child: ProfileScreen());
-        //  Text('Welcome ${authResult.user.email}'));
-      }));
+      
+      // Navigator.of(context).push(MaterialPageRoute(
+      //     builder: (context) => Step1(),
+      // ));
+      PushNotificationsManager().init();
+
+      Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => ProfileScreen(),
+      ));
+
+      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+      //   return Container(color: Colors.yellow, child: ProfileScreen());
+      // }));
+
     }).catchError((err) {
       print(err);
       if (err.code == 'ERROR_EMAIL_ALREADY_IN_USE') {
@@ -239,6 +252,7 @@ class _RegisterState extends State<Register> {
                         borderSide: BorderSide(color: Colors.white))),
                 style: TextStyle(color: Colors.white, fontSize: 22.0),
               ),
+             
               SizedBox(height: 12.0),
               Row(children: <Widget>[
                 Checkbox(
@@ -295,7 +309,10 @@ class _RegisterState extends State<Register> {
                                 fontWeight: FontWeight.bold),
                           )),
                     )
-                  ])
+                  ]),
+                  Padding(
+             padding: EdgeInsets.only(
+             bottom: MediaQuery.of(context).viewInsets.bottom))
             ],
           ),
         ),

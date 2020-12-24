@@ -30,6 +30,13 @@
             {
               "client_id": "687212317780-ou1qraf0c6drfnmarctobocmvsjdkldf.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "687212317780-d0m6lniofc24nu6g0mqmss74g1u450cc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.retroportalstudio.www.flutterMaps"
+              }
             }
           ]
         }

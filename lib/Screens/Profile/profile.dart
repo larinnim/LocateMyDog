@@ -7,9 +7,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Models/user.dart';
+import 'package:flutter_maps/Screens/Fence/Geofence.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Services/bluetooth_conect.dart';
 import 'package:flutter_maps/Services/constants.dart';
+import 'package:flutter_maps/Services/push_notification.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:flutter_screenutil/screenutil.dart';
 import 'package:image_picker/image_picker.dart';
@@ -32,34 +34,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    readDatabase();
+    /////****** NOT SURE WHAT readDatabase does ************* */
+    // readDatabase();
+    PushNotificationsManager().init();
   }
 
   void readDatabase() {
+    // FirebaseFirestore.instance
+    //   .collection('locateDog').where(field)
+
     FirebaseFirestore.instance
         .collection('locateDog')
-        .doc("3heCcuuJTpVhYqTp2wHDS5Nq4IL2")
+        .doc(_currentUser.uid)
         .snapshots()
         .listen((DocumentSnapshot documentSnapshot) {
-
       Map<String, dynamic> firestoreInfo = documentSnapshot.data();
 
-      var date = DateTime.fromMillisecondsSinceEpoch(
-          int.parse(firestoreInfo["timestamp"]) * 1000).toLocal();
+      // var date = DateTime.fromMillisecondsSinceEpoch(
+      //         int.parse(firestoreInfo["timestamp"]) * 1000)
+      //     .toLocal();
 
-      context.read<WiFiModel>().addLat(firestoreInfo["latitude"]);
-      context.read<WiFiModel>().addLng(firestoreInfo["longitude"]);
-      context.read<WiFiModel>().addRSSI(firestoreInfo["rssi"]);
-      context.read<WiFiModel>().addSSID(firestoreInfo["ssid"]);
-      context.read<WiFiModel>().addTimeStamp(date);
+      // var date = firestoreInfo["timestamp"];
+      // var date1 = firestoreInfo["timestamp"];
+      // collectionRef.where('name', '>=', 'bar').where('name', '<=', 'foo')
 
-      print(firestoreInfo["latitude"]);
-      print(firestoreInfo["latitude"]);
-      print(firestoreInfo["latitude"]);
-      print(firestoreInfo["latitude"]);
-      print(firestoreInfo["latitude"]);
+      // firestoreInfo.map((key, value) {
+      //   if (key.contains('IAT')) {
+      //     print('CONTAINS');
+      //   }
+      // });
 
-    }).onError((e) => print("ERROR reading snapshot" +e));
+      // var date = DateTime.fromMillisecondsSinceEpoch(
+      //     firestoreInfo["timestamp"].millisecondsSinceEpoch);
+
+      // context.read<WiFiModel>().addLat(firestoreInfo["latitude"].toDouble());
+      // context.read<WiFiModel>().addLng(firestoreInfo["longitude"].toDouble());
+      // context.read<WiFiModel>().addRSSI(firestoreInfo["rssi"]);
+      // context.read<WiFiModel>().addSSID(firestoreInfo["ssid"]);
+      // context.read<WiFiModel>().addTimeStamp(date);
+
+      // print(firestoreInfo["latitude"]);
+      // print(firestoreInfo["latitude"]);
+      // print(firestoreInfo["latitude"]);
+      // print(firestoreInfo["latitude"]);
+      // print(firestoreInfo["latitude"]);
+    }).onError((e) => print("ERROR reading snapshot" + e));
   }
 
   @override
@@ -86,6 +105,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
+            // Image.network(_currentUser?.avatarUrl, loadingBuilder:
+            //     (BuildContext context, Widget child,
+            //         ImageChunkEvent loadingProgress) {
+            //   if (loadingProgress == null) return child;
+            //   return Center(
+            //     child: CircularProgressIndicator(
+            //       value: loadingProgress.expectedTotalBytes != null
+            //           ? loadingProgress.cumulativeBytesLoaded /
+            //               loadingProgress.expectedTotalBytes
+            //           : null,
+            //     ),
+            //   );
+            // }),
             Avatar(
               avatarUrl: _currentUser?.avatarUrl,
               onTap: () async {
@@ -148,7 +180,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       },
                       child: ProfileListItem(
                         icon: LineAwesomeIcons.search_location,
-                        text: 'Find ${_firebaseAuth.currentUser.displayName}',
+                        text: 'Map',
+                        // text: 'Find ${_firebaseAuth.currentUser.displayName}',
                       ),
                     ),
                     InkWell(
@@ -165,8 +198,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // }));
                       },
                       child: ProfileListItem(
-                        icon: LineAwesomeIcons.walking,
-                        text: 'Track Walk',
+                        icon: LineAwesomeIcons.wired_network,
+                        text: 'Connect',
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            new MaterialPageRoute(
+                                builder: (context) =>
+                                    new Geofence()));
+                      },
+                      child: ProfileListItem(
+                      icon: IconData(59174, fontFamily: 'MaterialIcons'),
+                      text: 'Geofence',
                       ),
                     ),
                     ProfileListItem(

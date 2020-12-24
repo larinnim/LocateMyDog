@@ -5,6 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_maps/Models/WiFiModel.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -88,49 +90,79 @@ class _MapLocationState extends State<MapLocation> {
   @override
   Widget build(BuildContext context) {
     final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-    final currentPosition = Provider.of<BleModel>(context);
+    final currentPositionBle = Provider.of<BleModel>(context);
+    final currentPositionWiFi = Provider.of<BleModel>(context);
 
     return Scaffold(
         appBar: AppBar(
             automaticallyImplyLeading: true,
-            title: Text("Where is  ${_firebaseAuth.currentUser.displayName} ?"),
+            centerTitle: true,
+            title: Text("Map"),
+            // title: Text("Where is  ${_firebaseAuth.currentUser.displayName} ?"),
             leading: IconButton(
                 icon: Icon(Icons.arrow_back),
                 onPressed: () {
                   // Navigate back to the first screen by popping the current route
                   // off the stack.
-                  Navigator.pushNamed(context, '/trackwalk');
+                  Navigator.pushNamed(context, '/profile');
                 })),
-        body: (currentPosition != null)
-            ? Consumer<BleModel>(builder: (_, position, child) {
+        body: (currentPositionBle.lat != null && currentPositionBle.lng != null || currentPositionWiFi.lat != null && currentPositionWiFi.lng != null)
+            ?
+            Consumer2<BleModel, WiFiModel>(builder: (_,bleProvider, wifiProvider , child) {
+            //  Consumer<BleModel>(builder: (_, position, child) {
                 return FutureBuilder(
-                    future: updateMarkerAndCircle(LatLng(
-                      position.lat,
-                      position.lng)),
-                        // double.parse(Utf8Decoder().convert(position.lat)),
-                        // double.parse(Utf8Decoder().convert(position.lng)))),
+                    future:
+                   (bleProvider.timestampBLE != null && wifiProvider.timestampWiFi != null && bleProvider.timestampBLE.isAfter(wifiProvider.timestampWiFi))?
+                    updateMarkerAndCircle(LatLng(
+                      bleProvider.lat,
+                      bleProvider.lng)) : (bleProvider.timestampBLE == null && wifiProvider.timestampWiFi != null) ? 
+                      updateMarkerAndCircle(LatLng(
+                      wifiProvider.lat,
+                      wifiProvider.lng)) : (bleProvider != null && wifiProvider == null) ? 
+                      updateMarkerAndCircle(LatLng(
+                      bleProvider.lat,
+                      bleProvider.lng)): updateMarkerAndCircle(LatLng(
+                      wifiProvider.lat,
+                      wifiProvider.lng)),
                     initialData: Set.of(<Marker>[]),
                     builder: (context, snapshotMarker) {
                       return FutureBuilder(
-                          future: updatePolygon(LatLng(
-                            position.lat,
-                            position.lng)),
-                              // double.parse(Utf8Decoder().convert(position.lat)),
-                              // double.parse(
-                              //     Utf8Decoder().convert(position.lng)))),
+                      future: 
+                   (bleProvider.timestampBLE != null && wifiProvider.timestampWiFi != null && bleProvider.timestampBLE.isAfter(wifiProvider.timestampWiFi))?
+                          updatePolygon(LatLng(
+                            bleProvider.lat,
+                            bleProvider.lng)) : (bleProvider.timestampBLE == null && wifiProvider.timestampWiFi != null) ? 
+                            updatePolygon(LatLng(
+                            wifiProvider.lat,
+                            wifiProvider.lng)) : (bleProvider != null && wifiProvider == null) ?  updateMarkerAndCircle(LatLng(
+                            bleProvider.lat,
+                            bleProvider.lng)): updateMarkerAndCircle(LatLng(
+                            wifiProvider.lat,
+                            wifiProvider.lng)),
                           initialData: Set.of(<Polyline>[]),
                           builder: (context, snapshotPolyline) {
                             if (snapshotMarker.hasData) {
                               return GoogleMap(
                                 mapType: MapType.hybrid,
-                                initialCameraPosition: CameraPosition(
+                                initialCameraPosition:
+                   (bleProvider.timestampBLE != null && wifiProvider.timestampWiFi != null && bleProvider.timestampBLE.isAfter(wifiProvider.timestampWiFi))?
+                                CameraPosition(
                                     target: LatLng(
-                                     position.lat,
-                                     position.lng),
-                                        // double.parse(Utf8Decoder()
-                                        //     .convert(position.lat)),
-                                        // double.parse(Utf8Decoder()
-                                        //     .convert(position.lng))),
+                                     bleProvider.lat,
+                                     bleProvider.lng),
+                                    zoom: 16.0) : (bleProvider.timestampBLE == null && wifiProvider.timestampWiFi != null) ? 
+                                     CameraPosition(
+                                    target: LatLng(
+                                     wifiProvider.lat,
+                                     wifiProvider.lng),
+                                    zoom: 16.0) : (bleProvider != null && wifiProvider == null) ?  CameraPosition(
+                                    target: LatLng(
+                                     bleProvider.lat,
+                                     bleProvider.lng),
+                                    zoom: 16.0) : CameraPosition(
+                                    target: LatLng(
+                                     bleProvider.lat,
+                                     bleProvider.lng),
                                     zoom: 16.0),
                                 markers: snapshotMarker.data,
                                 circles:
@@ -173,9 +205,44 @@ class _MapLocationState extends State<MapLocation> {
                           });
                     });
               })
-            : Center(
-                child: CircularProgressIndicator(),
-              )
+            : 
+            Center(
+              // child:Container(
+      // color: Colors.white,
+      
+      child: 
+        Column(
+           mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+          Icon(FontAwesomeIcons.exclamationTriangle),
+           Padding(
+            padding: EdgeInsets.only(top: 30.0),
+          ),
+          Text('Whoops',style: TextStyle(
+        fontSize: 30.0,
+        fontWeight: FontWeight.bold
+      ),),
+      Padding(
+            padding: EdgeInsets.only(top: 15.0),
+          ),
+          Text('Please connect the gateway to WiFi or Bluetooth to continue'),
+          // Expanded(
+          //   child: FittedBox(
+          //     fit: BoxFit.contain, // otherwise the logo will be tiny
+          //     child: const FlutterLogo(),
+          //   ),
+          // ),
+        ],)
+      //   Text(
+      //   "Align Me!",
+      //   style: TextStyle(
+      //   fontSize: 30.0
+      // ),
+      // ),
+      // ),  
+      // ),
+      ),
         // floatingActionButton: FloatingActionButton(
         //       child: Icon(Icons.location_searching),
         //       onPressed: () {

@@ -217,6 +217,9 @@ PODS:
     - AppAuth/ExternalUserAgent (= 1.4.0)
   - AppAuth/Core (1.4.0)
   - AppAuth/ExternalUserAgent (1.4.0)
+  - barcode_scanner (1.0.0):
+    - Flutter
+    - ScanbotBarcodeScannerSDK (= 1.3.0)
   - BoringSSL-GRPC (0.0.7):
     - BoringSSL-GRPC/Implementation (= 0.0.7)
     - BoringSSL-GRPC/Interface (= 0.0.7)
@@ -431,12 +434,14 @@ PODS:
     - Flutter
   - PromisesObjC (1.2.10)
   - Protobuf (3.11.4)
+  - ScanbotBarcodeScannerSDK (1.3.0)
   - shared_preferences (0.0.1):
     - Flutter
   - wifi (0.0.1):
     - Flutter
 
 DEPENDENCIES:
+  - barcode_scanner (from `.symlinks/plugins/barcode_scanner/ios`)
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
   - firebase_analytics (from `.symlinks/plugins/firebase_analytics/ios`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
@@ -489,8 +494,11 @@ SPEC REPOS:
     - nanopb
     - PromisesObjC
     - Protobuf
+    - ScanbotBarcodeScannerSDK
 
 EXTERNAL SOURCES:
+  barcode_scanner:
+    :path: ".symlinks/plugins/barcode_scanner/ios"
   cloud_firestore:
     :path: ".symlinks/plugins/cloud_firestore/ios"
   firebase_analytics:
@@ -535,6 +543,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   abseil: 6c8eb7892aefa08d929b39f9bb108e5367e3228f
   AppAuth: 31bcec809a638d7bd2f86ea8a52bd45f6e81e7c7
+  barcode_scanner: 5ca5fc86f1f200498bbb3b5f352046918a36e5d2
   BoringSSL-GRPC: 8edf627ee524575e2f8d19d56f068b448eea3879
   cloud_firestore: db3dab8f6a348f0f6ec01c3ba911ec5ac5e0df1a
   FBSDKCoreKit: 1d5acf7c9d7a2f92bb1a242dc60cae5b7adb91df
@@ -580,6 +589,7 @@ SPEC CHECKSUMS:
   permission_handler: eac8e15b4a1a3fba55b761d19f3f4e6b005d15b6
   PromisesObjC: b14b1c6b68e306650688599de8a45e49fae81151
   Protobuf: 176220c526ad8bd09ab1fb40a978eac3fef665f7
+  ScanbotBarcodeScannerSDK: 503711d6f624e1420d2113693f551e14da9aabac
   shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
   wifi: d7d77c94109e36c4175d845f0a5964eadba71060
 

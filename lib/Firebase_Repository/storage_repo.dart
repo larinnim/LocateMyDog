@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_maps/Models/user.dart';
 import '../locator.dart';
@@ -18,6 +19,7 @@ class StorageRepo {
     var completedTask = await uploadTask.onComplete;
     String downloadUrl = await completedTask.ref.getDownloadURL();
     print("The download URL: $downloadUrl");
+    await FirebaseAuth.instance.currentUser.updateProfile(photoURL: downloadUrl);
     return downloadUrl;
   }
 

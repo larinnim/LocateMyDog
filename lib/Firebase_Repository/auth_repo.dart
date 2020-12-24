@@ -67,7 +67,8 @@ class AuthRepo {
 
   Future<AppUser> getUser() async {
     var firebaseUser = _auth.currentUser;
-    return AppUser(firebaseUser.uid, displayName: firebaseUser.displayName);
+    // return AppUser(firebaseUser.uid, displayName: firebaseUser.displayName);
+    return AppUser(firebaseUser.uid, displayName: firebaseUser.displayName, avatarUrl: firebaseUser.photoURL);
   }
 
   // Future<void> updateDisplayName(String displayName) async {

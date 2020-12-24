@@ -40,7 +40,7 @@ dependencies:
   geoflutterfire: ^2.2.1
   geolocator: ^6.0.0+4
   flutter_ble_lib: ^2.3.0
-  flutter_blue: ^0.7.2
+  flutter_blue: ^0.7.3
   permission_handler: ^5.0.1+1
   flutter_launcher_icons: "^0.8.1"
   convert: ^2.1.1
@@ -48,6 +48,9 @@ dependencies:
   shared_preferences: ^0.5.12+2
   wifi: ^0.1.5
   percent_indicator: "^2.1.7+2"
+  lottie: ^0.7.0+1
+  flutter_barcode_scanner: ^1.0.1
+  firebase_messaging: ^7.0.3
 
   flutter:
     sdk: flutter
@@ -89,7 +92,12 @@ flutter:
     - assets/images/wifi1.png
     - assets/images/wifi2.png
     - assets/images/wifi3.png
-
+    - assets/images/Bailey1.png
+    - assets/images/splash.jpg
+    - assets/images/round_marker.png
+    - assets/lottie/devs.jpg
+    - assets/lottie/powered_by.png
+    - assets/lottie/lottie_file.json
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
 

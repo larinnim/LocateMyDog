@@ -141,7 +141,7 @@ class BleModel extends ChangeNotifier {
     BleSingleton._singleton.lat = null;
     BleSingleton._singleton.lng = null;
     BleSingleton._singleton.now = null;
-    BleSingleton._singleton.connectedDevices..remove(device);
+    BleSingleton._singleton.connectedDevices.remove(device);
     notifyListeners();
   }
 
@@ -174,6 +174,7 @@ class BleModel extends ChangeNotifier {
     BleSingleton._singleton.now = DateTime.now();
     timestampBLE = BleSingleton._singleton.now;
     BleSingleton._singleton.onLocationChanged();
+      print("Battery Level: " + value.toString());
     // This call tells the widgets that are listening to this model to rebuild.
     notifyListeners();
   }
@@ -282,8 +283,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
   void scan() async {
     print("scan - Line 340");
     if (!_isScanning) {
-      // flutterBlue.startScan(
-      //     withServices: [Guid(serviceUUID)]);
+    
       flutterBlue.startScan(
           withServices: [Guid(serviceUUID)],
           timeout: new Duration(seconds: 20)).then((value) {
@@ -294,6 +294,15 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
           });
         });
       });
+
+    //  flutterBlue.startScan().then((value) {
+    //     new Future.delayed(const Duration(seconds: 5), () {
+    //       // deleayed code here
+    //       setState(() {
+    //         _isScanning = false;
+    //       });
+    //     });
+    //   });
 
       // Listen to scan results
       flutterBlue.scanResults.listen((results) {
