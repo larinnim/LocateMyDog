@@ -18,8 +18,8 @@ const fcm = admin.messaging();
 
 // var token = await firebaseMessaging.getToken();
 
-var originGeo = { lat: 46.52040427406189, lng: -80.95421317566155 };
-var radiusKM = 0.03
+// var originGeo = { lat: 46.52040427406189, lng: -80.95421317566155 };
+// var radiusKM = 0.03
 
 
 exports.updateLocation = functions.firestore
@@ -31,6 +31,9 @@ exports.updateLocation = functions.firestore
     db
       .collection('locateDog')
       .doc(context.params.userId).get().then(locateDogFields => {
+        var originGeo = {lat: locateDogFields.data().Geofence.Circle.initialLat, lng: locateDogFields.data().Geofence.Circle.initialLng};
+        var radiusKM = locateDogFields.data().Geofence.Circle.radius / 1000;
+
         const querySnapshot = db
           .collection('users')
           .doc(context.params.userId);

@@ -217,15 +217,20 @@ class _Step2State extends State<Step2> {
 
   Future<void> submitAction() async {
     // var wifiData = '${wifiNameController.text},${wifiPasswordController.text}';
-    writeUserID();//Send UserID as well
+    writeUserID(); //Send UserID as well
     var wifiData = '$_wifiName,$password';
-    writeWIFI(wifiData);
+    Timer(Duration(seconds: 3), () {
+      writeWIFI(wifiData);
+    });
     timestampWifiLocal = DateTime.now();
     var document = await FirebaseFirestore.instance
         .collection('locateDog')
         .doc(FirebaseAuth.instance.currentUser.uid)
         .get()
         .then((value) {
+          // if (value.data()['Sender1'] != null ){
+
+          // }
       // print("BREED: " + value.data()["breed"]);
     }).catchError((e) {
       print("Error retrieving from Firebase $e");
