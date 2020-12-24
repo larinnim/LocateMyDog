@@ -1,11 +1,17 @@
 import 'dart:async';
+import 'dart:typed_data';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_maps/Models/user.dart';
+import 'package:flutter_maps/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_maps/Services/database.dart';
+import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart' as locator;
+import 'package:location/location.dart' as localization;
 
 class Geofence extends StatefulWidget {
   @override
@@ -14,18 +20,32 @@ class Geofence extends StatefulWidget {
 
 class _GeofenceWidgetState extends State<Geofence> {
   StreamSubscription _locationSubscription;
-  locator.Location _locationTracker = locator.Location();
+  localization.Location _locationTracker = localization.Location();
   Circle circle;
   Marker marker;
   GoogleMapController _controller;
   static LatLng _initialPosition;
-  var configuredRadius = 30.0; //Radius is 30 meters
+  var _configuredRadius = 0.0; //Radius is 30 meters
+  AppUser _currentUser = locator.get<UserController>().currentUser;
+  CollectionReference locateDogInstance =
+      FirebaseFirestore.instance.collection('locateDog');
 
   @override
   void initState() {
     super.initState();
-    _getUserLocation();
+    _getCircleRadius();
+    _getInitialLocation();
     _getCurrentLocation();
+  }
+
+  Future<void> _getCircleRadius() async {
+    await locateDogInstance.doc(_currentUser.uid).get().then((value) {
+      //  _configuredRadius = value.data()['Geofence'].Circle.radius;
+      setState(() {
+        _configuredRadius = value.data()['Geofence']['Circle']['radius'];
+        print('Radius: ' + _configuredRadius.toString());
+      });
+    });
   }
 
   void _onSettingsPressed() {
@@ -38,7 +58,7 @@ class _GeofenceWidgetState extends State<Geofence> {
               color: Color(0xFF737373), // It's full transparency
               height: 180,
               child: Container(
-                child: bottonNavigationBuilder(),
+                child: bottonNavigationBuilder(mystate),
                 decoration: BoxDecoration(
                     color: Theme.of(context).canvasColor,
                     borderRadius: BorderRadius.only(
@@ -51,23 +71,17 @@ class _GeofenceWidgetState extends State<Geofence> {
         });
   }
 
-  // void _increaseCircleRadius() {
-  //   setState(() {
-  //     configuredRadius += 5; //Increase by 5 meters
-  //   });
-  // }
-
-  void _decreaseCircleRadius() {
-    setState(() {
-      configuredRadius -= 5;
-    });
+  Future<Uint8List> getMarker() async {
+    ByteData byteData = await DefaultAssetBundle.of(context)
+        .load("assets/images/round_marker.png");
+    return byteData.buffer.asUint8List();
   }
 
   void _getCurrentLocation() async {
     try {
+      Uint8List imageData = await getMarker();
       var location = await _locationTracker.getLocation();
-
-      updateMarkerAndCircle(location);
+      updateMarkerAndCircle(location, imageData);
 
       if (_locationSubscription != null) {
         _locationSubscription.cancel();
@@ -82,7 +96,7 @@ class _GeofenceWidgetState extends State<Geofence> {
                   target: LatLng(newLocalData.latitude, newLocalData.longitude),
                   tilt: 0,
                   zoom: 18.00)));
-          updateMarkerAndCircle(newLocalData);
+          updateMarkerAndCircle(newLocalData, imageData);
         }
       });
     } on PlatformException catch (e) {
@@ -92,31 +106,28 @@ class _GeofenceWidgetState extends State<Geofence> {
     }
   }
 
-  void _getUserLocation() async {
+  void _getInitialLocation() async {
     Position position = await GeolocatorPlatform.instance
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    // List<Placemark> placemark = await placemarkFromCoordinates(position.latitude, position.longitude);
-
-    // setState(() {
     _initialPosition = LatLng(position.latitude, position.longitude);
-    // print('${placemark[0].name}');
-    // });
   }
 
-  void updateMarkerAndCircle(locator.LocationData newLocalData) {
+  void updateMarkerAndCircle(
+      localization.LocationData newLocalData, Uint8List imageData) {
     LatLng latlng = LatLng(newLocalData.latitude, newLocalData.longitude);
     this.setState(() {
-      // marker = Marker(
-      //     markerId: MarkerId("home"),
-      //     position: latlng,
-      //     rotation: newLocalData.heading,
-      //     draggable: false,
-      //     zIndex: 2,
-      //     flat: true,
-      //     anchor: Offset(0.5, 0.5));
+      marker = Marker(
+          markerId: MarkerId("home"),
+          position: latlng,
+          rotation: newLocalData.heading,
+          draggable: false,
+          zIndex: 2,
+          flat: true,
+          anchor: Offset(0.5, 0.5),
+          icon: BitmapDescriptor.fromBytes(imageData));
       circle = Circle(
           circleId: CircleId("pet"),
-          radius: configuredRadius,
+          radius: _configuredRadius,
           // radius: newLocalData.accuracy,
           zIndex: 1,
           strokeColor: Colors.blue,
@@ -127,7 +138,7 @@ class _GeofenceWidgetState extends State<Geofence> {
     });
   }
 
-  Column bottonNavigationBuilder() {
+  Column bottonNavigationBuilder(StateSetter mystate) {
     return Column(children: <Widget>[
       ListTile(
         leading: Icon(Icons.adjust_rounded),
@@ -139,7 +150,7 @@ class _GeofenceWidgetState extends State<Geofence> {
                 children: <Widget>[
                   Text("Rounded Geofence"),
                   SizedBox(height: 5),
-                  Text(' Current: ' + configuredRadius.toString() + ' meters',
+                  Text(' Current: ' + _configuredRadius.toString() + ' meters',
                       style: TextStyle(color: Colors.black.withOpacity(0.6))),
                 ]),
             SizedBox(width: 30),
@@ -147,19 +158,26 @@ class _GeofenceWidgetState extends State<Geofence> {
               children: [
                 IconButton(
                     icon: Icon(FontAwesomeIcons.plus, size: 20),
-                    onPressed: () {
-                       setState(() {
-                        configuredRadius += 5; //Increase by 5 meters
+                    onPressed: () async {
+                      mystate(() {
+                        _configuredRadius += 5; //Increase by 5 meters
                       });
+                      await DatabaseService(uid: _currentUser.uid)
+                          .updateCircleRadius(
+                              _configuredRadius, _initialPosition);
                     }),
                 SizedBox(width: 50),
                 IconButton(
                     icon: Icon(FontAwesomeIcons.minus, size: 20),
-                    onPressed: () {
-                      setState(() {
-                        configuredRadius -= 5; //Increase by 5 meters
-                      });                    
-                })
+                    onPressed: () async {
+                      mystate(() {
+                        _configuredRadius -= 5; //Increase by 5 meters
+                      });
+                      await DatabaseService(uid: _currentUser.uid)
+                          .updateCircleRadius(
+                              _configuredRadius, _initialPosition);
+                    }),
+                // })
               ],
             ),
           ],
@@ -216,7 +234,7 @@ class _GeofenceWidgetState extends State<Geofence> {
           ? Container(
               child: Center(
                 child: Text(
-                  'loading map..',
+                  'Loading Map...',
                   style: TextStyle(
                       fontFamily: 'Avenir-Medium', color: Colors.grey[400]),
                 ),
@@ -229,10 +247,10 @@ class _GeofenceWidgetState extends State<Geofence> {
                 zoom: 11,
               ),
               zoomGesturesEnabled: true,
-              myLocationEnabled: true,
+              myLocationEnabled: false,
               compassEnabled: true,
               myLocationButtonEnabled: false,
-              // markers: Set.of((marker != null) ? [marker] : []),
+              markers: Set.of((marker != null) ? [marker] : []),
               circles: Set.of((circle != null) ? [circle] : []),
               onMapCreated: (GoogleMapController controller) {
                 _controller = controller;
