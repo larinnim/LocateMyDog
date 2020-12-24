@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Models/user.dart';
+import 'package:flutter_maps/Screens/Fence/Geofence.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Services/bluetooth_conect.dart';
 import 'package:flutter_maps/Services/constants.dart';
@@ -207,11 +208,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             context,
                             new MaterialPageRoute(
                                 builder: (context) =>
-                                    new BluetoothConnection()));
+                                    new Geofence()));
                       },
                       child: ProfileListItem(
                       icon: IconData(59174, fontFamily: 'MaterialIcons'),
-                      text: 'Create Fence',
+                      text: 'Geofence',
                       ),
                     ),
                     ProfileListItem(
