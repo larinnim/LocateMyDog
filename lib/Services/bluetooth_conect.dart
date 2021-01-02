@@ -174,7 +174,7 @@ class BleModel extends ChangeNotifier {
     BleSingleton._singleton.now = DateTime.now();
     timestampBLE = BleSingleton._singleton.now;
     BleSingleton._singleton.onLocationChanged();
-      print("Battery Level: " + value.toString());
+      print("Latitude received: " + value.toString());
     // This call tells the widgets that are listening to this model to rebuild.
     notifyListeners();
   }
@@ -262,6 +262,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
             .elementAt(0)
             .value
             .listen((value) {
+               print("LAT VALUEE:" + value.toString());
           context.read<BleModel>().addLat(double.parse(Utf8Decoder().convert(value))); // Add lat to provider
         });
         context

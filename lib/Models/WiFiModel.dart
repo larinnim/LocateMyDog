@@ -37,9 +37,11 @@ class WiFiModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addTimeStamp(DateTime value) {
+  // void addTimeStamp(DateTime value) {
+      void addTimeStamp(String timeString) {
+
     //print("addLgn - Line 177");
-    timestampWiFi = value;
+    timestampWiFi = DateTime.parse(timeString);
     // This call tells the widgets that are listening to this model to rebuild.
     notifyListeners();
   }

@@ -2,13 +2,16 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Fence/Geofence.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
+import 'package:flutter_maps/Services/Radar.dart';
 import 'package:flutter_maps/Services/bluetooth_conect.dart';
 import 'package:flutter_maps/Services/constants.dart';
 import 'package:flutter_maps/Services/push_notification.dart';
@@ -30,13 +33,64 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   AppUser _currentUser = locator.get<UserController>().currentUser;
+  // bool internetStatus = false;
+  // Map _source = {ConnectivityResult.none: false};
+  // MyConnectivity _connectivity = MyConnectivity.instance;
+  String _connectionStatus = 'Unknown';
+  final Connectivity _connectivity = Connectivity();
+  StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   @override
   void initState() {
     super.initState();
-    /////****** NOT SURE WHAT readDatabase does ************* */
-    // readDatabase();
+    readDatabase(); //Read current WIFI info from firebase
     PushNotificationsManager().init();
+    initConnectivity();
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+    // _connectivity.initialise();
+    // _connectivity.myStream.listen((source) {
+    //   setState(() => _source = source);
+    // });
+  }
+
+  @override
+  void dispose() {
+    _connectivitySubscription.cancel();
+    super.dispose();
+  }
+
+  // Platform messages are asynchronous, so we initialize in an async method.
+  Future<void> initConnectivity() async {
+    ConnectivityResult result;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    try {
+      result = await _connectivity.checkConnectivity();
+    } on PlatformException catch (e) {
+      print(e.toString());
+    }
+
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) {
+      return Future.value(null);
+    }
+
+    return _updateConnectionStatus(result);
+  }
+
+  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
+    switch (result) {
+      case ConnectivityResult.wifi:
+      case ConnectivityResult.mobile:
+      case ConnectivityResult.none:
+        setState(() => _connectionStatus = result.toString());
+        break;
+      default:
+        setState(() => _connectionStatus = 'Failed to get connectivity.');
+        break;
+    }
   }
 
   void readDatabase() {
@@ -73,6 +127,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // context.read<WiFiModel>().addSSID(firestoreInfo["ssid"]);
       // context.read<WiFiModel>().addTimeStamp(date);
 
+      // context.read<WiFiModel>().addLat(
+      //     double.parse(firestoreInfo["Sender1"]["Location"]["Latitude"]));
+      // context.read<WiFiModel>().addLng(
+      //     double.parse(firestoreInfo["Sender1"]["Location"]["Longitude"]));
+      // context.read<WiFiModel>().addRSSI(firestoreInfo["Sender1"]["RSSI"]);
+      // context
+      //     .read<WiFiModel>()
+      //     .addSSID(firestoreInfo["Sender1"]["ConnectedWifiSSID"]);
+      // context
+      //     .read<WiFiModel>()
+      //     .addTimeStamp(firestoreInfo["Sender1"]["LocationTimestamp"]);
+
+      context.read<WiFiModel>().addLat(
+          double.parse(firestoreInfo["Sender1"]["Location"]["Latitude"]));
+      context.read<WiFiModel>().addLng(
+          double.parse(firestoreInfo["Sender1"]["Location"]["Longitude"]));
+      context.read<WiFiModel>().addRSSI(firestoreInfo["Sender1"]["RSSI"]);
+      context
+          .read<WiFiModel>()
+          .addSSID(firestoreInfo["Sender1"]["ConnectedWifiSSID"]);
+      context
+          .read<WiFiModel>()
+          .addTimeStamp(firestoreInfo["Sender1"]["LocationTimestamp"]);
+
       // print(firestoreInfo["latitude"]);
       // print(firestoreInfo["latitude"]);
       // print(firestoreInfo["latitude"]);
@@ -80,6 +158,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // print(firestoreInfo["latitude"]);
     }).onError((e) => print("ERROR reading snapshot" + e));
   }
+
+  // @override
+  // void dispose() {
+  //   _connectivity.disposeStream();
+  //   super.dispose();
+  // }
+  // Future<bool> checkConnection() async {
+  //   var connectivityResult = await (Connectivity().checkConnectivity());
+  //   if (connectivityResult == ConnectivityResult.mobile) {
+  //     return true;
+  //   } else if (connectivityResult == ConnectivityResult.wifi) {
+  //     return true;
+  //   }
+  //   return false;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -173,10 +266,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     InkWell(
                       onTap: () {
-                        Navigator.pushReplacement(context,
-                            MaterialPageRoute(builder: (context) {
-                          return MapLocation();
-                        }));
+                        // checkConnection().then((internet) {
+                        //   if (internet != null && internet) {
+                        // Internet Present Case
+                        // Navigator.pushReplacement(context,
+                        //     MaterialPageRoute(builder: (context) {
+                        //   return MapLocation();
+                        // }));
+                        // },
+                        if (_connectionStatus ==
+                                "ConnectivityResult.wifi" ||
+                            _connectionStatus == "ConnectivityResult.mobile") {
+                           Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return MapLocation();
+                          }));
+                        } else {  
+                           Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => Radar()),
+                          );
+                        }
                       },
                       child: ProfileListItem(
                         icon: LineAwesomeIcons.search_location,
@@ -207,12 +317,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Navigator.push(
                             context,
                             new MaterialPageRoute(
-                                builder: (context) =>
-                                    new Geofence()));
+                                builder: (context) => new Geofence()));
                       },
                       child: ProfileListItem(
-                      icon: IconData(59174, fontFamily: 'MaterialIcons'),
-                      text: 'Geofence',
+                        icon: IconData(59174, fontFamily: 'MaterialIcons'),
+                        text: 'Geofence',
                       ),
                     ),
                     ProfileListItem(
@@ -242,6 +351,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       },
+      // future: checkConnection(),
     );
   }
 }
@@ -298,3 +408,43 @@ class ProfileListItem extends StatelessWidget {
     );
   }
 }
+
+// class MyConnectivity {
+//   MyConnectivity._internal();
+
+//   static final MyConnectivity _instance = MyConnectivity._internal();
+
+//   static MyConnectivity get instance => _instance;
+
+//   Connectivity connectivity = Connectivity();
+
+//   StreamController controller = StreamController.broadcast();
+
+//   Stream get myStream => controller.stream;
+
+//   void initialise() async {
+//     ConnectivityResult result = await connectivity.checkConnectivity();
+//     _checkStatus(result);
+//     connectivity.onConnectivityChanged.listen((result) {
+//       _checkStatus(result);
+//     });
+//   }
+
+//   void _checkStatus(ConnectivityResult result) async {
+//     bool isOnline = false;
+//     try {
+//       final result = await InternetAddress.lookup('example.com');
+//       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+//         isOnline = true;
+//       } else
+//         isOnline = false;
+//     } on SocketException catch (_) {
+//       isOnline = false;
+//     }
+//     if (!controller.isClosed) {
+//       controller.sink.add({result: isOnline});
+//     }
+//   }
+
+//   void disposeStream() => controller.close();
+// }

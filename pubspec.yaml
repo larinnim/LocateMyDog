@@ -51,6 +51,7 @@ dependencies:
   lottie: ^0.7.0+1
   flutter_barcode_scanner: ^1.0.1
   firebase_messaging: ^7.0.3
+  connectivity: ^2.0.2
 
   flutter:
     sdk: flutter
@@ -95,6 +96,7 @@ flutter:
     - assets/images/Bailey1.png
     - assets/images/splash.jpg
     - assets/images/round_marker.png
+    - assets/images/direction_arrow.png
     - assets/lottie/devs.jpg
     - assets/lottie/powered_by.png
     - assets/lottie/lottie_file.json
