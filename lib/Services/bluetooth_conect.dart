@@ -229,6 +229,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
       }
     });
   }
+  
 
   void connectDev(BluetoothDevice dev) async {
     //sleep(const Duration(seconds: 1));

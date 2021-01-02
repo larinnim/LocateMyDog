@@ -13,6 +13,7 @@ import 'package:flutter_maps/Screens/Fence/Geofence.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Services/Radar.dart';
 import 'package:flutter_maps/Services/bluetooth_conect.dart';
+import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:flutter_maps/Services/constants.dart';
 import 'package:flutter_maps/Services/push_notification.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
@@ -33,11 +34,10 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   AppUser _currentUser = locator.get<UserController>().currentUser;
-  // bool internetStatus = false;
-  // Map _source = {ConnectivityResult.none: false};
-  // MyConnectivity _connectivity = MyConnectivity.instance;
+  WifiConnection networkcheck = WifiConnection();
+
   String _connectionStatus = 'Unknown';
-  final Connectivity _connectivity = Connectivity();
+  // final Connectivity _connectivity = Connectivity();
   StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   @override
@@ -45,9 +45,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     readDatabase(); //Read current WIFI info from firebase
     PushNotificationsManager().init();
-    initConnectivity();
-    _connectivitySubscription =
-        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+    _checkNetwork();
+    // WifiConnection().initConnectivity();
+    // initConnectivity();
+    // _connectivitySubscription =
+    //     _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
     // _connectivity.initialise();
     // _connectivity.myStream.listen((source) {
     //   setState(() => _source = source);
@@ -56,41 +58,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void dispose() {
-    _connectivitySubscription.cancel();
+    // _connectivitySubscription.cancel();
+    networkcheck.streamController.close();
     super.dispose();
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initConnectivity() async {
-    ConnectivityResult result;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    try {
-      result = await _connectivity.checkConnectivity();
-    } on PlatformException catch (e) {
-      print(e.toString());
-    }
+  // // Platform messages are asynchronous, so we initialize in an async method.
+  // Future<void> initConnectivity() async {
+  //   ConnectivityResult result;
+  //   // Platform messages may fail, so we use a try/catch PlatformException.
+  //   try {
+  //     result = await _connectivity.checkConnectivity();
+  //   } on PlatformException catch (e) {
+  //     print(e.toString());
+  //   }
 
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
+  //   // If the widget was removed from the tree while the asynchronous platform
+  //   // message was in flight, we want to discard the reply rather than calling
+  //   // setState to update our non-existent appearance.
+  //   if (!mounted) {
+  //     return Future.value(null);
+  //   }
+
+  //   return _updateConnectionStatus(result);
+  // }
+
+  // Future<void> _updateConnectionStatus(ConnectivityResult result) async {
+  //   switch (result) {
+  //     case ConnectivityResult.wifi:
+  //     case ConnectivityResult.mobile:
+  //     case ConnectivityResult.none:
+  //       setState(() => _connectionStatus = result.toString());
+  //       break;
+  //     default:
+  //       setState(() => _connectionStatus = 'Failed to get connectivity.');
+  //       break;
+  //   }
+  // }
+
+  Future _checkNetwork() async {
     if (!mounted) {
       return Future.value(null);
+    } else {
+      //this will provide value in your stream.
+      networkcheck.initConnectivity();
     }
 
-    return _updateConnectionStatus(result);
-  }
+    // _connectivitySubscription =
+    //     _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
 
-  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
-    switch (result) {
-      case ConnectivityResult.wifi:
-      case ConnectivityResult.mobile:
-      case ConnectivityResult.none:
-        setState(() => _connectionStatus = result.toString());
-        break;
-      default:
-        setState(() => _connectionStatus = 'Failed to get connectivity.');
-        break;
-    }
+    _connectivitySubscription =
+        networkcheck.streamController.stream.listen((data) {
+      _connectionStatus = data;
+      print('Got! $data');
+    });
   }
 
   void readDatabase() {
@@ -274,15 +295,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         //   return MapLocation();
                         // }));
                         // },
-                        if (_connectionStatus ==
-                                "ConnectivityResult.wifi" ||
+                        if (_connectionStatus == "ConnectivityResult.wifi" ||
                             _connectionStatus == "ConnectivityResult.mobile") {
-                           Navigator.push(context,
+                          Navigator.push(context,
                               MaterialPageRoute(builder: (context) {
                             return MapLocation();
                           }));
-                        } else {  
-                           Navigator.push(
+                        } else {
+                          Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => Radar()),
                           );
