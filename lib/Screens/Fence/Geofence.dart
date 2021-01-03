@@ -3,7 +3,11 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Models/user.dart';
+import 'package:flutter_maps/Screens/Profile/profile.dart';
+import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:flutter_maps/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +17,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart' as localization;
+import 'package:provider/provider.dart';
 
 class Geofence extends StatefulWidget {
   @override
@@ -273,74 +278,131 @@ class _GeofenceWidgetState extends State<Geofence> {
 
   @override
   Widget build(BuildContext context) {
+    final connectionStatus =
+        Provider.of<ConnectionStatusModel>(context, listen: false);
+    connectionStatus.initConnectionListen();
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Geofence"),
-        centerTitle: true,
-        // backgroundColor: Colors.blueGrey,
-        leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pushNamed(context, '/profile');
-            }),
-        actions: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(right: 10.0),
-            child: GestureDetector(
-              onTap: () {
-                _onSettingsPressed();
-              },
-              child: Icon(Icons.settings),
-            ),
-          )
-        ],
-      ),
-      backgroundColor: Colors.grey[100],
-      body: _initialPosition == null
-          ? Container(
-              child: Center(
-                child: Text(
-                  'Loading Map...',
-                  style: TextStyle(
-                      fontFamily: 'Avenir-Medium', color: Colors.grey[400]),
-                ),
+        appBar: AppBar(
+          title: Text("Geofence"),
+          centerTitle: true,
+          // backgroundColor: Colors.blueGrey,
+          leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pushNamed(context, '/profile');
+              }),
+          actions: <Widget>[
+            Padding(
+              padding: EdgeInsets.only(right: 10.0),
+              child: GestureDetector(
+                onTap: () {
+                  _onSettingsPressed();
+                },
+                child: Icon(Icons.settings),
               ),
             )
-          : GoogleMap(
-              mapType: MapType.hybrid,
-              initialCameraPosition: CameraPosition(
-                target: _initialPosition,
-                zoom: 11,
-              ),
-              zoomGesturesEnabled: true,
-              myLocationEnabled: false,
-              compassEnabled: true,
-              myLocationButtonEnabled: false,
-              markers: Set.of((marker != null) ? [marker] : []),
-              circles: Set.of((circle != null) ? [circle] : []),
-              polygons: _isPolygonFence
-                  ? _polygonsFence
-                  : _isDoNotEnterFence
-                      ? _doNotEnterFence
-                      : null,
-              onTap: (point) {
-                if (_isPolygonFence) {
-                  setState(() {
-                    polygonFenceLatLngs.add(point);
-                    _setPolygonFence();
-                  });
+          ],
+        ),
+        backgroundColor: Colors.grey[100],
+        body: Consumer<ConnectionStatusModel>(
+            builder: (_, connectionProvider, child) {
+
+          return FutureBuilder(
+              initialData: false,
+              future: mounted ? connectionStatus.getCurrentStatus() : Future.value(null),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return connectionProvider.connectionStatus ==
+                              NetworkStatus.Offline ||
+                          snapshot.data == NetworkStatus.Offline
+                      ? CupertinoAlertDialog(
+                          title: Text(
+                              'You are offline. Please connect to the internet to continue to use this feature'),
+                          actions: [
+                            CupertinoDialogAction(
+                              child: Text('OK'),
+                              onPressed: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return ProfileScreen();
+                                }));
+                              },
+                            )
+                          ],
+                        )
+                      : _initialPosition == null
+                          ? Container(
+                              child: Center(
+                                child: Text(
+                                  'Loading Map...',
+                                  style: TextStyle(
+                                      fontFamily: 'Avenir-Medium',
+                                      color: Colors.grey[400]
+                                      ),
+                                ),
+                              ),
+                            )
+                          : new Stack(children: <Widget>[
+                              new Container(
+                                  height: 1000, // This line solved the issue
+                                  child: GoogleMap(
+                                    mapType: MapType.hybrid,
+                                    initialCameraPosition: CameraPosition(
+                                      target: _initialPosition,
+                                      zoom: 11,
+                                    ),
+                                    zoomGesturesEnabled: true,
+                                    myLocationEnabled: false,
+                                    compassEnabled: true,
+                                    myLocationButtonEnabled: false,
+                                    markers: Set.of(
+                                        (marker != null) ? [marker] : []),
+                                    circles: Set.of(
+                                        (circle != null) ? [circle] : []),
+                                    polygons: _isPolygonFence
+                                        ? _polygonsFence
+                                        : _isDoNotEnterFence
+                                            ? _doNotEnterFence
+                                            : null,
+                                    onTap: (point) {
+                                      if (_isPolygonFence) {
+                                        setState(() {
+                                          polygonFenceLatLngs.add(point);
+                                          _setPolygonFence();
+                                        });
+                                      }
+                                      if (_isDoNotEnterFence) {
+                                        setState(() {
+                                          dotNotEnterFenceLatLngs.add(point);
+                                          _setDoNotEnterFence();
+                                        });
+                                      }
+                                    },
+                                    onMapCreated:
+                                        (GoogleMapController controller) {
+                                      _controller = controller;
+                                    },
+                                  )),
+                              // connectionProvider.connectionStatus == NetworkStatus.Offline
+                              //     ? CupertinoAlertDialog(
+                              //         title: Text(
+                              //             'You are offline. Please connect to internet to continue to use this feature'),
+                              //         actions: [
+                              //           CupertinoDialogAction(
+                              //             child: Text('OK'),
+                              //             onPressed: () {
+                              //               Navigator.push(context,
+                              //                   MaterialPageRoute(builder: (context) {
+                              //                 return ProfileScreen();
+                              //               }));
+                              //             },
+                              //           )
+                              //         ],
+                              //       )
+                              //     : new Container()
+                            ]);
                 }
-                if (_isDoNotEnterFence) {
-                  setState(() {
-                    dotNotEnterFenceLatLngs.add(point);
-                    _setDoNotEnterFence();
-                  });
-                }
-              },
-              onMapCreated: (GoogleMapController controller) {
-                _controller = controller;
-              },
-            ),
-    );
+              });
+        }));
   }
 }

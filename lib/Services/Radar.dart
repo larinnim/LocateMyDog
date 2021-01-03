@@ -194,7 +194,7 @@ class _RadarState extends State<Radar> with SingleTickerProviderStateMixin {
                         Padding(
                           padding: EdgeInsets.only(top: 15.0),
                         ),
-                        Text('Please connect Bluetooth to continue',
+                        Text('You are offline. Please connect to Bluetooth to continue',
                             style: TextStyle(fontSize: 20.0)),
                       ])));
   }
