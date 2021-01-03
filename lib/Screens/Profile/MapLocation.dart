@@ -4,9 +4,13 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flushbar/flushbar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
+import 'package:flutter_maps/Screens/Profile/profile.dart';
+import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -38,6 +42,7 @@ class _MapLocationState extends State<MapLocation> {
   Marker marker;
   int _markerId = 1;
   Timer timer;
+  final List<Flushbar> flushBars = [];
 
   @override
   void initState() {
@@ -52,7 +57,7 @@ class _MapLocationState extends State<MapLocation> {
   }
 
   void moveCamera() {
-        _controller.animateCamera(CameraUpdate.newCameraPosition(new CameraPosition(
+    _controller.animateCamera(CameraUpdate.newCameraPosition(new CameraPosition(
         bearing: 192.8334901395799,
         target: LatLng(_currentPosition.latitude, _currentPosition.longitude),
         tilt: 0,
@@ -150,8 +155,11 @@ class _MapLocationState extends State<MapLocation> {
   @override
   Widget build(BuildContext context) {
     final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-    final currentPositionBle = Provider.of<BleModel>(context);
-    final currentPositionWiFi = Provider.of<WiFiModel>(context);
+    final currentPositionBle = Provider.of<BleModel>(context, listen: false);
+    final currentPositionWiFi = Provider.of<WiFiModel>(context, listen: false);
+    final connectionStatus =
+        Provider.of<ConnectionStatusModel>(context, listen: false);
+    connectionStatus.initConnectionListen();
 
     return Scaffold(
       appBar: AppBar(
@@ -169,9 +177,12 @@ class _MapLocationState extends State<MapLocation> {
       body: (currentPositionBle.lat != null && currentPositionBle.lng != null ||
               currentPositionWiFi.lat != null &&
                   currentPositionWiFi.lng != null)
-          ? Consumer2<BleModel, WiFiModel>(
-              builder: (_, bleProvider, wifiProvider, child) {
-              //  Consumer<BleModel>(builder: (_, position, child) {
+          ? Consumer3<BleModel, WiFiModel, ConnectionStatusModel>(builder:
+              (_, bleProvider, wifiProvider, connectionProvider, child) {
+              // connectionProvider.connectionStatus == NetworkStatus.Offline
+              //     ? showTopSnackBar(context)
+              //     : null;
+
               return FutureBuilder(
                   future: (bleProvider.timestampBLE != null &&
                           wifiProvider.timestampWiFi != null &&
@@ -210,43 +221,74 @@ class _MapLocationState extends State<MapLocation> {
                     // initialData: Set.of(<Polyline>[]),
                     // builder: (context, snapshotPolyline) {
                     // if (snapshotMarker.hasData) {
-                    return GoogleMap(
-                      mapType: MapType.hybrid,
-                      initialCameraPosition: (bleProvider.timestampBLE !=
-                                  null &&
-                              wifiProvider.timestampWiFi != null &&
-                              bleProvider.timestampBLE
-                                  .isAfter(wifiProvider.timestampWiFi))
-                          ? CameraPosition(
-                              target: LatLng(bleProvider.lat, bleProvider.lng),
-                              zoom: 16.0)
-                          : (bleProvider.timestampBLE == null &&
-                                  wifiProvider.timestampWiFi != null)
-                              ? CameraPosition(
-                                  target: LatLng(
-                                      wifiProvider.lat, wifiProvider.lng),
-                                  zoom: 16.0)
-                              : (bleProvider != null && wifiProvider == null)
-                                  ? CameraPosition(
-                                      target: LatLng(
-                                          bleProvider.lat, bleProvider.lng),
-                                      zoom: 16.0)
-                                  : CameraPosition(
-                                      target: LatLng(
-                                          bleProvider.lat, bleProvider.lng),
-                                      zoom: 16.0),
-                      markers: snapshotMarker.data,
-                      circles: Set.of((circle != null) ? [circle] : []),
-                      // polylines: snapshotPolyline.data,
-                      myLocationButtonEnabled: false,
-                      zoomGesturesEnabled: true,
-                      mapToolbarEnabled: true,
-                      myLocationEnabled: true,
-                      scrollGesturesEnabled: true,
-                      onMapCreated: (GoogleMapController controller) {
-                        _controller = controller;
-                      },
+                    return new Stack(
+                      children: <Widget>[
+                        new Container(
+                          height: 1000, // This line solved the issue
+                          child: GoogleMap(
+                            mapType: MapType.hybrid,
+                            initialCameraPosition: (bleProvider.timestampBLE !=
+                                        null &&
+                                    wifiProvider.timestampWiFi != null &&
+                                    bleProvider.timestampBLE
+                                        .isAfter(wifiProvider.timestampWiFi))
+                                ? CameraPosition(
+                                    target: LatLng(
+                                        bleProvider.lat, bleProvider.lng),
+                                    zoom: 16.0)
+                                : (bleProvider.timestampBLE == null &&
+                                        wifiProvider.timestampWiFi != null)
+                                    ? CameraPosition(
+                                        target: LatLng(
+                                            wifiProvider.lat, wifiProvider.lng),
+                                        zoom: 16.0)
+                                    : (bleProvider != null &&
+                                            wifiProvider == null)
+                                        ? CameraPosition(
+                                            target: LatLng(bleProvider.lat,
+                                                bleProvider.lng),
+                                            zoom: 16.0)
+                                        : CameraPosition(
+                                            target: LatLng(bleProvider.lat,
+                                                bleProvider.lng),
+                                            zoom: 16.0),
+                            markers: snapshotMarker.data,
+                            circles: Set.of((circle != null) ? [circle] : []),
+                            // polylines: snapshotPolyline.data,
+                            myLocationButtonEnabled: false,
+                            zoomGesturesEnabled: true,
+                            mapToolbarEnabled: true,
+                            myLocationEnabled: true,
+                            scrollGesturesEnabled: true,
+                            onMapCreated: (GoogleMapController controller) {
+                              _controller = controller;
+                            },
+                          ), // Mapbox
+                        ),
+                        connectionProvider.connectionStatus ==
+                                NetworkStatus.Offline
+                            ? CupertinoAlertDialog(
+                                title: Text(
+                                    'You are offline. Please connect to the internet to continue'),
+                                actions: [
+                                  CupertinoDialogAction(
+                                    child: Text('OK'),
+                                    onPressed: () { Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return ProfileScreen();
+                          }));},
+                                  )
+                                ],
+                              )
+                            : new Container()
+                        // new Container(
+                        //   alignment: Alignment.bottomLeft,
+                        //   child:
+                        //       FirestoreSlideshow(), // My cards showing in front of the Map's
+                        // ),
+                      ],
                     );
+
                     // } else if (snapshotMarker.hasError ||
                     //     snapshotPolyline.hasError) {
                     //   return Column(children: <Widget>[
@@ -321,6 +363,41 @@ class _MapLocationState extends State<MapLocation> {
       //         getCurrentLocation();
       //       });
     );
+  }
+
+  void showTopSnackBar(BuildContext context) => show(
+        context,
+        Flushbar(
+          icon: Icon(Icons.error, size: 32, color: Colors.white),
+          shouldIconPulse: false,
+          backgroundColor: Colors.red,
+          message:
+              'You are offline. Please connect to WiFi or Mobile data to continue.',
+          isDismissible: true,
+          // mainButton: FlatButton(
+          //   child: Text(
+          //     'Click Me',
+          //     style: TextStyle(color: Colors.white, fontSize: 16),
+          //   ),
+          //   onPressed: () {},
+          // ),
+          // onTap: (_) {
+          //   print('Clicked bar');
+          // },
+          duration: new Duration(hours: 0, minutes: 3, seconds: 60),
+          // duration: Duration(seconds: 3),
+          flushbarPosition: FlushbarPosition.TOP,
+          margin: EdgeInsets.fromLTRB(8, kToolbarHeight + 8, 8, 0),
+          borderRadius: 16,
+        ),
+      );
+
+  Future show(BuildContext context, Flushbar newFlushBar) async {
+    await Future.wait(flushBars.map((flushBar) => flushBar.dismiss()).toList());
+    flushBars.clear();
+
+    newFlushBar.show(context);
+    flushBars.add(newFlushBar);
   }
 }
 // }

@@ -5,6 +5,7 @@ import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Profile/MapLocation.dart';
 import 'package:flutter_maps/Screens/SplashView.dart';
+import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:provider/provider.dart';
 import 'Screens/Profile/profile.dart';
 import 'Services/SetWiFiConf.dart';
@@ -31,7 +32,7 @@ class MyApp extends StatelessWidget {
         providers: [
           ChangeNotifierProvider(create: (context) => BleModel()),
           ChangeNotifierProvider(create: (context) => WiFiModel()),
-
+          ChangeNotifierProvider(create: (context) => ConnectionStatusModel())
         ],
         child: MaterialApp(
             debugShowCheckedModeBanner: false,

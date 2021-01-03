@@ -34,18 +34,18 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   AppUser _currentUser = locator.get<UserController>().currentUser;
-  WifiConnection networkcheck = WifiConnection();
+  // WifiConnection networkcheck = WifiConnection();
 
-  String _connectionStatus = 'Unknown';
-  // final Connectivity _connectivity = Connectivity();
-  StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  // String _connectionStatus = 'Unknown';
+  // // final Connectivity _connectivity = Connectivity();
+  // StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   @override
   void initState() {
     super.initState();
     readDatabase(); //Read current WIFI info from firebase
     PushNotificationsManager().init();
-    _checkNetwork();
+    // _checkNetwork();
     // WifiConnection().initConnectivity();
     // initConnectivity();
     // _connectivitySubscription =
@@ -59,7 +59,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     // _connectivitySubscription.cancel();
-    networkcheck.streamController.close();
+    // networkcheck.streamController.close();
     super.dispose();
   }
 
@@ -96,23 +96,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   //   }
   // }
 
-  Future _checkNetwork() async {
-    if (!mounted) {
-      return Future.value(null);
-    } else {
-      //this will provide value in your stream.
-      networkcheck.initConnectivity();
-    }
+  // Future _checkNetwork() async {
+  //   if (!mounted) {
+  //     return Future.value(null);
+  //   } else {
+  //     //this will provide value in your stream.
+  //     networkcheck.initConnectivity();
+  //   }
 
-    // _connectivitySubscription =
-    //     _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+  //   // _connectivitySubscription =
+  //   //     _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
 
-    _connectivitySubscription =
-        networkcheck.streamController.stream.listen((data) {
-      _connectionStatus = data;
-      print('Got! $data');
-    });
-  }
+  //   _connectivitySubscription =
+  //       networkcheck.streamController.stream.listen((data) {
+  //     _connectionStatus = data;
+  //     print('Got! $data');
+  //   });
+  // }
 
   void readDatabase() {
     // FirebaseFirestore.instance
@@ -200,6 +200,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ScreenUtil.init(context,
         designSize: Size(750, 1334), allowFontScaling: true);
     final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+    final currentConnectionStatus = Provider.of<ConnectionStatusModel>(context);
+    currentConnectionStatus.initConnectionListen();
 
     void signOut() async {
       await _firebaseAuth.signOut().then((value) {
@@ -273,8 +275,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Builder(
       builder: (context) {
-        return Scaffold(
-          body: Column(
+        return Scaffold(body:
+            Consumer3<BleModel, WiFiModel, ConnectionStatusModel>(builder: (_,
+                bleProvider, wifiProvider, connectionStatusProvider, child) {
+          return Column(
             children: <Widget>[
               SizedBox(height: kSpacingUnit.w * 5),
               header,
@@ -295,8 +299,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         //   return MapLocation();
                         // }));
                         // },
-                        if (_connectionStatus == "ConnectivityResult.wifi" ||
-                            _connectionStatus == "ConnectivityResult.mobile") {
+                        if (connectionStatusProvider.connectionStatus == NetworkStatus.Online) {
                           Navigator.push(context,
                               MaterialPageRoute(builder: (context) {
                             return MapLocation();
@@ -368,8 +371,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               )
             ],
-          ),
-        );
+          );
+        }));
       },
       // future: checkConnection(),
     );

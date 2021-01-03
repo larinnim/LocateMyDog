@@ -52,6 +52,7 @@ dependencies:
   flutter_barcode_scanner: ^1.0.1
   firebase_messaging: ^7.0.3
   connectivity: ^2.0.2
+  flushbar: ^1.10.4
 
   flutter:
     sdk: flutter

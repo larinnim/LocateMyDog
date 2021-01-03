@@ -49,8 +49,10 @@ class _RadarState extends State<Radar> with SingleTickerProviderStateMixin {
         _error = null;
 
         _location = currentLocation;
-        calculateBearing(_location);
-        calculateDistance(_location);
+        if (_location != null) {
+          calculateBearing(_location);
+          calculateDistance(_location);
+        }
       });
     });
   }
