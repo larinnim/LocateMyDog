@@ -88,7 +88,7 @@ class _RadarState extends State<Radar> with SingleTickerProviderStateMixin {
     var x = cos(BleSingleton.shared.lat) * sin(dL);
     var y = cos(locationData.latitude) * sin(BleSingleton.shared.lat) -
         sin(locationData.latitude) * cos(BleSingleton.shared.lat) * cos(dL);
-    bearing = atan2(x, y);
+    bearing = atan2(x, y) * 180 / pi; //in degree
   }
 
   void calculateDistance(LocationData locationData) {

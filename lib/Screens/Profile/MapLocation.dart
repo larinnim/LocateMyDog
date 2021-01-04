@@ -152,14 +152,14 @@ class _MapLocationState extends State<MapLocation> {
                                 snapshot.data == NetworkStatus.Offline
                             ? CupertinoAlertDialog(
                                 title: Text(
-                                    'You are offline. Please connect to internet to continue to use this feature'),
+                                    'You are offline. You are going to be redirected to Offline mode'),
                                 actions: [
                                   CupertinoDialogAction(
                                     child: Text('OK'),
                                     onPressed: () {
                                       Navigator.push(context,
                                           MaterialPageRoute(builder: (context) {
-                                        return ProfileScreen();
+                                        return Radar();
                                       }));
                                     },
                                   )
