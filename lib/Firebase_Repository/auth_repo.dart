@@ -55,7 +55,7 @@ class AuthRepo {
           errorMessage = "Signing in with Email and Password is not enabled.";
           break;
         default:
-          errorMessage = "An undefined Error happened.";
+          errorMessage = "An unexpected error happened. Please check your internet connectivity.";
       }
       // obtain shared preferences
       final prefs = await SharedPreferences.getInstance();

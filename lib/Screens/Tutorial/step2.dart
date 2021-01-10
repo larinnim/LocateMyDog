@@ -228,9 +228,9 @@ class _Step2State extends State<Step2> {
         .doc(FirebaseAuth.instance.currentUser.uid)
         .get()
         .then((value) {
-          // if (value.data()['Sender1'] != null ){
+      // if (value.data()['Sender1'] != null ){
 
-          // }
+      // }
       // print("BREED: " + value.data()["breed"]);
     }).catchError((e) {
       print("Error retrieving from Firebase $e");
@@ -304,6 +304,19 @@ class _Step2State extends State<Step2> {
         .read<BleModel>()
         .characteristics
         .elementAt(3)
+        .write(bytes); //Write UserID to ESP32
+  }
+
+  Future<void> writeCountryCode() async {
+    if (context.read<BleModel>().characteristics.elementAt(4) == null)
+      return; //UserID Characteristic
+
+    List<int> bytes = utf8.encode(Localizations.localeOf(context).toString());
+
+    await context
+        .read<BleModel>()
+        .characteristics
+        .elementAt(4)
         .write(bytes); //Write UserID to ESP32
   }
 }

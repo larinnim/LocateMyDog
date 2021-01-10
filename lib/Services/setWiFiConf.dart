@@ -185,6 +185,7 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
     // var wifiData = '${wifiNameController.text},${wifiPasswordController.text}';
     var wifiData = '$_wifiName,$password';
     writeData(wifiData);
+    writeLocale();
   }
 
   getPercentageIndicator(context, var1, var2) {
@@ -199,6 +200,19 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
       progressColor: Colors.green,
       backgroundColor: Colors.green.withOpacity(0.2),
     );
+  }
+
+  Future<void> writeLocale() async {
+    if (context.read<BleModel>().characteristics.elementAt(4) == null)
+      return; //UserID Characteristic
+
+    List<int> bytes = utf8.encode(Localizations.localeOf(context).toString());
+
+    await context
+        .read<BleModel>()
+        .characteristics
+        .elementAt(4)
+        .write(bytes); //Write UserID to ESP32
   }
 
   Future<void> writeData(String data) async {

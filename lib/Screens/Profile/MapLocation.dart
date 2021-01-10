@@ -48,7 +48,7 @@ class _MapLocationState extends State<MapLocation> {
   @override
   void initState() {
     super.initState();
-    timer = Timer.periodic(Duration(seconds: 3), (Timer t) => moveCamera());
+    // timer = Timer.periodic(Duration(seconds: 3), (Timer t) => moveCamera());
   }
 
   @override
@@ -57,17 +57,23 @@ class _MapLocationState extends State<MapLocation> {
     super.dispose();
   }
 
-  void moveCamera() {
-    _controller.animateCamera(CameraUpdate.newCameraPosition(new CameraPosition(
-        bearing: 192.8334901395799,
-        target: LatLng(_currentPosition.latitude, _currentPosition.longitude),
-        tilt: 0,
-        zoom: 18.00)));
+  Future<void> moveCamera() async {
+    if (_currentPosition.latitude != null &&
+        _currentPosition.longitude != null) {
+      _controller.animateCamera(CameraUpdate.newCameraPosition(
+          new CameraPosition(
+              bearing: 192.8334901395799,
+              target:
+                  LatLng(_currentPosition.latitude, _currentPosition.longitude),
+              tilt: 0,
+              zoom: 18.00)));
+    }
   }
 
-  void _onMapCreated(GoogleMapController controller) {
-    if (_controller == null) _controller = controller;
-  }
+  // void _onMapCreated(GoogleMapController controller) {
+  //   if (_controller == null) _controller = controller;
+  //   moveCamera();
+  // }
 
   Future<Uint8List> getMarker() async {
     ByteData byteData =
@@ -143,7 +149,9 @@ class _MapLocationState extends State<MapLocation> {
             ? Consumer3<BleModel, WiFiModel, ConnectionStatusModel>(builder:
                 (_, bleProvider, wifiProvider, connectionProvider, child) {
                 return FutureBuilder(
-                    future: mounted ? connectionStatus.getCurrentStatus() : Future.value(null),
+                    future: mounted
+                        ? connectionStatus.getCurrentStatus()
+                        : Future.value(null),
                     initialData: false,
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
@@ -234,6 +242,7 @@ class _MapLocationState extends State<MapLocation> {
                                           onMapCreated:
                                               (GoogleMapController controller) {
                                             _controller = controller;
+                                            moveCamera();
                                           },
                                         ), // Mapbox
                                       ),
@@ -282,6 +291,7 @@ class _MapLocationState extends State<MapLocation> {
                   Text(
                       'You are offline. Please connect the gateway to WiFi or Bluetooth to continue'),
                 ],
-              )));
+              ))
+              );
   }
 }

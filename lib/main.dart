@@ -26,8 +26,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+      // DeviceOrientation.portraitDown,
+    ]);// this forces the app to keep portrait orientation- No Matter What
     return MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (context) => BleModel()),

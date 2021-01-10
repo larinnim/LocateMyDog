@@ -193,6 +193,8 @@ class _GeofenceWidgetState extends State<Geofence> {
 
   Column bottonNavigationBuilder(StateSetter mystate) {
     return Column(children: <Widget>[
+                  SizedBox(height: 50),
+
       ListTile(
         leading: Icon(Icons.adjust_rounded),
         title: Row(
@@ -243,28 +245,28 @@ class _GeofenceWidgetState extends State<Geofence> {
           Navigator.of(context).pop()
         },
       ),
-      ListTile(
-        leading: Icon(FontAwesomeIcons.drawPolygon),
-        title: Text("Polygon Geofence"),
-        onTap: () => {
-          mystate(() {
-            _isPolygonFence = true;
-            _isDoNotEnterFence = false;
-          }),
-          Navigator.of(context).pop()
-        },
-      ),
-      ListTile(
-        leading: Icon(Icons.do_disturb_on_outlined),
-        title: Text("Dot Not Enter Area"),
-        onTap: () => {
-          mystate(() {
-            _isPolygonFence = false;
-            _isDoNotEnterFence = true;
-          }),
-          Navigator.of(context).pop()
-        },
-      )
+      // ListTile(
+      //   leading: Icon(FontAwesomeIcons.drawPolygon),
+      //   title: Text("Polygon Geofence"),
+      //   onTap: () => {
+      //     mystate(() {
+      //       _isPolygonFence = true;
+      //       _isDoNotEnterFence = false;
+      //     }),
+      //     Navigator.of(context).pop()
+      //   },
+      // ),
+      // ListTile(
+      //   leading: Icon(Icons.do_disturb_on_outlined),
+      //   title: Text("Dot Not Enter Area"),
+      //   onTap: () => {
+      //     mystate(() {
+      //       _isPolygonFence = false;
+      //       _isDoNotEnterFence = true;
+      //     }),
+      //     Navigator.of(context).pop()
+      //   },
+      // )
     ]);
   }
 
