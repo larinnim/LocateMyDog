@@ -1,7 +1,12 @@
+// import 'dart:html';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class AuthRepo {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
@@ -22,6 +27,29 @@ class AuthRepo {
     final User user = (await _auth.signInWithCredential(credential)).user;
     print("signed in " + user.displayName);
     return user;
+  }
+
+  Future<AppUser> signInWithFacebook() async {
+    final facebookLogin = FacebookLogin();
+    final result = await facebookLogin.logIn(['email',]);
+    // if (result.errorMessage == null) {
+      try{
+      final token = result.accessToken.token;
+      final graphResponse = await http.get(
+          'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=$token');
+      print(graphResponse.body);
+      if (result.status == FacebookLoginStatus.loggedIn) {
+        final facebookCredential = FacebookAuthProvider.credential(token);
+        final UserCredential userCredential =
+            await _auth.signInWithCredential(facebookCredential);
+        return AppUser(userCredential.user.uid,
+            displayName: userCredential.user.displayName);
+      } else {
+        return null;
+      }
+    } catch(error) {
+      return null;
+    }
   }
 
   Future<AppUser> signInWithEmailAndPassword(
@@ -55,12 +83,13 @@ class AuthRepo {
           errorMessage = "Signing in with Email and Password is not enabled.";
           break;
         default:
-          errorMessage = "An unexpected error happened. Please check your internet connectivity.";
+          errorMessage =
+              "An unexpected error occurred. Please check your internet connection.";
       }
       // obtain shared preferences
       final prefs = await SharedPreferences.getInstance();
-        // set value
-        prefs.setString('siginError', errorMessage);
+      // set value
+      prefs.setString('siginError', errorMessage);
       return null;
     }
   }
@@ -68,7 +97,11 @@ class AuthRepo {
   Future<AppUser> getUser() async {
     var firebaseUser = _auth.currentUser;
     // return AppUser(firebaseUser.uid, displayName: firebaseUser.displayName);
-    return AppUser(firebaseUser.uid, displayName: firebaseUser.displayName, avatarUrl: firebaseUser.photoURL);
+    if (firebaseUser != null) {
+      return AppUser(firebaseUser.uid,
+          displayName: firebaseUser.displayName,
+          avatarUrl: firebaseUser.photoURL);
+    }
   }
 
   // Future<void> updateDisplayName(String displayName) async {

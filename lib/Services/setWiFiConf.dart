@@ -185,7 +185,7 @@ class _SetWiFiConfPageState extends State<SetWiFiConf> {
     // var wifiData = '${wifiNameController.text},${wifiPasswordController.text}';
     var wifiData = '$_wifiName,$password';
     writeData(wifiData);
-    writeLocale();
+    // writeLocale();
   }
 
   getPercentageIndicator(context, var1, var2) {

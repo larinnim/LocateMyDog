@@ -228,6 +228,20 @@ class _Step2State extends State<Step2> {
         .doc(FirebaseAuth.instance.currentUser.uid)
         .get()
         .then((value) {
+
+    FirestoreSetUp.instance.gateway = value.data()["gateway"];
+    //after 2 seconds verify if timestamp of Wifi is newer on the database
+    // Future.delayed(const Duration(milliseconds: 2000), () {
+      DateTime tempDatetime;
+      tempDatetime = new DateTime.fromMicrosecondsSinceEpoch(
+          value.data()['WifiTimestamp'].microsecondsSinceEpoch);
+      print("The datetime : " + tempDatetime.toString());
+      if (tempDatetime.isAfter(timestampWifiLocal)) {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => Step3(),
+        ));
+      }
+    // });
       // if (value.data()['Sender1'] != null ){
 
       // }
@@ -236,20 +250,20 @@ class _Step2State extends State<Step2> {
       print("Error retrieving from Firebase $e");
     });
 
-    //   FirebaseFirestore.instance.collection("locateDog").get().then((querySnapshot) {
-    //   querySnapshot.docs.forEach((result) {
-    //     print(result.data());
-    //   });
+
+    // FirestoreSetUp.instance.gateway = document.data["gateway"];
+    // //after 2 seconds verify if timestamp of Wifi is newer on the database
+    // Future.delayed(const Duration(milliseconds: 2000), () {
+    //   DateTime tempDatetime;
+    //   tempDatetime = new DateTime.fromMicrosecondsSinceEpoch(
+    //       document.data['WiFiTimestamp']);
+    //   print("The datetime : " + tempDatetime.toString());
+    //   if (tempDatetime.isAfter(timestampWifiLocal)) {
+    //     Navigator.of(context).push(MaterialPageRoute(
+    //       builder: (context) => Step3(),
+    //     ));
+    //   }
     // });
-    FirestoreSetUp.instance.gateway = document.data["gateway"];
-    //after 2 seconds verify if timestamp of Wifi is newer on the database
-    Future.delayed(const Duration(milliseconds: 2000), () {
-      if (document.data['wifiTimestamp'].isAfter(timestampWifiLocal)) {
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => Step3(),
-        ));
-      }
-    });
   }
 
   void loadData() async {

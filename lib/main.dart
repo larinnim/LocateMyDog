@@ -6,6 +6,7 @@ import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Profile/MapLocation.dart';
 import 'package:flutter_maps/Screens/SplashView.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'Screens/Profile/profile.dart';
 import 'Services/SetWiFiConf.dart';
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
           ChangeNotifierProvider(create: (context) => WiFiModel()),
           ChangeNotifierProvider(create: (context) => ConnectionStatusModel())
         ],
-        child: MaterialApp(
+        child: GetMaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'Locate My Pet',
             routes: {

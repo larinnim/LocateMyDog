@@ -261,7 +261,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                           child: Text(
                             'LOG IN',
                             style: TextStyle(
-                                color: Colors.red,
+                                color: Colors.lightGreen,
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold),
                           )),
@@ -275,14 +275,14 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                     decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(30.0)),
-                    child: Icon(FontAwesomeIcons.google, color: Colors.red)),
+                    child: Icon(FontAwesomeIcons.google, color: Colors.lightGreen)),
                 SizedBox(width: 38.0),
                 Container(
                     padding: EdgeInsets.all(20.0),
                     decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(30.0)),
-                    child: Icon(FontAwesomeIcons.facebookF, color: Colors.red)),
+                    child: Icon(FontAwesomeIcons.facebookF, color: Colors.lightGreen)),
               ]),
               SizedBox(height: 20.0),
               InkWell(
@@ -310,7 +310,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
               child: Text('DON\'T HAVE AN ACCOUNT? SIGN UP',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: Colors.orange,
+                      color: Colors.white,
                       decoration: TextDecoration.underline,
                       fontSize: 16.0,
                       fontWeight: FontWeight.w700))),

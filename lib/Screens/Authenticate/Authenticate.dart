@@ -9,16 +9,33 @@ class Authenticate extends StatefulWidget {
 class _AuthenticateState extends State<Authenticate> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-          gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-            Color.fromRGBO(255, 123, 67, 1.0),
-            Color.fromRGBO(245, 50, 111, 1.0)
+    return Scaffold(
+      resizeToAvoidBottomPadding: false,
+      body: Container(
+          decoration: BoxDecoration(
+              gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+            // Color.fromRGBO(255, 123, 67, 1.0),
+            Colors.red[300],
+            Colors.lightGreen[300]
+            // Color.fromRGBO(245, 50, 111, 1.0)
           ])),
-      child: Scaffold(resizeToAvoidBottomPadding: false, body: SignIn(), backgroundColor: Colors.black,),
-    );
+      child: SignIn(),
+      // backgroundColor: Colors.black,
+    ));
+    // return
+    // Container(
+    //   decoration: BoxDecoration(
+    //       gradient: LinearGradient(
+    //           begin: Alignment.topCenter,
+    //           end: Alignment.bottomCenter,
+    //           colors: [
+    //         Color.fromRGBO(255, 123, 67, 1.0),
+    //         Color.fromRGBO(245, 50, 111, 1.0)
+    //       ])),
+    //   child: Scaffold(resizeToAvoidBottomPadding: false, body: SignIn(), backgroundColor: Colors.black,),
+    // );
   }
 }

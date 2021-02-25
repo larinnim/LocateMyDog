@@ -4,6 +4,7 @@ import 'package:flutter_maps/Screens/Authenticate/Register.dart';
 import 'package:flutter_maps/Screens/Authenticate/Sign_in_registered.dart';
 import 'package:flutter_maps/Screens/Authenticate/home_sigin_widget.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import "dart:ui" as ui;
 
 class SignIn extends StatefulWidget {
   @override
@@ -12,6 +13,7 @@ class SignIn extends StatefulWidget {
 
 class _State extends State<SignIn> {
   PageController pageController = PageController();
+  
   // Duration _animationDuration = Duration(milliseconds: 500);
 
   // void _changePage(int page) {
@@ -31,11 +33,13 @@ class _State extends State<SignIn> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        Text('Locate My  ',
+                        Text('iat  ',
                             style: TextStyle(
                                 fontSize: 34.0,
                                 fontWeight: FontWeight.bold,
-                                color: Color.fromRGBO(245, 48, 111, 1.0))),
+                                color: Colors.white,
+                                // color: Color.fromRGBO(245, 48, 111, 1.0)
+                                )),
                         Icon(
                           FontAwesomeIcons.paw,
                           size: 38.0,
@@ -97,6 +101,18 @@ class _State extends State<SignIn> {
                   },
                 ),
               ])),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Text.rich(TextSpan(
+                  children: <InlineSpan>[
+                    TextSpan(text: 'Powered by Majel Tecnologies', style: TextStyle(color: Colors.white),),
+                    WidgetSpan(
+                      alignment: ui.PlaceholderAlignment.middle,
+                      child: ImageIcon(AssetImage('assets/icon/icon.png'),
+                          size: 40, color: Colors.white,),
+                    ),
+                  ],
+                )))
         ],
       ),
     );

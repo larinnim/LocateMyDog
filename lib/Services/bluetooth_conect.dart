@@ -375,13 +375,13 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
 
                   return Column(children: <Widget>[
                     SizedBox(height: 20.0),
-                                StreamBuilder<BluetoothDeviceState>(
-                stream: bleProvider.deviceList[index].device.state
-                    .asBroadcastStream(),
-                builder: (context, snapshot) {
-                  return
-                  snapshot.data == BluetoothDeviceState.disconnected ? 
-                   Container() :
+                //                 StreamBuilder<BluetoothDeviceState>(
+                // stream: bleProvider.deviceList[index].device.state
+                //     .asBroadcastStream(),
+                // builder: (context, snapshot) {
+                  // return
+                  // snapshot.data == BluetoothDeviceState.disconnected ? 
+                  //  Container() :
                      custom.ExpansionTile(
                         headerBackgroundColor: Colors.lightBlue,
                         iconColor: Colors.white,
@@ -423,9 +423,10 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                           // trailing:Column(children: <Widget>[Text("85%", style: TextStyle(fontSize: 10.0),), Icon(LineAwesomeIcons.battery_3_4_full)]),
                         ),
                         children: <Widget>[
-                          bleProvider.connectedDevices.length > 0 &&
-                                  snapshot.data ==
-                                      BluetoothDeviceState.connected 
+                          bleProvider.connectedDevices.length > 0 
+                          // &&
+                          //         snapshot.data ==
+                          //             BluetoothDeviceState.connected 
                               ? ListTile(
                                   onTap: () {
                                     Navigator.pushNamed(context, '/wifiConf');
@@ -438,10 +439,12 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                                       onPressed: () => Navigator.pushNamed(
                                           context, '/wifiConf')))
                               : Column(),
-                          bleProvider.connectedDevices.length > 0 &&
-                                  snapshot.data ==
-                                      BluetoothDeviceState.connected 
-                              ? ListTile(
+                          bleProvider.connectedDevices.length > 0 
+                          // &&
+                                  // snapshot.data ==
+                                  //     BluetoothDeviceState.connected 
+                              ? 
+                              ListTile(
                                   onTap: () {
                                     Navigator.pushNamed(context, '/blueMap');
                                   },
@@ -518,13 +521,15 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                                                       null ||
                                                   bleProvider.connectedDevices
                                                           .length ==
-                                                      0 ||
-                                                  snapshot.data !=
-                                                          BluetoothDeviceState
-                                                              .connected &&
-                                                      snapshot.data !=
-                                                          BluetoothDeviceState
-                                                              .connecting)
+                                                      0
+                                                      //  ||
+                                                  // snapshot.data !=
+                                                  //         BluetoothDeviceState
+                                                  //             .connected &&
+                                                  //     snapshot.data !=
+                                                  //         BluetoothDeviceState
+                                                  //             .connecting
+                                                              )
                                               ? Colors.green
                                               : Colors.red,
                                       shape: RoundedRectangleBorder(
@@ -535,13 +540,15 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                                             null) {
                                           if (bleProvider.connectedDevices
                                                       .length ==
-                                                  0 ||
-                                              snapshot.data !=
-                                                      BluetoothDeviceState
-                                                          .connected &&
-                                                  snapshot.data !=
-                                                      BluetoothDeviceState
-                                                          .connecting) {
+                                                  0 
+                                                  // ||
+                                              // snapshot.data !=
+                                              //         BluetoothDeviceState
+                                              //             .connected &&
+                                              //     snapshot.data !=
+                                              //         BluetoothDeviceState
+                                              //             .connecting
+                                                          ) {
                                             connectDev(bleProvider
                                                 .deviceList[index].device);
                                           } else {
@@ -567,13 +574,14 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                                         bleProvider.connectedDevices == null ||
                                                 bleProvider.connectedDevices
                                                         .length ==
-                                                    0 ||
-                                                snapshot.data !=
-                                                        BluetoothDeviceState
-                                                            .connected &&
-                                                    snapshot.data !=
-                                                        BluetoothDeviceState
-                                                            .connecting
+                                                    0 
+                                                    // ||
+                                                // snapshot.data !=
+                                                //         BluetoothDeviceState
+                                                //             .connected &&
+                                                //     snapshot.data !=
+                                                //         BluetoothDeviceState
+                                                //             .connecting
                                             ? "Connect"
                                             : "Disconnect",
                                         style: TextStyle(
@@ -582,8 +590,9 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                                       ),
                                     ))
                               ])
-                        ]);
-                })]
+                        ])
+                // })
+                ]
                   );
                 });
           });

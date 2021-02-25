@@ -35,7 +35,6 @@ dependencies:
   provider: ^4.3.2+2
   image_picker: ^0.6.7+11
   get_it: ^5.0.1
-  google_sign_in: ^4.5.4
   firebase_storage: ^4.0.0
   geoflutterfire: ^2.2.1
   geolocator: ^6.0.0+4
@@ -54,7 +53,10 @@ dependencies:
   connectivity: ^2.0.2
   flushbar: ^1.10.4
   flutter_compass: '^0.4.3'
-  
+  google_sign_in: ^4.5.9
+  google_fonts: ^1.1.2
+  get: ^3.25.4
+
   flutter:
     sdk: flutter
 
@@ -101,6 +103,7 @@ flutter:
     - assets/images/direction_arrow.png
     - assets/lottie/devs.jpg
     - assets/lottie/powered_by.png
+    - assets/icon/icon.png
     - assets/lottie/lottie_file.json
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

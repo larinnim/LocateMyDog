@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-
+import "dart:ui" as ui;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -67,6 +67,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .read<WiFiModel>()
           .addTimeStamp(firestoreInfo["Sender1"]["LocationTimestamp"]);
 
+      context
+          .read<WiFiModel>()
+          .connectionWiFiTimestamp(firestoreInfo["WifiTimestamp"]);
+      // .addTimeStamp(firestoreInfo["Sender1"]["LocationTimestamp"]);
     }).onError((e) => print("ERROR reading snapshot" + e));
   }
 
@@ -110,7 +114,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             SizedBox(height: kSpacingUnit.w * 2),
             Text(
               "Where is  ${_firebaseAuth.currentUser.displayName} ?",
-              style: kTitleTextStyle,
+              // style: kTitleTextStyle,
+              style: TextStyle(fontSize: 18.0),
             ),
           ],
         ),
@@ -128,106 +133,156 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Builder(
       builder: (context) {
-        return Scaffold(body:
-            Consumer3<BleModel, WiFiModel, ConnectionStatusModel>(builder: (_,
-                bleProvider, wifiProvider, connectionStatusProvider, child) {
-          return FutureBuilder(
-              initialData: false,
-              future: mounted ? currentConnectionStatus.getCurrentStatus() : Future.value(null),
-              builder: (context, snapshot) {
-                return Column(
-                  children: <Widget>[
-                    SizedBox(height: kSpacingUnit.w * 5),
-                    header,
-                    Expanded(
-                      child: ListView(
+        return Stack(
+          children: <Widget>[
+            Scaffold(
+              body: Consumer3<BleModel, WiFiModel, ConnectionStatusModel>(
+                  builder: (_, bleProvider, wifiProvider,
+                      connectionStatusProvider, child) {
+                return FutureBuilder(
+                    initialData: false,
+                    future: mounted
+                        ? currentConnectionStatus.getCurrentStatus()
+                        : Future.value(null),
+                    builder: (context, snapshot) {
+                      return Column(
                         children: <Widget>[
-                          ProfileListItem(
-                            icon: LineAwesomeIcons.user_shield,
-                            text: 'Privacy',
-                          ),
-                          InkWell(
-                            onTap: () {
-                              if (snapshot.hasData) {
-                                if (connectionStatusProvider.connectionStatus ==
-                                        NetworkStatus.Online ||
-                                    snapshot.data == NetworkStatus.Online) {
-                                  Navigator.push(context,
-                                      MaterialPageRoute(builder: (context) {
-                                    return MapLocation();
-                                  }));
-                                } else {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => Radar()),
-                                  );
-                                }
-                              }
-                            },
-                            child: ProfileListItem(
-                              icon: LineAwesomeIcons.search_location,
-                              text: 'Map',
+                          SizedBox(height: kSpacingUnit.w * 5),
+                          header,
+                          Expanded(
+                            child: ListView(
+                              children: <Widget>[
+                                // ProfileListItem(
+                                //   icon: LineAwesomeIcons.user_shield,
+                                //   text: 'Privacy',
+                                // ),
+                                InkWell(
+                                  onTap: () {
+                                    if (snapshot.hasData) {
+                                      if (connectionStatusProvider
+                                                  .connectionStatus ==
+                                              NetworkStatus.Online ||
+                                          snapshot.data ==
+                                              NetworkStatus.Online) {
+                                        Navigator.push(context,
+                                            MaterialPageRoute(
+                                                builder: (context) {
+                                          return MapLocation();
+                                        }));
+                                      } else {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => Radar()),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  child: ProfileListItem(
+                                    icon: LineAwesomeIcons.search_location,
+                                    text: 'Map',
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                        context,
+                                        new MaterialPageRoute(
+                                            builder: (context) =>
+                                                new BluetoothConnection()));
+                                    // Navigator.pushNamed(context, '/trackWalk');
+                                    // Navigator.pushReplacement(context,
+                                    //     MaterialPageRoute(builder: (context) {
+                                    //   return BluetoothConnection();
+                                    // }));
+                                  },
+                                  child: ProfileListItem(
+                                    icon: LineAwesomeIcons.wired_network,
+                                    text: 'Connect',
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                        context,
+                                        new MaterialPageRoute(
+                                            builder: (context) =>
+                                                new Geofence()));
+                                  },
+                                  child: ProfileListItem(
+                                    icon: IconData(59174,
+                                        fontFamily: 'MaterialIcons'),
+                                    text: 'Geofence',
+                                  ),
+                                ),
+                                ProfileListItem(
+                                  icon: LineAwesomeIcons.question_circle,
+                                  text: 'Help & Support',
+                                ),
+                                ProfileListItem(
+                                  icon: LineAwesomeIcons.cog,
+                                  text: 'Settings',
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    print("profile SIgn OUt");
+                                    // SignOut();
+                                    signOut();
+                                  },
+                                  child: ProfileListItem(
+                                    icon: LineAwesomeIcons.alternate_sign_out,
+                                    text: 'Logout',
+                                    hasNavigation: false,
+                                  ),
+                                ),
+                                // Align(
+                                //     alignment: Alignment.bottomCenter,
+                                //     child: Text.rich(TextSpan(
+                                //       children: <InlineSpan>[
+                                //         TextSpan(
+                                //             text: 'Powered by Majel Tecnologies'),
+                                //         WidgetSpan(
+                                //           alignment: ui.PlaceholderAlignment.middle,
+                                //           child: ImageIcon(
+                                //               AssetImage('assets/icon/icon.png'),
+                                //               size: 40),
+                                //         ),
+                                //       ],
+                                //     )))
+                              ],
                             ),
                           ),
-                          InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  new MaterialPageRoute(
-                                      builder: (context) =>
-                                          new BluetoothConnection()));
-                              // Navigator.pushNamed(context, '/trackWalk');
-                              // Navigator.pushReplacement(context,
-                              //     MaterialPageRoute(builder: (context) {
-                              //   return BluetoothConnection();
-                              // }));
-                            },
-                            child: ProfileListItem(
-                              icon: LineAwesomeIcons.wired_network,
-                              text: 'Connect',
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  new MaterialPageRoute(
-                                      builder: (context) => new Geofence()));
-                            },
-                            child: ProfileListItem(
-                              icon:
-                                  IconData(59174, fontFamily: 'MaterialIcons'),
-                              text: 'Geofence',
-                            ),
-                          ),
-                          ProfileListItem(
-                            icon: LineAwesomeIcons.question_circle,
-                            text: 'Help & Support',
-                          ),
-                          ProfileListItem(
-                            icon: LineAwesomeIcons.cog,
-                            text: 'Settings',
-                          ),
-                          InkWell(
-                            onTap: () {
-                              print("profile SIgn OUt");
-                              // SignOut();
-                              signOut();
-                            },
-                            child: ProfileListItem(
-                              icon: LineAwesomeIcons.alternate_sign_out,
-                              text: 'Logout',
-                              hasNavigation: false,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
+                           Align(
+                alignment: Alignment.bottomCenter,
+                child: Text.rich(TextSpan(
+                  children: <InlineSpan>[
+                    TextSpan(text: 'Powered by Majel Tecnologies'),
+                    WidgetSpan(
+                      alignment: ui.PlaceholderAlignment.middle,
+                      child: ImageIcon(AssetImage('assets/icon/icon.png'),
+                          size: 40),
+                    ),
                   ],
-                );
-              });
-        }));
+                )))
+                        ],
+                      );
+                    });
+              }),
+            ),
+            // Align(
+            //     alignment: Alignment.bottomCenter,
+            //     child: Text.rich(TextSpan(
+            //       children: <InlineSpan>[
+            //         TextSpan(text: 'Powered by Majel Tecnologies'),
+            //         WidgetSpan(
+            //           alignment: ui.PlaceholderAlignment.middle,
+            //           child: ImageIcon(AssetImage('assets/icon/icon.png'),
+            //               size: 40),
+            //         ),
+            //       ],
+            //     )))
+          ],
+        );
       },
     );
   }
@@ -259,26 +314,29 @@ class ProfileListItem extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(kSpacingUnit.w * 3),
-        color: Theme.of(context).backgroundColor,
+        color: Colors.red[200],
+        // color: Theme.of(context).backgroundColor,
       ),
       child: Row(
         children: <Widget>[
           Icon(
             this.icon,
             size: kSpacingUnit.w * 2.5,
+            color: Theme.of(context).primaryColor,
           ),
           SizedBox(width: kSpacingUnit.w * 1.5),
           Text(
             this.text,
             style: kTitleTextStyle.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).primaryColor),
           ),
           Spacer(),
           if (this.hasNavigation)
             Icon(
               LineAwesomeIcons.angle_right,
               size: kSpacingUnit.w * 2.5,
+              color: Theme.of(context).primaryColor,
             ),
         ],
       ),
