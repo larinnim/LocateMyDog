@@ -14,7 +14,7 @@ class AuthRepo {
 
   AuthRepo();
 
-  Future<void> signInWithGoogle() async {
+  Future<AppUser> signInWithGoogle() async {
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
     final GoogleSignInAuthentication googleAuth =
         await googleUser.authentication;
@@ -26,7 +26,8 @@ class AuthRepo {
 
     final User user = (await _auth.signInWithCredential(credential)).user;
     print("signed in " + user.displayName);
-    return user;
+    return AppUser(user.uid,
+            displayName: user.displayName);
   }
 
   Future<AppUser> signInWithFacebook() async {

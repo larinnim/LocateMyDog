@@ -6,6 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 class DatabaseService {
   final String uid;
   DatabaseService({this.uid});
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   // collection reference
   final CollectionReference locateCollection =
@@ -13,9 +14,18 @@ class DatabaseService {
 
   Future<void> updateUserData(
       String dogname, String ownername, String breed) async {
-    return await locateCollection.doc(uid).set(
-        {'dogname': dogname, 'ownername': ownername, 'breed': breed},
-        SetOptions(merge: true));
+         _db
+            .collection('users')
+            .doc(uid)
+            .set({
+              'dogname': dogname,
+              'ownername': ownername,
+              'breed': breed
+            });
+    // return await locateCollection.doc(uid).set(
+    //     {'dogname': dogname, 'ownername': ownername, 'breed': breed},
+        
+        SetOptions(merge: true);
   }
 
   Future<void> updateCircleRadius(double radius, LatLng initialLocation) async {

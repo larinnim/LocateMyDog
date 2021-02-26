@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/Authenticate/signed.dart';
+import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Screens/Tutorial/step1.dart';
 import 'package:flutter_maps/Screens/Tutorial/step3.dart';
 import 'package:flutter_maps/Services/database.dart';
@@ -70,6 +71,24 @@ class _SignInRegisteredState extends State<SignInRegistered> {
     }
   }
 
+  void _signInGoogle() async {
+    await locator
+        .get<UserController>()
+        .signInWithGoogle()
+        .catchError((error, stackTrace) async {
+      print("outer: $error");
+    });
+  }
+
+  void _signInFacebook() async {
+    await locator
+        .get<UserController>()
+        .signInWithFacebook()
+        .catchError((error, stackTrace) async {
+      print("outer: $error");
+    });
+  }
+
   void _signIn({String em, String pw}) async {
     await locator
         .get<UserController>()
@@ -113,22 +132,23 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                       .get()
                       .then((endSub) {
                     if (endSub.docs.length > 0) {
-                       print('Gatway Collection and EndDevice exists!');
-                // obtain shared preferences
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) {
-                  return Signed(
-                    // user: authResult.user,
-                    user: FirebaseAuth.instance.currentUser,
-                    wantsTouchID: _useTouchID,
-                    password: password,
-                  );
-                }));
+                      print('Gatway Collection and EndDevice exists!');
+                      // obtain shared preferences
+                      Navigator.pushReplacement(context,
+                          MaterialPageRoute(builder: (context) {
+                        return Signed(
+                          // user: authResult.user,
+                          user: FirebaseAuth.instance.currentUser,
+                          wantsTouchID: _useTouchID,
+                          password: password,
+                        );
+                      }));
                     }
                   });
               } else {
                 Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => Step1(),
+                  // builder: (context) => Step1(), ENABLE when hardware is ready
+                 builder: (context) => ProfileScreen(),
                 ));
               }
             });
@@ -268,22 +288,35 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                     )
                   ]),
               SizedBox(height: 20.0),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: <
-                  Widget>[
-                Container(
-                    padding: EdgeInsets.all(20.0),
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30.0)),
-                    child: Icon(FontAwesomeIcons.google, color: Colors.lightGreen)),
-                SizedBox(width: 38.0),
-                Container(
-                    padding: EdgeInsets.all(20.0),
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30.0)),
-                    child: Icon(FontAwesomeIcons.facebookF, color: Colors.lightGreen)),
-              ]),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    InkWell(
+                      onTap: () {
+                        _signInGoogle();
+                      },
+                      child: Container(
+                          padding: EdgeInsets.all(20.0),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(30.0)),
+                          child: Icon(FontAwesomeIcons.google,
+                              color: Colors.lightGreen)),
+                    ),
+                    SizedBox(width: 38.0),
+                    InkWell(
+                      onTap: () {
+                        _signInFacebook();
+                      },
+                      child: Container(
+                          padding: EdgeInsets.all(20.0),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(30.0)),
+                          child: Icon(FontAwesomeIcons.facebookF,
+                              color: Colors.lightGreen)),
+                    ),
+                  ]),
               SizedBox(height: 20.0),
               InkWell(
                 onTap: () {

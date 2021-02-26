@@ -11,6 +11,7 @@ import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Fence/Geofence.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
+import 'package:flutter_maps/Screens/ProfileSettings/profile_settings.dart';
 import 'package:flutter_maps/Services/Radar.dart';
 import 'package:flutter_maps/Services/bluetooth_conect.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
@@ -219,9 +220,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   icon: LineAwesomeIcons.question_circle,
                                   text: 'Help & Support',
                                 ),
-                                ProfileListItem(
-                                  icon: LineAwesomeIcons.cog,
-                                  text: 'Settings',
+                                InkWell(
+                                   onTap: () {
+                                    Navigator.push(
+                                        context,
+                                        new MaterialPageRoute(
+                                            builder: (context) =>
+                                                new ProfileSettings()));
+                                  },
+                                  child: ProfileListItem(
+                                    icon: LineAwesomeIcons.cog,
+                                    text: 'Settings',
+                                  ),
                                 ),
                                 InkWell(
                                   onTap: () {
@@ -252,18 +262,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ],
                             ),
                           ),
-                           Align(
-                alignment: Alignment.bottomCenter,
-                child: Text.rich(TextSpan(
-                  children: <InlineSpan>[
-                    TextSpan(text: 'Powered by Majel Tecnologies'),
-                    WidgetSpan(
-                      alignment: ui.PlaceholderAlignment.middle,
-                      child: ImageIcon(AssetImage('assets/icon/icon.png'),
-                          size: 40),
-                    ),
-                  ],
-                )))
+                          Align(
+                              alignment: Alignment.bottomCenter,
+                              child: Text.rich(TextSpan(
+                                children: <InlineSpan>[
+                                  TextSpan(
+                                      text: 'Powered by Majel Tecnologies'),
+                                  WidgetSpan(
+                                    alignment: ui.PlaceholderAlignment.middle,
+                                    child: ImageIcon(
+                                        AssetImage('assets/icon/icon.png'),
+                                        size: 40),
+                                  ),
+                                ],
+                              )))
                         ],
                       );
                     });

@@ -24,27 +24,15 @@ class HomeSignInWidget extends StatelessWidget {
   void _signInFacebook() async {
     await locator.get<UserController>().signInWithFacebook()
         .catchError((error, stackTrace) async {
-      // error is SecondError
       print("outer: $error");
-      // Get.dialog(SimpleDialog());
-
     });
-
-    // final facebookLogin = FacebookLogin();
-    // final result = await facebookLogin.logIn(['email']);
-    // final token = result.accessToken.token;
-    // final graphResponse = await http.get(
-    //     'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=$token');
-    // print(graphResponse.body);
-    // await locator.get<UserController>().signInWithEmailAndPassword()
   }
 
   void _signInGoogle() async {
-    // try {
-    //   await _googleSignIn.signIn();
-    // } catch (error) {
-    //   print(error);
-    // }
+      await locator.get<UserController>().signInWithGoogle()
+        .catchError((error, stackTrace) async {
+      print("outer: $error");
+    });
   }
 
   @override

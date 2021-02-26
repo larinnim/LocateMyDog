@@ -37,14 +37,6 @@ class PushNotificationsManager {
               'createdAt': FieldValue.serverTimestamp(), // optional
               'platform': Platform.operatingSystem // optional
             });
-        // .collection('tokens')
-        // .doc(token);
-
-        // await tokens.set({
-        //   'token': token,
-        //   'createdAt': FieldValue.serverTimestamp(), // optional
-        //   'platform': Platform.operatingSystem // optional
-        // });
       }
       _initialized = true;
     }
