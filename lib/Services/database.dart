@@ -22,8 +22,6 @@ class DatabaseService {
               'ownername': ownername,
               'breed': breed
             });
-    // return await locateCollection.doc(uid).set(
-    //     {'dogname': dogname, 'ownername': ownername, 'breed': breed},
         
         SetOptions(merge: true);
   }

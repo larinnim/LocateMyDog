@@ -1,12 +1,16 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Profile/avatar.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/settings_page.dart';
 import 'package:flutter_maps/Services/constants.dart';
+import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -21,9 +25,28 @@ class _ProfileSettingsState extends State<ProfileSettings> {
   bool showPassword = false;
   AppUser _currentUser = locator.get<UserController>().currentUser;
 
+  CollectionReference users = FirebaseFirestore.instance.collection('users');
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  String username = "";
+  String user_email = "";
+
+  // Create a text controller and use it to retrieve the current value
+  // of the TextField.
+  final usernameController = TextEditingController();
+  final emailController = TextEditingController();
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    usernameController.dispose();
+    emailController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+    username = _firebaseAuth.currentUser.displayName;
+    user_email = _firebaseAuth.currentUser.email;
 
     return Scaffold(
       appBar: AppBar(
@@ -145,9 +168,9 @@ class _ProfileSettingsState extends State<ProfileSettings> {
               SizedBox(
                 height: 35,
               ),
-              buildTextField("Full Name", "Dor Alex", false),
-              buildTextField("E-mail", "alexd@gmail.com", false),
-              buildTextField("Password", "********", true),
+              buildTextField("Full Name", username, true, false, false),
+              buildTextField("E-mail", user_email, false, true, false),
+              buildTextField("Password", "********", false, false, true),
               // buildTextField("Location", "TLV, Israel", false),
               SizedBox(
                 height: 35,
@@ -169,7 +192,80 @@ class _ProfileSettingsState extends State<ProfileSettings> {
                             color: Colors.black)),
                   ),
                   RaisedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      if (emailController.text !=
+                          _firebaseAuth.currentUser.email) {
+                        //                         _firebaseAuth.signInWithEmailAndPassword(email: null, password: null)
+                        // .signInWithEmailAndPassword('you@domain.com', 'correcthorsebatterystaple')
+                        // .then(function(userCredential) {
+                        //     userCredential.user.updateEmail('newyou@domain.com')
+                        // })
+
+                        _firebaseAuth.currentUser
+                            .updateEmail(emailController.text)
+                            .then((value) => null)
+                            .catchError((error) {
+                          if (error.code == "invalid-email") {
+                            Get.dialog(SimpleDialog(
+                              title: Text(
+                                "Error",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                      new BorderRadius.circular(10.0)),
+                              children: [
+                                Text(
+                                    "     Invalid Email",
+                                    style: TextStyle(fontSize: 20.0))
+                              ],
+                            ));
+                          } else if (error.code == "email-already-in-use") {
+                            Get.dialog(SimpleDialog(
+                              title: Text(
+                                "Error",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                      new BorderRadius.circular(10.0)),
+                              children: [
+                                Text(
+                                    "    Email Already in Use",
+                                    style: TextStyle(fontSize: 20.0))
+                              ],
+                            ));
+                          } else {
+                            Get.dialog(SimpleDialog(
+                              title: Text(
+                                "Error",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                      new BorderRadius.circular(10.0)),
+                              children: [
+                                Text(
+                                    "    Error. Please contact our Support Team",
+                                    style: TextStyle(fontSize: 20.0))
+                              ],
+                            ));
+                          }
+                        });
+                      }
+                      _firebaseAuth.currentUser
+                          .updateProfile(displayName: usernameController.text)
+                          .then((value) {
+                        print("Profile has been changed successfully");
+                        //DO Other compilation here if you want to like setting the state of the app
+                      }).catchError((e) {
+                        print("There was an error updating profile");
+                      });
+                      // setState(() {
+                      //   username = usernameController.text;
+                      // });
+                      // updateUserData();
+                    },
                     color: Colors.red[200],
                     padding: EdgeInsets.symmetric(horizontal: 50),
                     elevation: 2,
@@ -192,11 +288,16 @@ class _ProfileSettingsState extends State<ProfileSettings> {
     );
   }
 
-  Widget buildTextField(
-      String labelText, String placeholder, bool isPasswordTextField) {
+  Widget buildTextField(String labelText, String placeholder, bool isFullName,
+      bool isEmail, bool isPasswordTextField) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 35.0),
       child: TextField(
+        controller: isFullName
+            ? usernameController
+            : isEmail
+                ? emailController
+                : null,
         obscureText: isPasswordTextField ? showPassword : false,
         decoration: InputDecoration(
             suffixIcon: isPasswordTextField
@@ -220,7 +321,8 @@ class _ProfileSettingsState extends State<ProfileSettings> {
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.black,
-            )),
+            )
+            ),
       ),
     );
   }

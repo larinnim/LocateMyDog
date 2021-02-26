@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_maps/Screens/ProfileSettings/change_email.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/languages.dart';
+import 'package:flutter_maps/Screens/ProfileSettings/reset_password.dart';
 
 class SettingsPage extends StatefulWidget {
   @override
@@ -60,7 +62,8 @@ class _SettingsPageState extends State<SettingsPage> {
             SizedBox(
               height: 10,
             ),
-            buildAccountOptionRow(context, "Change password"),
+            buildChangeEmail(context, "Change Email"),
+            buildResetPassword(context, "Reset Password"),
             // Divider(
             //   height: 15,
             //   thickness: 1,
@@ -144,6 +147,64 @@ class _SettingsPageState extends State<SettingsPage> {
             ))
       ],
     );
+  }
+
+  GestureDetector buildChangeEmail(BuildContext context, String title) {
+   return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (BuildContext context) => ChangeEmailPage()));
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.grey,
+            ),
+          ],
+        ),
+      )
+   );
+  }
+
+GestureDetector buildResetPassword(BuildContext context, String title) {
+   return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (BuildContext context) => ResetPasswordPage()));
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.grey,
+            ),
+          ],
+        ),
+      )
+   );
   }
 
   InkWell buildUnitSelection(BuildContext context, String title) {
