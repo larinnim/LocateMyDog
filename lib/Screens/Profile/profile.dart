@@ -11,7 +11,7 @@ import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Fence/Geofence.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
-import 'package:flutter_maps/Screens/ProfileSettings/profile_settings.dart';
+import 'package:flutter_maps/Screens/ProfileSettings/settings_page.dart';
 import 'package:flutter_maps/Services/Radar.dart';
 import 'package:flutter_maps/Services/bluetooth_conect.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
@@ -226,7 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         context,
                                         new MaterialPageRoute(
                                             builder: (context) =>
-                                                new ProfileSettings()));
+                                                new SettingsPage()));
                                   },
                                   child: ProfileListItem(
                                     icon: LineAwesomeIcons.cog,

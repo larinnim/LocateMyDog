@@ -21,9 +21,9 @@ class DatabaseService {
               'dogname': dogname,
               'ownername': ownername,
               'breed': breed
-            });
+            }, SetOptions(merge: true));
         
-        SetOptions(merge: true);
+        // SetOptions(merge: true);
   }
 
   Future<void> updateCircleRadius(double radius, LatLng initialLocation) async {
