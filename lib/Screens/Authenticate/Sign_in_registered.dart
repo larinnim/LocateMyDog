@@ -9,11 +9,14 @@ import 'package:flutter_maps/Screens/Authenticate/signed.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Screens/Tutorial/step1.dart';
 import 'package:flutter_maps/Screens/Tutorial/step3.dart';
+import 'package:flutter_maps/Screens/loading.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../locator.dart';
 
@@ -83,14 +86,14 @@ class _SignInRegisteredState extends State<SignInRegistered> {
   //   });
   // }
 
-  void _signInFacebook() async {
-    await locator
-        .get<UserController>()
-        .signInWithFacebook()
-        .catchError((error, stackTrace) async {
-      print("outer: $error");
-    });
-  }
+  // void _signInFacebook() async {
+  //   await locator
+  //       .get<UserController>()
+  //       .signInWithFacebook()
+  //       .catchError((error, stackTrace) async {
+  //     print("outer: $error");
+  //   });
+  // }
 
   void _signIn({String em, String pw}) async {
     SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
@@ -200,167 +203,239 @@ class _SignInRegisteredState extends State<SignInRegistered> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.bottomCenter,
-      children: [
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-            children: <Widget>[
-              Text('SIGN IN',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 26.0,
-                      fontWeight: FontWeight.w600)),
-              SizedBox(height: 12.0),
-              TextField(
-                onChanged: (textVal) {
-                  setState(() {
-                    email = textVal;
-                  });
-                },
-                decoration: InputDecoration(
-                    hintText: 'Enter Email',
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
-                    focusColor: Colors.white,
-                    focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white)),
-                    enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white))),
-                style: TextStyle(color: Colors.white, fontSize: 22.0),
-              ),
-              SizedBox(height: 20.0),
-              TextField(
-                onChanged: (textVal) {
-                  setState(() {
-                    password = textVal;
-                  });
-                },
-                obscureText: true,
-                decoration: InputDecoration(
-                    hintText: 'Password',
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
-                    focusColor: Colors.white,
-                    focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white)),
-                    enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white))),
-                style: TextStyle(color: Colors.white, fontSize: 22.0),
-              ),
-              SizedBox(height: 12.0),
-              userHasTouchID
-                  ? InkWell(
-                      onTap: () => authenticate(),
-                      child: Container(
-                          decoration: BoxDecoration(
-                              color: Colors.transparent,
-                              border: Border.all(color: Colors.red),
-                              borderRadius: BorderRadius.circular(30.0)),
-                          padding: EdgeInsets.all(10.0),
-                          child: Icon(FontAwesomeIcons.fingerprint)),
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                          Checkbox(
-                            activeColor: Colors.orange,
-                            value: _useTouchID,
-                            onChanged: (newValue) {
+    return ChangeNotifierProvider(
+        create: (context) => SocialSignInProvider(),
+        child: StreamBuilder(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (context, snapshot) {
+              final provider = Provider.of<SocialSignInProvider>(context);
+
+              if (provider.isSigningIn) {
+                return Loading();
+              } else if (provider.isCancelledByUser) {
+                Get.dialog(SimpleDialog(
+                  title: Text(
+                    "Error",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: new BorderRadius.circular(10.0)),
+                  children: [
+                    Text("     Operation Cancelled By User",
+                        style: TextStyle(fontSize: 20.0))
+                  ],
+                ));
+                return Container();
+              } else if (provider.isError) {
+                Get.dialog(SimpleDialog(
+                  title: Text(
+                    "Error",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: new BorderRadius.circular(10.0)),
+                  children: [
+                    Text(
+                        "     Error Occurred. Please contact our support team.",
+                        style: TextStyle(fontSize: 20.0))
+                  ],
+                ));
+                return Container();
+              } else if (snapshot.hasData) {
+                WidgetsBinding.instance.addPostFrameCallback((_) =>
+                    Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (context) {
+                      return Material(child: ProfileScreen());
+                    })));
+                return Container();
+                // Navigator.pushReplacement(context,
+                //     MaterialPageRoute(builder: (context) {
+                //   return Material(child: ProfileScreen());
+                // }));
+              } else {
+                return Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Column(
+                        children: <Widget>[
+                          Text('SIGN IN',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 26.0,
+                                  fontWeight: FontWeight.w600)),
+                          SizedBox(height: 12.0),
+                          TextField(
+                            onChanged: (textVal) {
                               setState(() {
-                                _useTouchID = newValue;
+                                email = textVal;
                               });
                             },
+                            decoration: InputDecoration(
+                                hintText: 'Enter Email',
+                                hintStyle: TextStyle(
+                                    color: Colors.white.withOpacity(0.6)),
+                                focusColor: Colors.white,
+                                focusedBorder: UnderlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.white)),
+                                enabledBorder: UnderlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.white))),
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 22.0),
                           ),
-                          Text('Use TouchID',
+                          SizedBox(height: 20.0),
+                          TextField(
+                            onChanged: (textVal) {
+                              setState(() {
+                                password = textVal;
+                              });
+                            },
+                            obscureText: true,
+                            decoration: InputDecoration(
+                                hintText: 'Password',
+                                hintStyle: TextStyle(
+                                    color: Colors.white.withOpacity(0.6)),
+                                focusColor: Colors.white,
+                                focusedBorder: UnderlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.white)),
+                                enabledBorder: UnderlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.white))),
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 22.0),
+                          ),
+                          SizedBox(height: 12.0),
+                          userHasTouchID
+                              ? InkWell(
+                                  onTap: () => authenticate(),
+                                  child: Container(
+                                      decoration: BoxDecoration(
+                                          color: Colors.transparent,
+                                          border: Border.all(color: Colors.red),
+                                          borderRadius:
+                                              BorderRadius.circular(30.0)),
+                                      padding: EdgeInsets.all(10.0),
+                                      child:
+                                          Icon(FontAwesomeIcons.fingerprint)),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                      Checkbox(
+                                        activeColor: Colors.orange,
+                                        value: _useTouchID,
+                                        onChanged: (newValue) {
+                                          setState(() {
+                                            _useTouchID = newValue;
+                                          });
+                                        },
+                                      ),
+                                      Text('Use TouchID',
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16.0))
+                                    ]),
+                          SizedBox(height: 20.0),
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                InkWell(
+                                  onTap: () {
+                                    _signIn(em: email, pw: password);
+                                  },
+                                  child: Container(
+                                      // width: double.infinity,
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: 16.0, horizontal: 34.0),
+                                      decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(30.0)),
+                                      child: Text(
+                                        'LOG IN',
+                                        style: TextStyle(
+                                            color: Colors.lightGreen,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold),
+                                      )),
+                                )
+                              ]),
+                          SizedBox(height: 20.0),
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                InkWell(
+                                  onTap: () {
+                                    // _signInGoogle();
+                                    Provider.of<SocialSignInProvider>(context,
+                                        listen: false);
+                                    provider.loginGoogle();
+                                  },
+                                  child: Container(
+                                      padding: EdgeInsets.all(20.0),
+                                      decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(30.0)),
+                                      child: Icon(FontAwesomeIcons.google,
+                                          color: Colors.lightGreen)),
+                                ),
+                                SizedBox(width: 38.0),
+                                InkWell(
+                                  onTap: () {
+                                    // _signInFacebook();
+                                    Provider.of<SocialSignInProvider>(context,
+                                        listen: false);
+                                    provider.loginFacebook();
+                                  },
+                                  child: Container(
+                                      padding: EdgeInsets.all(20.0),
+                                      decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(30.0)),
+                                      child: Icon(FontAwesomeIcons.facebookF,
+                                          color: Colors.lightGreen)),
+                                ),
+                              ]),
+                          SizedBox(height: 20.0),
+                          InkWell(
+                            onTap: () {
+                              widget.goToForgotPW();
+                            },
+                            child: Text('FORGOT PASSWORD?',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    decoration: TextDecoration.underline,
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        widget.gotoSignUp();
+                      },
+                      child: Container(
+                          padding: EdgeInsets.all(10.0),
+                          width: double.infinity,
+                          color: Colors.black.withOpacity(0.2),
+                          child: Text('DON\'T HAVE AN ACCOUNT? SIGN UP',
+                              textAlign: TextAlign.center,
                               style: TextStyle(
-                                  color: Colors.white, fontSize: 16.0))
-                        ]),
-              SizedBox(height: 20.0),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    InkWell(
-                      onTap: () {
-                        _signIn(em: email, pw: password);
-                      },
-                      child: Container(
-                          // width: double.infinity,
-                          padding: EdgeInsets.symmetric(
-                              vertical: 16.0, horizontal: 34.0),
-                          decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(30.0)),
-                          child: Text(
-                            'LOG IN',
-                            style: TextStyle(
-                                color: Colors.lightGreen,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold),
-                          )),
-                    )
-                  ]),
-              SizedBox(height: 20.0),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    InkWell(
-                      onTap: () {
-                        // _signInGoogle();
-                      },
-                      child: Container(
-                          padding: EdgeInsets.all(20.0),
-                          decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(30.0)),
-                          child: Icon(FontAwesomeIcons.google,
-                              color: Colors.lightGreen)),
+                                  color: Colors.white,
+                                  decoration: TextDecoration.underline,
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w700))),
                     ),
-                    SizedBox(width: 38.0),
-                    InkWell(
-                      onTap: () {
-                        _signInFacebook();
-                      },
-                      child: Container(
-                          padding: EdgeInsets.all(20.0),
-                          decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(30.0)),
-                          child: Icon(FontAwesomeIcons.facebookF,
-                              color: Colors.lightGreen)),
-                    ),
-                  ]),
-              SizedBox(height: 20.0),
-              InkWell(
-                onTap: () {
-                  widget.goToForgotPW();
-                },
-                child: Text('FORGOT PASSWORD?',
-                    style: TextStyle(
-                        color: Colors.white,
-                        decoration: TextDecoration.underline,
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-        ),
-        InkWell(
-          onTap: () {
-            widget.gotoSignUp();
-          },
-          child: Container(
-              padding: EdgeInsets.all(10.0),
-              width: double.infinity,
-              color: Colors.black.withOpacity(0.2),
-              child: Text('DON\'T HAVE AN ACCOUNT? SIGN UP',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: Colors.white,
-                      decoration: TextDecoration.underline,
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.w700))),
-        ),
-      ],
-    );
+                  ],
+                );
+              }
+            }));
   }
 }

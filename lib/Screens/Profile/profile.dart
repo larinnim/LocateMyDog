@@ -23,6 +23,7 @@ import 'package:flutter_maps/Services/constants.dart';
 import 'package:flutter_maps/Services/push_notification.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:flutter_screenutil/screenutil.dart';
+import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
@@ -52,6 +53,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     super.dispose();
+  }
+
+  void logout() async {
+    // await googleSignIn.disconnect();
+    // FirebaseAuth.instance.signOut();
+
+    bool isGoogleSignedIn = await GoogleSignIn().isSignedIn();
+    bool isFacebookSignedIn = await FacebookLogin().isLoggedIn;
+    if (isGoogleSignedIn == true) {
+      GoogleSignIn().disconnect();
+    } else if (isFacebookSignedIn == true) {
+      FacebookLogin().logOut();
+    }
+    FirebaseAuth.instance.signOut().then((value) {
+      // isSignedIn = false;
+      Get.to(Authenticate(),
+          transition: Transition.downToUp,
+          duration: Duration(seconds: 1));
+    });
   }
 
   void readDatabase() {
@@ -195,10 +215,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return Stack(
           children: <Widget>[
             Scaffold(
-              body: Consumer4<BleModel, WiFiModel, ConnectionStatusModel,
-                      SocialSignInProvider>(
+              body: Consumer3<BleModel, WiFiModel, ConnectionStatusModel>(
                   builder: (_, bleProvider, wifiProvider,
-                      connectionStatusProvider, socialLogin, child) {
+                      connectionStatusProvider, child) {
                 return FutureBuilder(
                     initialData: false,
                     future: mounted
@@ -227,14 +246,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         avatarUrl:
                                             // _auth.currentUser != null ? _auth.currentUser?.photoURL + "?height=500&access_token=" + socialSiginSingleton.facebookToken : "",
                                             _auth.currentUser != null
-                                                ? _auth.currentUser.photoURL != null ? 
-                                                 socialSiginSingleton
-                                                        .facebookToken == "" || socialSiginSingleton.isSocialLogin == false ? _auth.currentUser.photoURL :
-                                                _auth.currentUser.photoURL +
-                                                    "?height=500&access_token=" +
-                                                    socialSiginSingleton
-                                                        .facebookToken
-                                                : _currentUser?.avatarUrl  != null ? _currentUser?.avatarUrl : "" : "",
+                                                ? _auth.currentUser.photoURL !=
+                                                        null
+                                                    ? socialSiginSingleton
+                                                                    .facebookToken ==
+                                                                "" ||
+                                                            socialSiginSingleton
+                                                                    .isSocialLogin ==
+                                                                false
+                                                        ? _auth.currentUser
+                                                            .photoURL
+                                                        : _auth.currentUser
+                                                                .photoURL +
+                                                            "?height=500&access_token=" +
+                                                            socialSiginSingleton
+                                                                .facebookToken
+                                                    : _currentUser?.avatarUrl !=
+                                                            null
+                                                        ? _currentUser
+                                                            ?.avatarUrl
+                                                        : ""
+                                                : "",
 
                                         // ? _auth.currentUser?.photoURL + "?height=500&access_token=" + socialLogin.facebookToken
                                         // : _currentUser?.avatarUrl,
@@ -364,37 +396,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     //     Provider.of<SocialSignInProvider>(
                                     //         context,
                                     //         listen: false);
-                                    socialLogin.logout();
+                                    // socialLogin.logout();
+                                    logout();
                                     // provider.logout();
-                                    if (!socialLogin.isSignedIn) {
-                                      Navigator.pushAndRemoveUntil(
-                                          context,
-                                          PageRouteBuilder(pageBuilder:
-                                              (BuildContext context,
-                                                  Animation animation,
-                                                  Animation
-                                                      secondaryAnimation) {
-                                            return Authenticate();
-                                          }, transitionsBuilder:
-                                              (BuildContext context,
-                                                  Animation<double> animation,
-                                                  Animation<double>
-                                                      secondaryAnimation,
-                                                  Widget child) {
-                                            return new SlideTransition(
-                                              position: new Tween<Offset>(
-                                                begin: const Offset(1.0, 0.0),
-                                                end: Offset.zero,
-                                              ).animate(animation),
-                                              child: child,
-                                            );
-                                          }),
-                                          (Route route) => false);
-                                      // Navigator.of(context).pushReplacement(
-                                      //     MaterialPageRoute(
-                                      //         builder: (BuildContext context) =>
-                                      //             Wrapper()));
-                                    }
+                                    // if (!socialLogin.isSignedIn) {
+                                    //   Navigator.pushAndRemoveUntil(
+                                    //       context,
+                                    //       PageRouteBuilder(pageBuilder:
+                                    //           (BuildContext context,
+                                    //               Animation animation,
+                                    //               Animation
+                                    //                   secondaryAnimation) {
+                                    //         return Authenticate();
+                                    //       }, transitionsBuilder:
+                                    //           (BuildContext context,
+                                    //               Animation<double> animation,
+                                    //               Animation<double>
+                                    //                   secondaryAnimation,
+                                    //               Widget child) {
+                                    //         return new SlideTransition(
+                                    //           position: new Tween<Offset>(
+                                    //             begin: const Offset(1.0, 0.0),
+                                    //             end: Offset.zero,
+                                    //           ).animate(animation),
+                                    //           child: child,
+                                    //         );
+                                    //       }),
+                                    //       (Route route) => false);
+                                    // }
 
                                     // SignOut();
                                     // signOut();

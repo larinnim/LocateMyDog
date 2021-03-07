@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
+import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 
@@ -137,6 +139,25 @@ class SocialSignInProvider extends ChangeNotifier {
     }
     FirebaseAuth.instance.signOut().then((value) {
       isSignedIn = false;
+      Get.to(Authenticate(), transition: Transition.rightToLeftWithFade, duration: Duration(seconds: 30));
+      // Navigator.pushAndRemoveUntil(
+      //     context,
+      //     PageRouteBuilder(pageBuilder: (BuildContext context,
+      //         Animation animation, Animation secondaryAnimation) {
+      //       return Authenticate();
+      //     }, transitionsBuilder: (BuildContext context,
+      //         Animation<double> animation,
+      //         Animation<double> secondaryAnimation,
+      //         Widget child) {
+      //       return new SlideTransition(
+      //         position: new Tween<Offset>(
+      //           begin: const Offset(1.0, 0.0),
+      //           end: Offset.zero,
+      //         ).animate(animation),
+      //         child: child,
+      //       );
+      //     }),
+      //     (Route route) => false);
     });
   }
 }

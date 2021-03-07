@@ -6,6 +6,8 @@ import 'package:flutter_maps/Screens/Authenticate/home_sigin_widget.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import "dart:ui" as ui;
 
+import 'package:google_fonts/google_fonts.dart';
+
 class SignIn extends StatefulWidget {
   @override
   _State createState() => _State();
@@ -34,12 +36,13 @@ class _State extends State<SignIn> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Text('iat  ',
-                            style: TextStyle(
-                                fontSize: 34.0,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                // color: Color.fromRGBO(245, 48, 111, 1.0)
-                                )),
+                            style: 
+                             GoogleFonts.handlee(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 40.0)),
+                            // TextStyle(
+                            //     fontSize: 34.0,
+                            //     fontWeight: FontWeight.bold,
+                            //     color: Colors.white,
+                            //     )),
                         Icon(
                           FontAwesomeIcons.paw,
                           size: 38.0,
