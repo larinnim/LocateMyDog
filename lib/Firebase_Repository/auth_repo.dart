@@ -1,7 +1,9 @@
 // import 'dart:html';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_maps/Models/user.dart';
+import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
@@ -9,32 +11,51 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class AuthRepo {
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  // final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   AuthRepo();
 
-  Future<AppUser> signInWithGoogle() async {
-    final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
-    final GoogleSignInAuthentication googleAuth =
-        await googleUser.authentication;
+  // Future<AppUser> signInWithGoogle() async {
+  //   final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
+  //   // final User user;
+  //   if (googleUser == null) {
+  //     return null;
+  //   } else {
+  //     final GoogleSignInAuthentication googleAuth =
+  //         await googleUser.authentication;
 
-    final AuthCredential credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
+  //     final AuthCredential credential = GoogleAuthProvider.credential(
+  //       accessToken: googleAuth.accessToken,
+  //       idToken: googleAuth.idToken,
+  //     );
 
-    final User user = (await _auth.signInWithCredential(credential)).user;
-    print("signed in " + user.displayName);
-    return AppUser(user.uid,
-            displayName: user.displayName);
-  }
+  //     // final UserCredential userCredential =
+  //     await _auth.signInWithCredential(credential).then((credential) {
+  //       // user = credential.user;
+  //       return AppUser(credential.user.uid,
+  //           displayName: credential.user.displayName);
+  //     }).catchError((error) {
+  //       return error;
+  //       // throw (error);
+  //     });
+  //     return null;
+
+  //     // final UserCredential userCredential =
+  //     //     await _auth.signInWithCredential(credential).catchError((error) {});
+  //     // final User user = userCredential.user;
+  //     // print("signed in " + user.displayName);
+  //     // return AppUser(user.uid, displayName: user.displayName);
+  //   }
+  // }
 
   Future<AppUser> signInWithFacebook() async {
     final facebookLogin = FacebookLogin();
-    final result = await facebookLogin.logIn(['email',]);
+    final result = await facebookLogin.logIn([
+      'email',
+    ]);
     // if (result.errorMessage == null) {
-      try{
+    try {
       final token = result.accessToken.token;
       final graphResponse = await http.get(
           'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=$token');
@@ -48,7 +69,7 @@ class AuthRepo {
       } else {
         return null;
       }
-    } catch(error) {
+    } catch (error) {
       return null;
     }
   }

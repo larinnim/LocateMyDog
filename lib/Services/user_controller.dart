@@ -54,14 +54,28 @@ class UserController {
     _currentUser = await _authRepo.signInWithFacebook();
 
     if (_currentUser == null) {
-      Get.dialog(SimpleDialog(title: Text("Facebook Sign In Error", style: TextStyle(fontWeight: FontWeight.bold),),shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(10.0)), children: [Text("    Please verify your credentials and network connection.", style: TextStyle(fontSize: 20.0))],));
+      Get.dialog(SimpleDialog(
+        title: Text(
+          "Facebook Sign In Error",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        shape: RoundedRectangleBorder(
+            borderRadius: new BorderRadius.circular(10.0)),
+        children: [
+          Text("    Please verify your credentials and network connection.",
+              style: TextStyle(fontSize: 20.0))
+        ],
+      ));
     }
   }
 
-  Future<void> signInWithGoogle() async {
-    _currentUser = await _authRepo.signInWithGoogle();
-    if (_currentUser == null) {
-      Get.dialog(SimpleDialog(title: Text("Google Sign In Error", style: TextStyle(fontWeight: FontWeight.bold),),shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(10.0)), children: [Text("    Please verify your credentials and network connection.", style: TextStyle(fontSize: 20.0))],));
-    }
-  }
+  // Future<void> signInWithGoogle() async {
+  //   _currentUser = await _authRepo.signInWithGoogle().then((value) {
+     
+  //     // return value;
+  //   }).catchError((error) {
+
+  //   });
+
+  // }
 }

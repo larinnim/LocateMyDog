@@ -7,8 +7,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Models/user.dart';
+import 'package:flutter_maps/Providers/SocialSignin.dart';
+import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
+import 'package:flutter_maps/Screens/Authenticate/home_sigin_widget.dart';
 import 'package:flutter_maps/Screens/Fence/Geofence.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/settings_page.dart';
@@ -19,6 +23,7 @@ import 'package:flutter_maps/Services/constants.dart';
 import 'package:flutter_maps/Services/push_notification.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:flutter_screenutil/screenutil.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -35,6 +40,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   AppUser _currentUser = locator.get<UserController>().currentUser;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void initState() {
@@ -49,30 +55,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void readDatabase() {
-    FirebaseFirestore.instance
-        .collection('locateDog')
-        .doc(_currentUser.uid)
-        .snapshots()
-        .listen((DocumentSnapshot documentSnapshot) {
-      Map<String, dynamic> firestoreInfo = documentSnapshot.data();
+    if (_auth.currentUser != null) {
+      FirebaseFirestore.instance
+          .collection('locateDog')
+          .doc(_auth.currentUser?.uid)
+          .snapshots()
+          .listen((DocumentSnapshot documentSnapshot) {
+        Map<String, dynamic> firestoreInfo = documentSnapshot.data();
 
-      context.read<WiFiModel>().addLat(
-          double.parse(firestoreInfo["Sender1"]["Location"]["Latitude"]));
-      context.read<WiFiModel>().addLng(
-          double.parse(firestoreInfo["Sender1"]["Location"]["Longitude"]));
-      context.read<WiFiModel>().addRSSI(firestoreInfo["Sender1"]["RSSI"]);
-      context
-          .read<WiFiModel>()
-          .addSSID(firestoreInfo["Sender1"]["ConnectedWifiSSID"]);
-      context
-          .read<WiFiModel>()
-          .addTimeStamp(firestoreInfo["Sender1"]["LocationTimestamp"]);
+        context.read<WiFiModel>().addLat(
+            double.parse(firestoreInfo["Sender1"]["Location"]["Latitude"]));
+        context.read<WiFiModel>().addLng(
+            double.parse(firestoreInfo["Sender1"]["Location"]["Longitude"]));
+        context.read<WiFiModel>().addRSSI(firestoreInfo["Sender1"]["RSSI"]);
+        context
+            .read<WiFiModel>()
+            .addSSID(firestoreInfo["Sender1"]["ConnectedWifiSSID"]);
+        context
+            .read<WiFiModel>()
+            .addTimeStamp(firestoreInfo["Sender1"]["LocationTimestamp"]);
 
-      context
-          .read<WiFiModel>()
-          .connectionWiFiTimestamp(firestoreInfo["WifiTimestamp"]);
-      // .addTimeStamp(firestoreInfo["Sender1"]["LocationTimestamp"]);
-    }).onError((e) => print("ERROR reading snapshot" + e));
+        context
+            .read<WiFiModel>()
+            .connectionWiFiTimestamp(firestoreInfo["WifiTimestamp"]);
+        // .addTimeStamp(firestoreInfo["Sender1"]["LocationTimestamp"]);
+      }).onError((e) => print("ERROR reading snapshot" + e));
+    }
   }
 
   @override
@@ -82,64 +90,115 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
     final currentConnectionStatus = Provider.of<ConnectionStatusModel>(context);
     currentConnectionStatus.initConnectionListen();
+    SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
 
-    void signOut() async {
-      await _firebaseAuth.signOut().then((value) {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) {
-          return Container(
-              color: Colors.yellow, child: Material(child: Wrapper()));
-        }));
-      });
-    }
+    // void signOut() async {
+    //   bool isGoogleSignedIn = await GoogleSignIn().isSignedIn();
+    //   bool isFacebookSignedIn = await FacebookLogin().isLoggedIn;
+    //   if (isGoogleSignedIn == true) {
+    //     GoogleSignIn().disconnect();
+    //   } else if (isFacebookSignedIn == true) {
+    //     FacebookLogin().logOut();
+    //   }
+    //   await _firebaseAuth.signOut();
+    // }
 
-    var profileInfo = Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor,
-            borderRadius: BorderRadius.circular(kSpacingUnit.w * 3)),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            Avatar(
-              avatarUrl: _currentUser?.avatarUrl,
-              onTap: () async {
-                File image =
-                    await ImagePicker.pickImage(source: ImageSource.gallery);
+    // var profileInfo = Expanded(
+    //   child: Container(
+    //     decoration: BoxDecoration(
+    //         color: Theme.of(context).primaryColor,
+    //         borderRadius: BorderRadius.circular(kSpacingUnit.w * 3)),
+    //     child: Column(
+    //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    //       children: <Widget>[
+    //         Avatar(
+    //           avatarUrl:
+    //            _currentUser?.avatarUrl == null
+    //               ? _auth.currentUser?.photoURL
+    //               : _currentUser?.avatarUrl,
+    //           onTap: () async {
+    //             File image =
+    //                 await ImagePicker.pickImage(source: ImageSource.gallery);
 
-                await locator.get<UserController>().uploadProfilePicture(image);
+    //             await locator.get<UserController>().uploadProfilePicture(image);
 
-                setState(() {});
-              },
-            ),
-            SizedBox(height: kSpacingUnit.w * 2),
-            Text(
-              "Where is  ${_firebaseAuth.currentUser.displayName} ?",
-              // style: kTitleTextStyle,
-              style: TextStyle(fontSize: 18.0),
-            ),
-          ],
-        ),
-      ),
-    );
-    var header = Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        SizedBox(width: kSpacingUnit.w * 3),
-        profileInfo,
-        SizedBox(width: kSpacingUnit.w * 3),
-      ],
-    );
+    //             setState(() {});
+    //           },
+    //         ),
+    //         SizedBox(height: kSpacingUnit.w * 2),
+
+    //         // _firebaseAuth.currentUser != null ?
+    //         Text(
+    //           "Where is  ${_auth.currentUser?.displayName} ?",
+    //           // style: kTitleTextStyle,
+    //           style: TextStyle(fontSize: 18.0),
+    //         ),
+    //         // Text(
+    //         //   "Where is  ${_firebaseAuth.currentUser.displayName} ?",
+    //         //   // style: kTitleTextStyle,
+    //         //   style: TextStyle(fontSize: 18.0),
+    //         // ): Text(""),
+    //       ],
+    //     ),
+    //   ),
+    // );
+    // var header = Row(
+    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //   crossAxisAlignment: CrossAxisAlignment.start,
+    //   children: <Widget>[
+    //     SizedBox(width: kSpacingUnit.w * 3),
+    //     Expanded(
+    //   child: Container(
+    //     decoration: BoxDecoration(
+    //         color: Theme.of(context).primaryColor,
+    //         borderRadius: BorderRadius.circular(kSpacingUnit.w * 3)),
+    //     child: Column(
+    //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    //       children: <Widget>[
+    //         Avatar(
+    //           avatarUrl:
+    //            _currentUser?.avatarUrl == null
+    //               ? _auth.currentUser?.photoURL
+    //               : _currentUser?.avatarUrl,
+    //           onTap: () async {
+    //             File image =
+    //                 await ImagePicker.pickImage(source: ImageSource.gallery);
+
+    //             await locator.get<UserController>().uploadProfilePicture(image);
+
+    //             setState(() {});
+    //           },
+    //         ),
+    //         SizedBox(height: kSpacingUnit.w * 2),
+
+    //         // _firebaseAuth.currentUser != null ?
+    //         Text(
+    //           "Where is  ${_auth.currentUser?.displayName} ?",
+    //           // style: kTitleTextStyle,
+    //           style: TextStyle(fontSize: 18.0),
+    //         ),
+    //         // Text(
+    //         //   "Where is  ${_firebaseAuth.currentUser.displayName} ?",
+    //         //   // style: kTitleTextStyle,
+    //         //   style: TextStyle(fontSize: 18.0),
+    //         // ): Text(""),
+    //       ],
+    //     ),
+    //   ),
+    // ),
+    //     SizedBox(width: kSpacingUnit.w * 3),
+    //   ],
+    // );
 
     return Builder(
       builder: (context) {
         return Stack(
           children: <Widget>[
             Scaffold(
-              body: Consumer3<BleModel, WiFiModel, ConnectionStatusModel>(
+              body: Consumer4<BleModel, WiFiModel, ConnectionStatusModel,
+                      SocialSignInProvider>(
                   builder: (_, bleProvider, wifiProvider,
-                      connectionStatusProvider, child) {
+                      connectionStatusProvider, socialLogin, child) {
                 return FutureBuilder(
                     initialData: false,
                     future: mounted
@@ -149,7 +208,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       return Column(
                         children: <Widget>[
                           SizedBox(height: kSpacingUnit.w * 5),
-                          header,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              SizedBox(width: kSpacingUnit.w * 3),
+                              Expanded(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      color: Theme.of(context).primaryColor,
+                                      borderRadius: BorderRadius.circular(
+                                          kSpacingUnit.w * 3)),
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: <Widget>[
+                                      Avatar(
+                                        avatarUrl:
+                                            // _auth.currentUser != null ? _auth.currentUser?.photoURL + "?height=500&access_token=" + socialSiginSingleton.facebookToken : "",
+                                            _auth.currentUser != null
+                                                ? _auth.currentUser.photoURL != null ? 
+                                                 socialSiginSingleton
+                                                        .facebookToken == "" || socialSiginSingleton.isSocialLogin == false ? _auth.currentUser.photoURL :
+                                                _auth.currentUser.photoURL +
+                                                    "?height=500&access_token=" +
+                                                    socialSiginSingleton
+                                                        .facebookToken
+                                                : _currentUser?.avatarUrl  != null ? _currentUser?.avatarUrl : "" : "",
+
+                                        // ? _auth.currentUser?.photoURL + "?height=500&access_token=" + socialLogin.facebookToken
+                                        // : _currentUser?.avatarUrl,
+                                        // avatarUrl:
+                                        //     _currentUser?.avatarUrl == null
+                                        //         ? _auth.currentUser?.photoURL
+                                        //         : _currentUser?.avatarUrl,
+                                        onTap: () async {
+                                          File image =
+                                              await ImagePicker.pickImage(
+                                                  source: ImageSource.gallery);
+
+                                          await locator
+                                              .get<UserController>()
+                                              .uploadProfilePicture(image);
+
+                                          setState(() {});
+                                        },
+                                      ),
+                                      SizedBox(height: kSpacingUnit.w * 2),
+
+                                      // _firebaseAuth.currentUser != null ?
+                                      Text(
+                                        "Where is  ${_auth.currentUser?.displayName} ?",
+                                        // style: kTitleTextStyle,
+                                        style: TextStyle(fontSize: 18.0),
+                                      ),
+                                      // Text(
+                                      //   "Where is  ${_firebaseAuth.currentUser.displayName} ?",
+                                      //   // style: kTitleTextStyle,
+                                      //   style: TextStyle(fontSize: 18.0),
+                                      // ): Text(""),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: kSpacingUnit.w * 3),
+                            ],
+                          ),
                           Expanded(
                             child: ListView(
                               children: <Widget>[
@@ -221,7 +345,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   text: 'Help & Support',
                                 ),
                                 InkWell(
-                                   onTap: () {
+                                  onTap: () {
                                     Navigator.push(
                                         context,
                                         new MaterialPageRoute(
@@ -236,8 +360,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 InkWell(
                                   onTap: () {
                                     print("profile SIgn OUt");
+                                    // final provider =
+                                    //     Provider.of<SocialSignInProvider>(
+                                    //         context,
+                                    //         listen: false);
+                                    socialLogin.logout();
+                                    // provider.logout();
+                                    if (!socialLogin.isSignedIn) {
+                                      Navigator.pushAndRemoveUntil(
+                                          context,
+                                          PageRouteBuilder(pageBuilder:
+                                              (BuildContext context,
+                                                  Animation animation,
+                                                  Animation
+                                                      secondaryAnimation) {
+                                            return Authenticate();
+                                          }, transitionsBuilder:
+                                              (BuildContext context,
+                                                  Animation<double> animation,
+                                                  Animation<double>
+                                                      secondaryAnimation,
+                                                  Widget child) {
+                                            return new SlideTransition(
+                                              position: new Tween<Offset>(
+                                                begin: const Offset(1.0, 0.0),
+                                                end: Offset.zero,
+                                              ).animate(animation),
+                                              child: child,
+                                            );
+                                          }),
+                                          (Route route) => false);
+                                      // Navigator.of(context).pushReplacement(
+                                      //     MaterialPageRoute(
+                                      //         builder: (BuildContext context) =>
+                                      //             Wrapper()));
+                                    }
+
                                     // SignOut();
-                                    signOut();
+                                    // signOut();
                                   },
                                   child: ProfileListItem(
                                     icon: LineAwesomeIcons.alternate_sign_out,

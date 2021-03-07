@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "687212317780-iv0jps5umaaa2pluirnn86hac3i314fc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.retroportalstudio.www.flutter_maps",
+            "certificate_hash": "220de3dbbaf12c1c77a26d2616ebe3b187965cc1"
+          }
+        },
+        {
           "client_id": "687212317780-ou1qraf0c6drfnmarctobocmvsjdkldf.apps.googleusercontent.com",
           "client_type": 3
         }

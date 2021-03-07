@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_maps/Providers/SocialSignin.dart';
 import 'package:flutter_maps/Screens/Authenticate/signed.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Screens/Tutorial/step1.dart';
@@ -71,14 +72,16 @@ class _SignInRegisteredState extends State<SignInRegistered> {
     }
   }
 
-  void _signInGoogle() async {
-    await locator
-        .get<UserController>()
-        .signInWithGoogle()
-        .catchError((error, stackTrace) async {
-      print("outer: $error");
-    });
-  }
+  // void _signInGoogle() async {
+  //   await locator.get<UserController>().signInWithGoogle().then((value) {
+  //     Navigator.of(context).push(MaterialPageRoute(
+  //       // builder: (context) => Step1(), ENABLE when hardware is ready
+  //       builder: (context) => ProfileScreen(),
+  //     ));
+  //   }).catchError((error, stackTrace) async {
+  //     print("outer: $error");
+  //   });
+  // }
 
   void _signInFacebook() async {
     await locator
@@ -90,10 +93,19 @@ class _SignInRegisteredState extends State<SignInRegistered> {
   }
 
   void _signIn({String em, String pw}) async {
+    SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
+
     await locator
         .get<UserController>()
         .signInWithEmailAndPassword(email: em, password: pw)
-        .catchError((error, stackTrace) {
+        .then((value) {
+      socialSiginSingleton.isSocialLogin = false;
+
+      Navigator.of(context).push(MaterialPageRoute(
+        // builder: (context) => Step1(), ENABLE when hardware is ready
+        builder: (context) => ProfileScreen(),
+      ));
+    }).catchError((error, stackTrace) {
       // error is SecondError
       print("outer: $error");
     });
@@ -148,7 +160,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
               } else {
                 Navigator.of(context).push(MaterialPageRoute(
                   // builder: (context) => Step1(), ENABLE when hardware is ready
-                 builder: (context) => ProfileScreen(),
+                  builder: (context) => ProfileScreen(),
                 ));
               }
             });
@@ -293,7 +305,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                   children: <Widget>[
                     InkWell(
                       onTap: () {
-                        _signInGoogle();
+                        // _signInGoogle();
                       },
                       child: Container(
                           padding: EdgeInsets.all(20.0),

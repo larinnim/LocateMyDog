@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
+import 'package:flutter_maps/Providers/SocialSignin.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Profile/MapLocation.dart';
 import 'package:flutter_maps/Screens/SplashView.dart';
@@ -28,12 +29,13 @@ class MyApp extends StatelessWidget {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       // DeviceOrientation.portraitDown,
-    ]);// this forces the app to keep portrait orientation- No Matter What
+    ]); // this forces the app to keep portrait orientation- No Matter What
     return MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (context) => BleModel()),
           ChangeNotifierProvider(create: (context) => WiFiModel()),
-          ChangeNotifierProvider(create: (context) => ConnectionStatusModel())
+          ChangeNotifierProvider(create: (context) => ConnectionStatusModel()),
+          ChangeNotifierProvider(create: (context) => SocialSignInProvider())
         ],
         child: GetMaterialApp(
             debugShowCheckedModeBanner: false,
@@ -49,7 +51,7 @@ class MyApp extends StatelessWidget {
               visualDensity: VisualDensity.adaptivePlatformDensity,
             ),
             home: Material(
-                // child: SplashView(),
+              // child: SplashView(),
               child: Wrapper(),
             )));
   }
