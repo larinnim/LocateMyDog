@@ -118,7 +118,7 @@ class HomeSignInWidget extends StatelessWidget {
                             Icon(FontAwesomeIcons.google,
                                 color: Colors.lightGreen, size: 30.0),
                             Text(
-                              ' | Sign in with Google',
+                              ' | ' + 'sign_in_google'.tr,
                               style: TextStyle(
                                   color: Colors.lightGreen,
                                   fontWeight: FontWeight.bold,
@@ -148,7 +148,7 @@ class HomeSignInWidget extends StatelessWidget {
                             Icon(FontAwesomeIcons.facebookF,
                                 color: Colors.lightGreen, size: 30.0),
                             Text(
-                              ' | Sign in with Facebook',
+                              ' | ' + 'sign_in_facebook'.tr,
                               style: TextStyle(
                                   color: Colors.lightGreen,
                                   fontWeight: FontWeight.bold,
@@ -176,7 +176,7 @@ class HomeSignInWidget extends StatelessWidget {
                             Icon(FontAwesomeIcons.envelope,
                                 color: Colors.lightGreen, size: 30.0),
                             Text(
-                              ' | Sign Up',
+                              ' | ' + 'register'.tr,
                               style: TextStyle(
                                   color: Colors.lightGreen,
                                   fontWeight: FontWeight.bold,
@@ -193,7 +193,7 @@ class HomeSignInWidget extends StatelessWidget {
                       gotoSignIn();
                     },
                     child: Text(
-                      'Already Registered? Sign in',
+                      'already_registered'.tr,
                       style: TextStyle(
                           color: Colors.white,
                           decoration: TextDecoration.underline,

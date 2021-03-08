@@ -10,6 +10,7 @@ import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'Screens/Profile/profile.dart';
+import 'Screens/ProfileSettings/translationDictionary.dart';
 import 'Services/SetWiFiConf.dart';
 import 'locator.dart';
 import 'Services/bluetooth_conect.dart';
@@ -38,6 +39,10 @@ class MyApp extends StatelessWidget {
           ChangeNotifierProvider(create: (context) => SocialSignInProvider())
         ],
         child: GetMaterialApp(
+            locale: Get.deviceLocale, //read the system locale
+            translations: Messages(),
+            fallbackLocale: Locale('en',
+                'US'), // specify the fallback locale in case an invalid locale is selected.
             debugShowCheckedModeBanner: false,
             title: 'Locate My Pet',
             routes: {

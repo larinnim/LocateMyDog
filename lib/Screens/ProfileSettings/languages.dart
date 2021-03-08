@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:get/get.dart';
 
 class LanguageValue {
   final int _key;
@@ -31,12 +32,14 @@ class LanguagesPageState extends State<LanguagesPage> {
 
     if (val == 1) {
       lang = "English";
+      Get.updateLocale(Locale('en', 'US'));
     } else if (val == 2) {
       lang = "Français";
+      Get.updateLocale(Locale('fr', 'CA'));
     } else if (val == 3) {
-      lang = "Espanhol";
+      Get.updateLocale(Locale('es', 'ES'));
     } else if (val == 4) {
-      lang = "Português";
+      Get.updateLocale(Locale('pt', 'BR'));
     }
 
     _db

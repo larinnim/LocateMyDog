@@ -6,6 +6,7 @@ import 'package:flutter_maps/Screens/ProfileSettings/change_email.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/languages.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/reset_password.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:get/get.dart';
 
 class SettingsPage extends StatefulWidget {
   @override
@@ -62,7 +63,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: ListView(
                   children: [
                     Text(
-                      "Settings",
+                      "settings".tr,
                       style:
                           TextStyle(fontSize: 25, fontWeight: FontWeight.w500),
                     ),
@@ -79,7 +80,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           width: 8,
                         ),
                         Text(
-                          "Account",
+                          "account".tr,
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
@@ -92,8 +93,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     SizedBox(
                       height: 10,
                     ),
-                    buildChangeEmail(context, "Change Email"),
-                    buildResetPassword(context, "Reset Password"),
+                    buildChangeEmail(context, "change_email"),
+                    buildResetPassword(context, "reset_password"),
                     // Divider(
                     //   height: 15,
                     //   thickness: 1,
@@ -118,7 +119,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Units',
+                              'units'.tr,
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
@@ -134,13 +135,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     //   height: 15,
                     //   thickness: 1,
                     // ),
-                    buildLanguageSelection(context, "Language"),
+                    buildLanguageSelection(context, "language"),
                     // Divider(
                     //   height: 15,
                     //   thickness: 1,
                     // ),
                     // buildAccountOptionRow(context, "Social"),
-                    buildAccountOptionRow(context, "Privacy and security"),
+                    buildAccountOptionRow(context, "privacy_security"),
                     SizedBox(
                       height: 40,
                     ),
@@ -232,7 +233,7 @@ class _SettingsPageState extends State<SettingsPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                title,
+                title.tr,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
@@ -260,7 +261,7 @@ class _SettingsPageState extends State<SettingsPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                title,
+                title.tr,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
@@ -320,7 +321,7 @@ class _SettingsPageState extends State<SettingsPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              title,
+              title.tr,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
@@ -344,7 +345,7 @@ class _SettingsPageState extends State<SettingsPage> {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: Text(title),
+                title: Text(title.tr),
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [

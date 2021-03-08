@@ -4,6 +4,7 @@ import 'package:flutter_maps/Screens/Authenticate/Register.dart';
 import 'package:flutter_maps/Screens/Authenticate/Sign_in_registered.dart';
 import 'package:flutter_maps/Screens/Authenticate/home_sigin_widget.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
 import "dart:ui" as ui;
 
 import 'package:google_fonts/google_fonts.dart';
@@ -53,11 +54,13 @@ class _State extends State<SignIn> {
                     SizedBox(
                       height: 20.0,
                     ),
-                    Text(
-                      'Find your pet and be always happy with it.',
-                      style: TextStyle(color: Colors.white, fontSize: 18.0),
-                      textAlign: TextAlign.center,
-                    ),
+                    Text('entry_message'.tr, style: TextStyle(color: Colors.white, fontSize: 18.0),
+                      textAlign: TextAlign.center,),
+                    // Text(
+                    //   'Find your pet and be always happy with it.',
+                    //   style: TextStyle(color: Colors.white, fontSize: 18.0),
+                    //   textAlign: TextAlign.center,
+                    // ),
                     // SizedBox(height: 50.0,),
                   ]))),
           Expanded(

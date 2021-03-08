@@ -18,6 +18,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart' as localization;
 import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 
 class Geofence extends StatefulWidget {
   @override
@@ -285,7 +286,7 @@ class _GeofenceWidgetState extends State<Geofence> {
     connectionStatus.initConnectionListen();
     return Scaffold(
         appBar: AppBar(
-          title: Text("Geofence"),
+          title: Text("geofence".tr),
           centerTitle: true,
           // backgroundColor: Colors.blueGrey,
           leading: IconButton(

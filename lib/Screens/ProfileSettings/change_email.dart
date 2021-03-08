@@ -81,7 +81,7 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
         } else {
           Get.dialog(SimpleDialog(
             title: Text(
-              "Error",
+              "error".tr,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             shape: RoundedRectangleBorder(
@@ -119,7 +119,7 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
           centerTitle: true,
           elevation: 1,
           title: Text(
-            "Change Email",
+            "change_email".tr,
             style: TextStyle(color: Colors.green),
           ),
           leading: IconButton(
@@ -146,7 +146,7 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
                 },
                 validator: (emailEntry) {
                   if (emailEntry.isEmpty) {
-                    return 'This field is mandatory';
+                    return 'field_mandatory'.tr;
                   }
                   return null;
                 },
@@ -184,7 +184,7 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
                 },
                 validator: (passwordEntry) {
                   if (passwordEntry.isEmpty) {
-                    return 'This field is mandatory';
+                    return 'field_mandatory'.tr;
                   }
                   return null;
                 },
@@ -205,7 +205,7 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
                       ),
                     ),
                     contentPadding: EdgeInsets.only(bottom: 3),
-                    labelText: "Password",
+                    labelText: "password".tr,
                     labelStyle: TextStyle(
                       color:
                           _passwordFocus.hasFocus ? Colors.green : Colors.black,
@@ -231,7 +231,7 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text("CANCEL",
+                  child: Text("cancel".tr,
                       style: TextStyle(
                           fontSize: 14,
                           letterSpacing: 2.2,
@@ -243,71 +243,6 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
                       formKey.currentState.save();
                       _updateEmail();
                     }
-                    // if (emailController.text != _firebaseAuth.currentUser.email) {
-                    //   _firebaseAuth
-                    //       .signInWithEmailAndPassword(
-                    //           email: _firebaseAuth.currentUser.email,
-                    //           password: passwordController.text)
-                    //       .then((userCredential) {
-                    //     userCredential.user
-                    //         .updateEmail(emailController.text)
-                    //         .then((value) {
-                    //       Get.dialog(SimpleDialog(
-                    //         title: Text(
-                    //           "Sucess",
-                    //           style: TextStyle(fontWeight: FontWeight.bold),
-                    //         ),
-                    //         shape: RoundedRectangleBorder(
-                    //             borderRadius: new BorderRadius.circular(10.0)),
-                    //         children: [
-                    //           Text("     Email Successfully Updated",
-                    //               style: TextStyle(fontSize: 20.0)),
-                    //         ],
-                    //       ));
-                    //     }).catchError((error) {
-                    //       if (error.code == "invalid-email") {
-                    //         Get.dialog(SimpleDialog(
-                    //           title: Text(
-                    //             "Error",
-                    //             style: TextStyle(fontWeight: FontWeight.bold),
-                    //           ),
-                    //           shape: RoundedRectangleBorder(
-                    //               borderRadius: new BorderRadius.circular(10.0)),
-                    //           children: [
-                    //             Text("     Invalid Email",
-                    //                 style: TextStyle(fontSize: 20.0))
-                    //           ],
-                    //         ));
-                    //       } else if (error.code == "email-already-in-use") {
-                    //         Get.dialog(SimpleDialog(
-                    //           title: Text(
-                    //             "Error",
-                    //             style: TextStyle(fontWeight: FontWeight.bold),
-                    //           ),
-                    //           shape: RoundedRectangleBorder(
-                    //               borderRadius: new BorderRadius.circular(10.0)),
-                    //           children: [
-                    //             Text("    Email Already in Use",
-                    //                 style: TextStyle(fontSize: 20.0))
-                    //           ],
-                    //         ));
-                    //       } else {
-                    //         Get.dialog(SimpleDialog(
-                    //           title: Text(
-                    //             "Error",
-                    //             style: TextStyle(fontWeight: FontWeight.bold),
-                    //           ),
-                    //           shape: RoundedRectangleBorder(
-                    //               borderRadius: new BorderRadius.circular(10.0)),
-                    //           children: [
-                    //             Text("    Error. Please contact our Support Team",
-                    //                 style: TextStyle(fontSize: 20.0))
-                    //           ],
-                    //         ));
-                    //       }
-                    //     });
-                    //   });
-                    // }
                   },
                   color: Colors.red[200],
                   padding: EdgeInsets.symmetric(horizontal: 50),
@@ -315,7 +250,7 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20)),
                   child: Text(
-                    "SAVE",
+                    "save".tr,
                     style: TextStyle(
                         fontSize: 14, letterSpacing: 2.2, color: Colors.white),
                   ),

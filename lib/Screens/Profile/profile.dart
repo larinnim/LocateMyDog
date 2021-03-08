@@ -29,6 +29,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 
 import '../../locator.dart';
 import 'MapLocation.dart';
@@ -337,7 +338,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   },
                                   child: ProfileListItem(
                                     icon: LineAwesomeIcons.search_location,
-                                    text: 'Map',
+                                    text: 'map'.tr,
                                   ),
                                 ),
                                 InkWell(
@@ -355,7 +356,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   },
                                   child: ProfileListItem(
                                     icon: LineAwesomeIcons.wired_network,
-                                    text: 'Connect',
+                                    text: 'connect'.tr,
                                   ),
                                 ),
                                 InkWell(
@@ -369,12 +370,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   child: ProfileListItem(
                                     icon: IconData(59174,
                                         fontFamily: 'MaterialIcons'),
-                                    text: 'Geofence',
+                                    text: 'geofence'.tr,
                                   ),
                                 ),
                                 ProfileListItem(
                                   icon: LineAwesomeIcons.question_circle,
-                                  text: 'Help & Support',
+                                  text: 'help_support'.tr,
                                 ),
                                 InkWell(
                                   onTap: () {
@@ -386,12 +387,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   },
                                   child: ProfileListItem(
                                     icon: LineAwesomeIcons.cog,
-                                    text: 'Settings',
+                                    text: 'settings'.tr,
                                   ),
                                 ),
                                 InkWell(
                                   onTap: () {
-                                    print("profile SIgn OUt");
                                     // final provider =
                                     //     Provider.of<SocialSignInProvider>(
                                     //         context,
@@ -430,7 +430,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   },
                                   child: ProfileListItem(
                                     icon: LineAwesomeIcons.alternate_sign_out,
-                                    text: 'Logout',
+                                    text: 'logout'.tr,
                                     hasNavigation: false,
                                   ),
                                 ),

@@ -121,7 +121,7 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
           shape: RoundedRectangleBorder(
               borderRadius: new BorderRadius.circular(10.0)),
           children: [
-            Text("     Wrong Password", style: TextStyle(fontSize: 20.0)),
+            Text("     " + "wrong_password".tr, style: TextStyle(fontSize: 20.0)),
           ],
         ));
       }
@@ -153,7 +153,7 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
           centerTitle: true,
           elevation: 1,
           title: Text(
-            "Reset Password",
+            "reset_password".tr,
             style: TextStyle(color: Colors.green),
           ),
           leading: IconButton(
@@ -180,7 +180,7 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                 },
                 validator: (currentPassword) {
                   if (currentPassword.isEmpty) {
-                    return 'This field is mandatory';
+                    return 'current_password'.tr;
                   }
                   return null;
                 },
@@ -201,7 +201,7 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                       ),
                     ),
                     contentPadding: EdgeInsets.only(bottom: 3),
-                    labelText: "Current Password",
+                    labelText: "current_password".tr,
                     labelStyle: TextStyle(
                       color: _currentPasswordFocus.hasFocus
                           ? Colors.green
@@ -232,10 +232,10 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                 },
                 validator: (pwValue) {
                   if (pwValue.isEmpty) {
-                    return 'This field is mandatory';
+                    return 'field_mandatory'.tr;
                   }
                   if (pwValue.length < 8) {
-                    return 'Passoword must be at least 8 characters';
+                    return 'password_min_char'.tr;
                   }
                   return null;
                 },
@@ -256,7 +256,7 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                       ),
                     ),
                     contentPadding: EdgeInsets.only(bottom: 3),
-                    labelText: "New Password (8 characters min.)",
+                    labelText: "new_password_char".tr,
                     labelStyle: TextStyle(
                       color: _newPasswordFocus.hasFocus
                           ? Colors.green
@@ -284,10 +284,10 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                 },
                 validator: (pwConfirmValue) {
                   if (pwConfirmValue.isEmpty) {
-                    return 'This field is mandatory';
+                    return 'field_mandatory'.tr;
                   }
                   if (pwConfirmValue != password) {
-                    return 'Passwords must match';
+                    return 'password_match'.tr;
                   }
                   return null;
                 },
@@ -308,7 +308,7 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                       ),
                     ),
                     contentPadding: EdgeInsets.only(bottom: 3),
-                    labelText: "Confirm New Password",
+                    labelText: "confirm_password".tr,
                     labelStyle: TextStyle(
                       color: _confirmPasswordFocus.hasFocus
                           ? Colors.green
@@ -335,7 +335,7 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text("CANCEL",
+                  child: Text("cancel".tr,
                       style: TextStyle(
                           fontSize: 14,
                           letterSpacing: 2.2,
@@ -354,7 +354,7 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20)),
                   child: Text(
-                    "SAVE",
+                    "save".tr,
                     style: TextStyle(
                         fontSize: 14, letterSpacing: 2.2, color: Colors.white),
                   ),
