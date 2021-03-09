@@ -24,6 +24,7 @@ import 'package:flutter_maps/Services/push_notification.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:flutter_screenutil/screenutil.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
@@ -43,6 +44,8 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   AppUser _currentUser = locator.get<UserController>().currentUser;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
+  final box = GetStorage();
 
   @override
   void initState() {
@@ -68,10 +71,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       FacebookLogin().logOut();
     }
     FirebaseAuth.instance.signOut().then((value) {
+      Get.offAll(Authenticate());
+      box.read('token');
       // isSignedIn = false;
-      Get.to(Authenticate(),
-          transition: Transition.downToUp,
-          duration: Duration(seconds: 1));
+      // Get.to(Authenticate(),
+      //     transition: Transition.downToUp,
+      //     duration: Duration(seconds: 1));
     });
   }
 
@@ -111,7 +116,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
     final currentConnectionStatus = Provider.of<ConnectionStatusModel>(context);
     currentConnectionStatus.initConnectionListen();
-    SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
+    // SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
 
     // void signOut() async {
     //   bool isGoogleSignedIn = await GoogleSignIn().isSignedIn();
@@ -249,19 +254,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             _auth.currentUser != null
                                                 ? _auth.currentUser.photoURL !=
                                                         null
-                                                    ? socialSiginSingleton
-                                                                    .facebookToken ==
-                                                                "" ||
-                                                            socialSiginSingleton
-                                                                    .isSocialLogin ==
-                                                                false
+                                                    ?
+                                                    // _auth.currentUser.photoURL.contains('facebook') == false
+                                                    !_auth.currentUser.photoURL
+                                                                .contains('facebook')
+                                                                        //  ||
+                                                            // socialSiginSingleton
+                                                            //         .facebookToken ==
+                                                            //     "" ||
+                                                            // socialSiginSingleton
+                                                            //         .isSocialLogin ==
+                                                            //     false
                                                         ? _auth.currentUser
                                                             .photoURL
-                                                        : _auth.currentUser
+                                                        : 
+                                                        _auth.currentUser
                                                                 .photoURL +
                                                             "?height=500&access_token=" +
-                                                            socialSiginSingleton
-                                                                .facebookToken
+                                                            box.read('token')
                                                     : _currentUser?.avatarUrl !=
                                                             null
                                                         ? _currentUser

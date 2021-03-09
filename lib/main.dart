@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Providers/SocialSignin.dart';
+import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Profile/MapLocation.dart';
 import 'package:flutter_maps/Screens/SplashView.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 import 'Screens/Profile/profile.dart';
 import 'Screens/ProfileSettings/translationDictionary.dart';
@@ -17,6 +19,8 @@ import 'Services/bluetooth_conect.dart';
 // void main() => runApp(MyApp());
 
 void main() async {
+    await GetStorage.init();   //get storage initialization
+
   // void main() {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -50,6 +54,7 @@ class MyApp extends StatelessWidget {
               '/trackwalk': (context) => BluetoothConnection(),
               '/blueMap': (context) => MapLocation(),
               '/wifiConf': (context) => SetWiFiConf(),
+              '/authenticate': (context) => Authenticate(),
             },
             theme: ThemeData(
               primaryColor: Colors.white,

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 
@@ -32,6 +33,7 @@ class SocialSignInProvider extends ChangeNotifier {
   bool _isSignedIn;
   String _facebookToken;
   SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
+  final box = GetStorage();
 
   SocialSignInProvider() {
     _isSigningIn = false;
@@ -110,6 +112,8 @@ class SocialSignInProvider extends ChangeNotifier {
     facebookToken = token;
     // final profile = jsonDecode(graphResponse.body);
 
+box.write("token", token);
+    
     print(graphResponse.body);
     if (result.status == FacebookLoginStatus.loggedIn) {
       final facebookCredential = FacebookAuthProvider.credential(token);
@@ -139,7 +143,12 @@ class SocialSignInProvider extends ChangeNotifier {
     }
     FirebaseAuth.instance.signOut().then((value) {
       isSignedIn = false;
-      Get.to(Authenticate(), transition: Transition.rightToLeftWithFade, duration: Duration(seconds: 30));
+      Get.offAll(Authenticate());
+      // Get.offNamedUntil('/authenticate', (_) => false);
+      // Get.to(Authenticate(),
+      //     transition: Transition.rightToLeftWithFade,
+      //     duration: Duration(seconds: 30));
+
       // Navigator.pushAndRemoveUntil(
       //     context,
       //     PageRouteBuilder(pageBuilder: (BuildContext context,

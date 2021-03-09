@@ -57,6 +57,7 @@ dependencies:
   google_fonts: ^1.1.2
   get: ^3.25.4
   flutter_spinkit: ^4.1.2+1
+  get_storage: ^1.4.0
 
   flutter:
     sdk: flutter
