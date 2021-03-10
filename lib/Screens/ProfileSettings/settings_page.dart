@@ -370,7 +370,7 @@ class _SettingsPageState extends State<SettingsPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              title,
+              title.tr,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,

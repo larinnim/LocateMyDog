@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 
+import '../loading.dart';
+
 class LanguageValue {
   final int _key;
   final String _value;
@@ -16,49 +18,83 @@ class LanguagesPage extends StatefulWidget {
 }
 
 class LanguagesPageState extends State<LanguagesPage> {
-  int _currentLang = 1;
+  String _currentLang = "english";
+  int lang = 1;
+
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   final _buttonOptions = [
-    LanguageValue(1, "English"),
-    LanguageValue(2, "Français"),
-    LanguageValue(3, "Espanhol"),
-    LanguageValue(4, "Português"),
+    LanguageValue(1, 'english'.tr),
+    LanguageValue(2, "french".tr),
+    LanguageValue(3, "spanish".tr),
+    LanguageValue(4, "portuguese".tr),
   ];
 
   void _updateLanguage(int val) {
-    String lang;
-
     if (val == 1) {
-      lang = "English";
+      _currentLang = "english";
       Get.updateLocale(Locale('en', 'US'));
     } else if (val == 2) {
-      lang = "Français";
+      _currentLang = "french";
       Get.updateLocale(Locale('fr', 'CA'));
     } else if (val == 3) {
+      _currentLang = "spanish";
       Get.updateLocale(Locale('es', 'ES'));
     } else if (val == 4) {
+      _currentLang = "portuguese";
       Get.updateLocale(Locale('pt', 'BR'));
     }
 
     _db
         .collection('users')
         .doc(_firebaseAuth.currentUser.uid)
-        .set({'language': lang}, SetOptions(merge: true));
+        .set({'language': val.toString()}, SetOptions(merge: true));
   }
 
-  void getLanguage(String lang) {
-    if (lang == "English") {
-      _currentLang = 1;
-    } else if (lang == "Français") {
-      _currentLang = 2;
-    } else if (lang == "Espanhol") {
-      _currentLang = 3;
-    } else if (lang == "Português") {
-      _currentLang = 4;
+  void getLanguage(String dblang) {
+    
+    if (dblang == null) {
+      if (Get.locale.languageCode == 'pt') {
+        lang = 4;
+        _currentLang = "portuguese";
+      } else if (Get.locale.languageCode == 'en') {
+        lang = 1;
+        _currentLang = 'english';
+      }else if (Get.locale.languageCode == 'es') {
+        lang = 3;
+      _currentLang = "spanish";
+      }
+      else if (Get.locale.languageCode == 'fr') {
+        lang = 2;
+      _currentLang = "french";
+      }
+    }
+    if (dblang == "1") {
+      lang = 1;
+      _currentLang = 'english';
+    } else if (dblang == "2") {
+      lang = 2;
+      _currentLang = "french";
+    } else if (dblang == "3") {
+      lang = 3;
+      _currentLang = "spanish";
+    } else if (dblang == "4") {
+      lang = 4;
+      _currentLang = "portuguese";
     }
   }
+  // void getLanguage(String lang) {
+  //   if (lang == "English") {
+  //     _currentLang = 1;
+  //   } else if (lang == "Français") {
+  //     _currentLang = 2;
+  //   } else if (lang == "Espanhol") {
+  //     _currentLang = 3;
+  //   } else if (lang == "Português") {
+  //     _currentLang = 4;
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +107,9 @@ class LanguagesPageState extends State<LanguagesPage> {
 // if (snapshot.hasError) {
 //           return Text("Something went wrong");
 //         }
-          if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return Loading();
+          } else if (snapshot.hasData) {
             Map<String, dynamic> data = snapshot.data.data();
             // return Text("Full Name: ${data['full_name']} ${data['last_name']}");
             getLanguage(data['language']);
@@ -81,7 +119,7 @@ class LanguagesPageState extends State<LanguagesPage> {
                 centerTitle: true,
                 elevation: 1,
                 title: Text(
-                  "Languages",
+                  "language".tr,
                   style: TextStyle(color: Colors.green),
                 ),
                 leading: IconButton(
@@ -99,20 +137,27 @@ class LanguagesPageState extends State<LanguagesPage> {
                 children: _buttonOptions
                     .map((langVal) => RadioListTile(
                           activeColor: Colors.red[300],
-                          groupValue: _currentLang,
-                          title: Text(langVal._value),
+                          groupValue: lang,
+                          title: Text(langVal._value.tr),
                           value: langVal._key,
                           onChanged: (val) {
-                            _updateLanguage(val);
                             setState(() {
                               debugPrint('VAL = $val');
-                              _currentLang = val;
+                              lang = val;
+                              // _currentLang = val;
                             });
+                            //                           WidgetsBinding.instance
+                            // .addPostFrameCallback((_) => setState(() {
+                            // lang = val;
+                            // }));
+                            _updateLanguage(val);
                           },
                         ))
                     .toList(),
               ),
             );
+          } else if (snapshot.hasError) {
+            // Manage error
           }
           return Container(
             color: Colors.white,
