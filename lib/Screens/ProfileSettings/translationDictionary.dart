@@ -39,10 +39,11 @@ class Messages extends Translations {
               'It is important for you to review and agree to the terms of use and sales before opening or using any Majel Technologies product. If you disagree with these terms then you may not the right to use our products and services. Our service and website are depending on third parties, Majel has limited control and assumes no responsibility for loss of connections between the devices or itself. The connection range was tested but it is depending on your location which may be affected or interfere by other devices and/or objects that cause weakness or loss of connection. Majel has no control over these scenarios and assumed Majel is not liable for indirect damages, incidental or consequential damages such as losing the tracking pet or injuries. Majel is also not liable for abnormal use or improper use of I-AT for a purpose other than those for which it is indented. User name and password are restricted confidential and protect the information, they must not be shared with anyone. Majel is not liable for any kind of breaching this information including online hacking. We suggest to resetting the password at least once a year. These terms and conditions shall be governed by the laws of Canada law, without giving effect to any conflict of laws principles that may provide the application of the law of another jurisdiction. We reserve to have the full right to revise our software, product, terms, and conditions without notice. \n\n\n Majel Technologies',
           'terms_service': 'Terms of Service',
           'privacy_policy': 'Privacy Policy',
-           'english': 'English',
+          'english': 'English',
           'portuguese': 'Portuguese',
           'french': 'French',
-          'spanish': 'Spanish'
+          'spanish': 'Spanish',
+          'offline_map': 'Offline Map'
         },
         'pt_BR': {
           'entry_message':
@@ -83,7 +84,8 @@ class Messages extends Translations {
           'english': 'Inglês',
           'portuguese': 'Português',
           'french': 'Francês',
-          'spanish': 'Espanhol'
+          'spanish': 'Espanhol',
+          'offline_map': 'Mapa Offline'
         }
       };
 }

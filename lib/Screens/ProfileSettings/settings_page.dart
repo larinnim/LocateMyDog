@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/change_email.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/languages.dart';
+import 'package:flutter_maps/Screens/ProfileSettings/offline_regions.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/reset_password.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
@@ -142,6 +143,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     // ),
                     // buildAccountOptionRow(context, "Social"),
                     buildAccountOptionRow(context, "privacy_security"),
+                    buildOfflineMapSelection(context, "offline_map"),
+
                     SizedBox(
                       height: 40,
                     ),
@@ -314,6 +317,35 @@ class _SettingsPageState extends State<SettingsPage> {
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute(
             builder: (BuildContext context) => LanguagesPage()));
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title.tr,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.grey,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  GestureDetector buildOfflineMapSelection(BuildContext context, String title) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (BuildContext context) => OfflineRegionBody()));
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),

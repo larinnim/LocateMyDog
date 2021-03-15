@@ -191,10 +191,12 @@ class _SignInRegisteredState extends State<SignInRegistered> {
 
       showDialog(
           context: context,
-          child: new AlertDialog(
-            title: new Text("Sign In Error"),
-            content: new Text(siginError),
-          ));
+          builder: (BuildContext context) {
+            new AlertDialog(
+              title: new Text("Sign In Error"),
+              content: new Text(siginError),
+            );
+          });
       print("No user");
       //Remove String
       prefs.remove("siginError");

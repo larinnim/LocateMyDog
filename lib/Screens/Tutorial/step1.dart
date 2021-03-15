@@ -114,10 +114,12 @@ class _Step1State extends State<Step1> {
       if (state == BluetoothState.off) {
         showDialog(
             context: context,
-            child: new AlertDialog(
-              title: new Text("Bluetooth Disconnected"),
-              content: new Text("Please Turn on your Bluetooth"),
-            ));
+            builder: (BuildContext context) {
+              new AlertDialog(
+                title: new Text("Bluetooth Disconnected"),
+                content: new Text("Please Turn on your Bluetooth"),
+              );
+            });
         _isShowingDialog = true;
         //Alert user to turn on bluetooth.
       } else if (state == BluetoothState.on) {
