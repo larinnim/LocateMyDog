@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_maps/Screens/ProfileSettings/offline_regions_section.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:get/get.dart';
 import 'offline_region_map.dart';
@@ -13,7 +14,7 @@ const kGoogleApiKey = 'AIzaSyA7Rxja6yV7o3YdM8O8bPbQV8r3QcNepdY';
 places.GoogleMapsPlaces _places =
     places.GoogleMapsPlaces(apiKey: kGoogleApiKey);
 
-// final String defaultLocale = Get.deviceLocale.toLanguageTag(); 
+// final String defaultLocale = Get.deviceLocale.toLanguageTag();
 
 final LatLngBounds hawaiiBounds = LatLngBounds(
   southwest: const LatLng(17.26672, -161.14746),
@@ -146,7 +147,13 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
 
       print(lat);
       print(lng);
-      
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => OfflineRegionMapSelection(
+            offlineRegion: OfflineMapRegion(LatLng(lat, lng)),
+          ),
+        ),
+      );
     }
   }
 
@@ -177,7 +184,8 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
                     language: Get.locale.languageCode,
                     onError: onError,
                     components: [
-                      places.Component(places.Component.country, Get.deviceLocale.countryCode)
+                      places.Component(places.Component.country,
+                          Get.deviceLocale.countryCode)
                     ]);
                 displayPrediction(p);
                 // showCupertinoDialog(
@@ -430,4 +438,12 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
       ),
     );
   }
+
+  // _goToDownloadMap() {
+  //   Navigator.of(context).push(
+  //     MaterialPageRoute<void>(
+  //       builder: (_) => OfflineRegionMapSelection(offlineRegion: null,),
+  //     ),
+  //   );
+  // }
 }
