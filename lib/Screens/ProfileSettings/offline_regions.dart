@@ -373,7 +373,7 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
   }
 
   _goToMap(OfflineRegionListItem item) {
-    Navigator.of(context).pushReplacement(
+    Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => OfflineRegionMap(item),
       ),
