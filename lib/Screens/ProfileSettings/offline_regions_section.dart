@@ -128,6 +128,11 @@ class _OfflineRegionMapSelectionState extends State<OfflineRegionMapSelection> {
     // });
 
     try {
+      
+      if (mapBounds == null) {
+        mapBounds = await mapController.getVisibleRegion();
+      }
+
       final downloadingRegion = await downloadOfflineRegion(
         OfflineRegionDefinition(
           bounds: mapBounds,
@@ -137,6 +142,8 @@ class _OfflineRegionMapSelectionState extends State<OfflineRegionMapSelection> {
         ),
         metadata: {
           'name': 'Map ' + _numberOfRegions.toString(),
+
+          // 'name': 'Map ' + _numberOfRegions.toString(),
         },
         accessToken:
             "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w",

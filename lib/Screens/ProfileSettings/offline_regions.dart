@@ -52,7 +52,8 @@ places.GoogleMapsPlaces _places =
 //   ),
 // ];
 
-final List<String> regionNames = ['Hawaii', 'Santiago', 'Auckland'];
+// final List<String> regionNames = ['Hawaii', 'Santiago', 'Auckland'];
+final List<String> regionNames = [];
 
 class OfflineRegionListItem {
   OfflineRegionListItem({
@@ -66,7 +67,7 @@ class OfflineRegionListItem {
   final OfflineRegionDefinition offlineRegionDefinition;
   final int downloadedId;
   final bool isDownloading;
-  final String name;
+  String name;
   // final int estimatedTiles;
 
   OfflineRegionListItem copyWith({
@@ -117,7 +118,8 @@ class OfflineRegionBody extends StatefulWidget {
 
 class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
   List<OfflineRegionListItem> _items = [];
-
+  bool updatedName = false;
+  String newMapName = '';
   bool isLoading = false;
   @override
   void initState() {
@@ -162,6 +164,8 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
 
   @override
   Widget build(BuildContext context) {
+    final textController = TextEditingController();
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -214,24 +218,63 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
                   icon: Icon(Icons.map),
                   onPressed: () => _goToMap(_items[index]),
                 ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      _items[index].name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
+                InkWell(
+                  onTap: () {
+                    Get.defaultDialog(
+                        title: 'Rename Map',
+                        textConfirm: 'Save',
+                        buttonColor: Colors.red[300],
+                        textCancel: 'Cancel',
+                        onConfirm: () => updateMapName(
+                            _items[index], textController.text, index),
+                        cancelTextColor: Colors.red,
+                        // backgroundColor: Colors.red[200],
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextField(
+                              controller: textController,
+                              keyboardType: TextInputType.text,
+                              maxLines: 1,
+                              decoration: InputDecoration(
+                                  labelText: _items[index].name,
+                                  labelStyle: TextStyle(color: Colors.black),
+                                  hintMaxLines: 1,
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: const BorderSide(
+                                        color: Colors.black, width: 2.0),
+                                    borderRadius: BorderRadius.circular(25.0),
+                                  ),
+                                  border: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Colors.green, width: 4.0))),
+                            ),
+                            SizedBox(
+                              height: 30.0,
+                            ),
+                          ],
+                        ),
+                        radius: 10.0);
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        updatedName ? newMapName : _items[index].name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
                       ),
-                    ),
-                    // Text(
-                    //   'Est. tiles: ${_items[index].estimatedTiles}',
-                    //   style: TextStyle(
-                    //     fontSize: 16,
-                    //   ),
-                    // ),
-                  ],
+                      // Text(
+                      //   'Est. tiles: ${_items[index].estimatedTiles}',
+                      //   style: TextStyle(
+                      //     fontSize: 16,
+                      //   ),
+                      // ),
+                    ],
+                  ),
                 ),
                 const Spacer(),
                 _items[index].isDownloading
@@ -258,6 +301,19 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
     );
   }
 
+  void updateMapName(
+      OfflineRegionListItem item, String mapName, int index) async {
+    await updateOfflineRegionMetadata(item.downloadedId, {'name': mapName},
+        accessToken:
+            "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w");
+    setState(() {
+      _items[index].name = mapName;
+      // updatedName = true;
+      // newMapName = mapName;
+    });
+    Navigator.pop(context);
+  }
+
   void _updateListOfRegions() async {
     List<OfflineRegion> offlineRegions = await getListOfRegions(
         accessToken:
@@ -276,6 +332,7 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
         isDownloading: false,
         name: region.metadata['name'],
       ));
+      regionNames.add(region.metadata['name']);
     }
     // setState(() {
     // offlineRegions.map((region) {

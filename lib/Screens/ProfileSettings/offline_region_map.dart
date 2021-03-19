@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'dart:math';
 
@@ -14,7 +17,6 @@ class OfflineRegionMap extends StatefulWidget {
 }
 
 class _OfflineRegionMapState extends State<OfflineRegionMap> {
-
   MapboxMapController controller;
   int symbolCount = 1;
 
@@ -55,30 +57,33 @@ class _OfflineRegionMapState extends State<OfflineRegionMap> {
   }
 
   void _add() {
-      LatLng geometry = LatLng(
-         _center.latitude,
-        _center.longitude,
-        // _center.latitude + sin(symbolCount * pi / 6.0) / 20.0,
-        // _center.longitude + cos(symbolCount * pi / 6.0) / 20.0,
-      );
-      controller.addSymbol(
-          SymbolOptions(
-            geometry: geometry,
-            iconImage: 'airport-15',
-            fontNames: ['DIN Offc Pro Bold', 'Arial Unicode MS Regular'],
-            textField: 'Airport',
-            textSize: 12.5,
-            textOffset: Offset(0, 0.8),
-            textAnchor: 'top',
-            textColor: '#000000',
-            textHaloBlur: 1,
-            textHaloColor: '#ffffff',
-            textHaloWidth: 0.8,
-          ),
-          // {'count': availableNumbers.first}
-          );
-    
+    LatLng geometry = LatLng(
+      _center.latitude,
+      _center.longitude,
+      // _center.latitude + sin(symbolCount * pi / 6.0) / 20.0,
+      // _center.longitude + cos(symbolCount * pi / 6.0) / 20.0,
+    );
+    controller.addSymbol(SymbolOptions(
+      geometry: geometry,
+      iconImage: "assets/images/dogpin_purple.png",
+    ));
+    controller.addSymbol(SymbolOptions(
+      geometry: LatLng(_center.latitude + sin(2 * pi / 6.0) / 20.0,  _center.longitude + cos(2 * pi / 6.0) / 20.0),
+      iconImage: "assets/images/dogpin_green.png",
+    ));controller.addSymbol(SymbolOptions(
+      geometry: LatLng(_center.latitude + sin(3 * pi / 6.0) / 20.0,  _center.longitude + cos(3 * pi / 6.0) / 20.0),
+      iconImage: "assets/images/dogpin_red.png",
+    ));controller.addSymbol(SymbolOptions(
+      geometry: LatLng(_center.latitude + sin(4 * pi / 6.0) / 20.0,  _center.longitude + cos(4 * pi / 6.0) / 20.0),
+      iconImage: "assets/images/dogpin_orange.png",
+    ));
+  }
+
+  /// Adds an asset image to the currently displayed style
+  Future<void> addImageFromAsset(String name, String assetName) async {
+    final ByteData bytes =
+        await rootBundle.load("assets/images/dogpin_purple.png");
+    final Uint8List list = bytes.buffer.asUint8List();
+    return controller.addImage(name, list);
   }
 }
-
-
