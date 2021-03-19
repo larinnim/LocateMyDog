@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
+import 'package:flutter_maps/Screens/ProfileSettings/offline_regions.dart';
 import 'package:flutter_maps/Services/Radar.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -167,7 +168,8 @@ class _MapLocationState extends State<MapLocation> {
                                     onPressed: () {
                                       Navigator.push(context,
                                           MaterialPageRoute(builder: (context) {
-                                        return Radar();
+                                        // return Radar();
+                                        return OfflineRegionBody();
                                       }));
                                     },
                                   )
@@ -258,7 +260,8 @@ class _MapLocationState extends State<MapLocation> {
                                                     Navigator.push(context,
                                                         MaterialPageRoute(
                                                             builder: (context) {
-                                                      return Radar();
+                                                      // return Radar();
+                                                      return OfflineRegionBody();
                                                     }));
                                                   },
                                                 )
@@ -291,7 +294,6 @@ class _MapLocationState extends State<MapLocation> {
                   Text(
                       'You are offline. Please connect the gateway to WiFi or Bluetooth to continue'),
                 ],
-              ))
-              );
+              )));
   }
 }

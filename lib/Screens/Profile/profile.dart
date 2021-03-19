@@ -15,6 +15,7 @@ import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
 import 'package:flutter_maps/Screens/Authenticate/home_sigin_widget.dart';
 import 'package:flutter_maps/Screens/Fence/Geofence.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
+import 'package:flutter_maps/Screens/ProfileSettings/offline_regions.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/settings_page.dart';
 import 'package:flutter_maps/Services/Radar.dart';
 import 'package:flutter_maps/Services/bluetooth_conect.dart';
@@ -257,18 +258,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                     ?
                                                     // _auth.currentUser.photoURL.contains('facebook') == false
                                                     !_auth.currentUser.photoURL
-                                                                .contains('facebook')
-                                                                        //  ||
-                                                            // socialSiginSingleton
-                                                            //         .facebookToken ==
-                                                            //     "" ||
-                                                            // socialSiginSingleton
-                                                            //         .isSocialLogin ==
-                                                            //     false
+                                                            .contains(
+                                                                'facebook')
+                                                        //  ||
+                                                        // socialSiginSingleton
+                                                        //         .facebookToken ==
+                                                        //     "" ||
+                                                        // socialSiginSingleton
+                                                        //         .isSocialLogin ==
+                                                        //     false
                                                         ? _auth.currentUser
                                                             .photoURL
-                                                        : 
-                                                        _auth.currentUser
+                                                        : _auth.currentUser
                                                                 .photoURL +
                                                             "?height=500&access_token=" +
                                                             box.read('token')
@@ -341,7 +342,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                              builder: (context) => Radar()),
+                                              builder: (context) =>
+                                                  OfflineRegionBody()),
+
+                                          // builder: (context) => Radar()),
                                         );
                                       }
                                     }
