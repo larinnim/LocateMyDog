@@ -40,7 +40,7 @@ class UserController {
     // _authRepo.updateDisplayName(displayName);
   }
 
-  Future<void> signInWithEmailAndPassword(
+  Future<AppUser> signInWithEmailAndPassword(
       {String email, String password}) async {
     _currentUser = await _authRepo.signInWithEmailAndPassword(
         email: email, password: password);
@@ -48,6 +48,8 @@ class UserController {
     if (_currentUser != null) {
       _currentUser.avatarUrl = await getDownloadUrl();
     }
+
+    return _currentUser;
   }
 
   Future<void> signInWithFacebook() async {
@@ -71,7 +73,7 @@ class UserController {
 
   // Future<void> signInWithGoogle() async {
   //   _currentUser = await _authRepo.signInWithGoogle().then((value) {
-     
+
   //     // return value;
   //   }).catchError((error) {
 

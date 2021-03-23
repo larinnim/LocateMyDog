@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_maps/Providers/SocialSignin.dart';
 import 'package:flutter_maps/Screens/Authenticate/signed.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
@@ -44,9 +45,11 @@ class _SignInRegisteredState extends State<SignInRegistered> {
 
   void getSecureStorage() async {
     final isUsingBio = await storage.read(key: 'usingBiometric');
-    setState(() {
-      userHasTouchID = isUsingBio == 'true';
-    });
+    if (this.mounted) {
+      setState(() {
+        userHasTouchID = isUsingBio == 'true';
+      });
+    }
   }
 
   void authenticate() async {
@@ -55,26 +58,67 @@ class _SignInRegisteredState extends State<SignInRegistered> {
       List<BiometricType> availableBiometrics =
           await auth.getAvailableBiometrics();
 
-      if (Platform.isIOS) {
+      if (Platform.isIOS || Platform.isAndroid) {
         if (availableBiometrics.contains(BiometricType.face)) {
           //Face ID
-          final authenticated = await auth.authenticateWithBiometrics(
-              localizedReason: 'Enable Face ID to sign in more easily');
-          if (authenticated) {
-            final userStoredEmail = await storage.read(key: 'email');
-            final userStoredPassword = await storage.read(key: 'password');
+          try {
+            final authenticated = await auth.authenticateWithBiometrics(
+              localizedReason: 'Use faceID to authenticate',
+              useErrorDialogs: true,
+              stickyAuth: true,
+            );
 
-            _signIn(em: userStoredEmail, pw: userStoredPassword);
+            if (authenticated) {
+              final userStoredEmail = await storage.read(key: 'email');
+              final userStoredPassword = await storage.read(key: 'password');
+              if (this.mounted) {
+                if (userStoredEmail == null || userStoredPassword == null) {
+                  setState(() {
+                    _useTouchID = false;
+                    userHasTouchID = false;
+                    storage.write(key: 'usingBiometric', value: 'false');
+                  });
+                }
+
+                _signIn(em: userStoredEmail, pw: userStoredPassword);
+              }
+              // if (!mounted) return;
+            }
+          } on PlatformException catch (e) {
+            print(e);
           }
         } else if (availableBiometrics.contains(BiometricType.fingerprint)) {
           //Touch ID
+          try {
+            final authenticated = await auth.authenticateWithBiometrics(
+              localizedReason: 'Scan your fingerprint to authenticate',
+              useErrorDialogs: true,
+              stickyAuth: true,
+            );
+
+            if (authenticated) {
+              final userStoredEmail = await storage.read(key: 'email');
+              final userStoredPassword = await storage.read(key: 'password');
+              if (this.mounted) {
+                if (userStoredEmail == null || userStoredPassword == null) {
+                  setState(() {
+                    _useTouchID = false;
+                    userHasTouchID = false;
+                    storage.write(key: 'usingBiometric', value: 'false');
+                  });
+                }
+
+                _signIn(em: userStoredEmail, pw: userStoredPassword);
+              }
+              // if (!mounted) return;
+            }
+          } on PlatformException catch (e) {
+            print(e);
+          }
         }
       }
-    } else {
-      print('cant check');
     }
   }
-
   // void _signInGoogle() async {
   //   await locator.get<UserController>().signInWithGoogle().then((value) {
   //     Navigator.of(context).push(MaterialPageRoute(
@@ -101,16 +145,56 @@ class _SignInRegisteredState extends State<SignInRegistered> {
     await locator
         .get<UserController>()
         .signInWithEmailAndPassword(email: em, password: pw)
-        .then((value) {
+        .then((currentUser) async {
       socialSiginSingleton.isSocialLogin = false;
 
-      Navigator.of(context).push(MaterialPageRoute(
+      if (currentUser == null) {
+        final prefs = await SharedPreferences.getInstance();
+        final signinError = prefs.getString("siginError");
+        Get.dialog(SimpleDialog(
+          title: Text(
+            "Sign in Error",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          titlePadding: EdgeInsets.symmetric(
+            horizontal: 30,
+            vertical: 20,
+          ),
+          shape: RoundedRectangleBorder(
+              borderRadius: new BorderRadius.circular(10.0)),
+          children: [
+            Text(signinError,
+                textAlign: TextAlign.center, style: TextStyle(fontSize: 20.0)),
+          ],
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 40,
+            vertical: 20,
+          ),
+        ));
+        return;
+      }
+      Navigator.of(context).pushReplacement(MaterialPageRoute(
         // builder: (context) => Step1(), ENABLE when hardware is ready
-        builder: (context) => ProfileScreen(),
+        builder: (context) => ProfileScreen(
+          password: password,
+          wantsTouchId: _useTouchID,
+        ),
       ));
     }).catchError((error, stackTrace) {
       // error is SecondError
-      print("outer: $error");
+      print("_signIn: $error");
+      Get.dialog(SimpleDialog(
+        title: Text(
+          "Sign In Error",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        shape: RoundedRectangleBorder(
+            borderRadius: new BorderRadius.circular(10.0)),
+        children: [
+          Text("Please type your password", style: TextStyle(fontSize: 20.0))
+        ],
+      ));
     });
 
     if (FirebaseAuth.instance.currentUser != null) {
@@ -125,81 +209,72 @@ class _SignInRegisteredState extends State<SignInRegistered> {
       // ;
       // prefs.getString('endDeviceSSID') ?? '';
 
-      await FirebaseFirestore.instance
-          .collection('locateDog')
-          .doc(FirebaseAuth.instance.currentUser.uid)
-          .get()
-          .then((doc) {
-        if (doc.exists) {
-          FirebaseFirestore.instance
-            ..collection('locateDog')
-                .doc(FirebaseAuth.instance.currentUser.uid)
-                .collection('gateway')
-                .limit(1)
-                .get()
-                .then((sub) {
-              if (sub.docs.length > 0) {
-                FirebaseFirestore.instance
-                  ..collection('locateDog')
-                      .doc(FirebaseAuth.instance.currentUser.uid)
-                      .collection('endDevice')
-                      .limit(1)
-                      .get()
-                      .then((endSub) {
-                    if (endSub.docs.length > 0) {
-                      print('Gatway Collection and EndDevice exists!');
-                      // obtain shared preferences
-                      Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (context) {
-                        return Signed(
-                          // user: authResult.user,
-                          user: FirebaseAuth.instance.currentUser,
-                          wantsTouchID: _useTouchID,
-                          password: password,
-                        );
-                      }));
-                    }
-                  });
-              } else {
-                Navigator.of(context).push(MaterialPageRoute(
-                  // builder: (context) => Step1(), ENABLE when hardware is ready
-                  builder: (context) => ProfileScreen(),
-                ));
-              }
-            });
-        }
-      });
-      // var docResult = await FirebaseFirestore.instance
-      //     .collection("locateDog")
-      //     .doc(FirebaseAuth.instance.currentUser.uid)
-      //     .collection('sub-collection')
-      //     .limit(1)
-      //     .get()
-      //     .then(sub => {
-      //     if (sub.docs.length > 0) {
-      //       console.log('usernames subcollection exists!');
+      //   await FirebaseFirestore.instance
+      //       .collection('locateDog')
+      //       .doc(FirebaseAuth.instance.currentUser.uid)
+      //       .get()
+      //       .then((doc) {
+      //     if (doc.exists) {
+      //       FirebaseFirestore.instance
+      //         ..collection('locateDog')
+      //             .doc(FirebaseAuth.instance.currentUser.uid)
+      //             .collection('gateway')
+      //             .limit(1)
+      //             .get()
+      //             .then((sub) {
+      //           if (sub.docs.length > 0) {
+      //             FirebaseFirestore.instance
+      //               ..collection('locateDog')
+      //                   .doc(FirebaseAuth.instance.currentUser.uid)
+      //                   .collection('endDevice')
+      //                   .limit(1)
+      //                   .get()
+      //                   .then((endSub) {
+      //                 if (endSub.docs.length > 0) {
+      //                   print('Gatway Collection and EndDevice exists!');
+      //                   // obtain shared preferences
+      //                   Navigator.pushReplacement(context,
+      //                       MaterialPageRoute(builder: (context) {
+      //                     return Signed(
+      //                       // user: authResult.user,
+      //                       user: FirebaseAuth.instance.currentUser,
+      //                       wantsTouchID: _useTouchID,
+      //                       password: password,
+      //                     );
+      //                   }));
+      //                 }
+      //               });
+      //           } else {
+      //             Navigator.of(context).push(MaterialPageRoute(
+      //               // builder: (context) => Step1(), ENABLE when hardware is ready
+      //               builder: (context) => ProfileScreen(),
+      //             ));
+      //           }
+      //         });
       //     }
       //   });
-    } else {
-      final prefs = await SharedPreferences.getInstance();
+      // } else {
+      //   final prefs = await SharedPreferences.getInstance();
 
-      // Try reading data from the counter key. If it doesn't exist, return 0.
-      final siginError = prefs.getString("siginError");
+      //   // Try reading data from the counter key. If it doesn't exist, return 0.
+      //   final siginError = prefs.getString("siginError");
 
-      bool checkValue = prefs.containsKey('value');
-      print("Is there any key? " + checkValue.toString());
-
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            new AlertDialog(
-              title: new Text("Sign In Error"),
-              content: new Text(siginError),
-            );
-          });
-      print("No user");
-      //Remove String
-      prefs.remove("siginError");
+      //   bool checkValue = prefs.containsKey('value');
+      //   print("Is there any key? " + checkValue.toString());
+      //   Get.dialog(SimpleDialog(
+      //     title: Text(
+      //       "Sign In Error",
+      //       style: TextStyle(fontWeight: FontWeight.bold),
+      //     ),
+      //     shape: RoundedRectangleBorder(
+      //         borderRadius: new BorderRadius.circular(10.0)),
+      //     children: [
+      //       Text("Please type your password", style: TextStyle(fontSize: 20.0))
+      //     ],
+      //   ));
+      //   print("No user");
+      //   //Remove String
+      //   prefs.remove("siginError");
     }
   }
 
@@ -331,9 +406,11 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                                         activeColor: Colors.orange,
                                         value: _useTouchID,
                                         onChanged: (newValue) {
-                                          setState(() {
-                                            _useTouchID = newValue;
-                                          });
+                                          if (this.mounted) {
+                                            setState(() {
+                                              _useTouchID = newValue;
+                                            });
+                                          }
                                         },
                                       ),
                                       Text('Use TouchID',
