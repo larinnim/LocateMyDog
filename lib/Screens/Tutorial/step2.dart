@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+// import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Screens/Tutorial/step3.dart';
@@ -217,34 +217,53 @@ class _Step2State extends State<Step2> {
 
   Future<void> submitAction() async {
     // var wifiData = '${wifiNameController.text},${wifiPasswordController.text}';
-    writeUserID();//Send UserID as well
+    writeUserID(); //Send UserID as well
     var wifiData = '$_wifiName,$password';
-    writeWIFI(wifiData);
+    Timer(Duration(seconds: 3), () {
+      writeWIFI(wifiData);
+    });
     timestampWifiLocal = DateTime.now();
     var document = await FirebaseFirestore.instance
         .collection('locateDog')
         .doc(FirebaseAuth.instance.currentUser.uid)
         .get()
         .then((value) {
+
+    FirestoreSetUp.instance.gateway = value.data()["gateway"];
+    //after 2 seconds verify if timestamp of Wifi is newer on the database
+    // Future.delayed(const Duration(milliseconds: 2000), () {
+      DateTime tempDatetime;
+      tempDatetime = new DateTime.fromMicrosecondsSinceEpoch(
+          value.data()['WifiTimestamp'].microsecondsSinceEpoch);
+      print("The datetime : " + tempDatetime.toString());
+      if (tempDatetime.isAfter(timestampWifiLocal)) {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => Step3(),
+        ));
+      }
+    // });
+      // if (value.data()['Sender1'] != null ){
+
+      // }
       // print("BREED: " + value.data()["breed"]);
     }).catchError((e) {
       print("Error retrieving from Firebase $e");
     });
 
-    //   FirebaseFirestore.instance.collection("locateDog").get().then((querySnapshot) {
-    //   querySnapshot.docs.forEach((result) {
-    //     print(result.data());
-    //   });
+
+    // FirestoreSetUp.instance.gateway = document.data["gateway"];
+    // //after 2 seconds verify if timestamp of Wifi is newer on the database
+    // Future.delayed(const Duration(milliseconds: 2000), () {
+    //   DateTime tempDatetime;
+    //   tempDatetime = new DateTime.fromMicrosecondsSinceEpoch(
+    //       document.data['WiFiTimestamp']);
+    //   print("The datetime : " + tempDatetime.toString());
+    //   if (tempDatetime.isAfter(timestampWifiLocal)) {
+    //     Navigator.of(context).push(MaterialPageRoute(
+    //       builder: (context) => Step3(),
+    //     ));
+    //   }
     // });
-    FirestoreSetUp.instance.gateway = document.data["gateway"];
-    //after 2 seconds verify if timestamp of Wifi is newer on the database
-    Future.delayed(const Duration(milliseconds: 2000), () {
-      if (document.data['wifiTimestamp'].isAfter(timestampWifiLocal)) {
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => Step3(),
-        ));
-      }
-    });
   }
 
   void loadData() async {
@@ -299,6 +318,19 @@ class _Step2State extends State<Step2> {
         .read<BleModel>()
         .characteristics
         .elementAt(3)
+        .write(bytes); //Write UserID to ESP32
+  }
+
+  Future<void> writeCountryCode() async {
+    if (context.read<BleModel>().characteristics.elementAt(4) == null)
+      return; //UserID Characteristic
+
+    List<int> bytes = utf8.encode(Localizations.localeOf(context).toString());
+
+    await context
+        .read<BleModel>()
+        .characteristics
+        .elementAt(4)
         .write(bytes); //Write UserID to ESP32
   }
 }

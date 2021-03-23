@@ -47,7 +47,8 @@ class Avatar extends StatelessWidget {
             //   ),
              CircleAvatar(
                 radius: kSpacingUnit.w * 5,
-                child: Icon(Icons.photo_camera),
+                backgroundColor: Colors.lightGreen[100],
+                child: Icon(Icons.photo_camera, color: Colors.black,),
               )
             : CircleAvatar(
               backgroundColor: Colors.transparent,

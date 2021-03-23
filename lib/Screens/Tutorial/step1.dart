@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+// import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_maps/Screens/Tutorial/step2.dart';
 import 'package:flutter_maps/Screens/Tutorial/step4.dart';
@@ -114,10 +114,12 @@ class _Step1State extends State<Step1> {
       if (state == BluetoothState.off) {
         showDialog(
             context: context,
-            child: new AlertDialog(
-              title: new Text("Bluetooth Disconnected"),
-              content: new Text("Please Turn on your Bluetooth"),
-            ));
+            builder: (BuildContext context) {
+              new AlertDialog(
+                title: new Text("Bluetooth Disconnected"),
+                content: new Text("Please Turn on your Bluetooth"),
+              );
+            });
         _isShowingDialog = true;
         //Alert user to turn on bluetooth.
       } else if (state == BluetoothState.on) {

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class WiFiModel extends ChangeNotifier {
@@ -6,6 +7,8 @@ class WiFiModel extends ChangeNotifier {
   int rssi;
   String ssid;
   DateTime timestampWiFi;
+  DateTime wifiConnectedTimestamp;
+
   // DateTime now = DateTime.now();
 
   /// An unmodifiable view of the items in the cart.
@@ -37,9 +40,16 @@ class WiFiModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addTimeStamp(DateTime value) {
+  // void addTimeStamp(DateTime value) {
+  void addTimeStamp(String timeString) {
     //print("addLgn - Line 177");
-    timestampWiFi = value;
+    timestampWiFi = DateTime.parse(timeString);
+    // This call tells the widgets that are listening to this model to rebuild.
+    notifyListeners();
+  }
+
+  void connectionWiFiTimestamp(Timestamp time) {
+    wifiConnectedTimestamp = new DateTime.fromMicrosecondsSinceEpoch(time.microsecondsSinceEpoch);
     // This call tells the widgets that are listening to this model to rebuild.
     notifyListeners();
   }

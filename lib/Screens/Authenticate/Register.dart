@@ -38,20 +38,19 @@ class _RegisterState extends State<Register> {
       await DatabaseService(uid: authResult.user.uid)
           .updateUserData(dogname, ownername, dogbreed);
       print('yay! ${authResult.user}');
-      
+
       // Navigator.of(context).push(MaterialPageRoute(
       //     builder: (context) => Step1(),
       // ));
       PushNotificationsManager().init();
 
       Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => ProfileScreen(),
+        builder: (context) => ProfileScreen(),
       ));
 
       // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
       //   return Container(color: Colors.yellow, child: ProfileScreen());
       // }));
-
     }).catchError((err) {
       print(err);
       if (err.code == 'ERROR_EMAIL_ALREADY_IN_USE') {
@@ -252,7 +251,6 @@ class _RegisterState extends State<Register> {
                         borderSide: BorderSide(color: Colors.white))),
                 style: TextStyle(color: Colors.white, fontSize: 22.0),
               ),
-             
               SizedBox(height: 12.0),
               Row(children: <Widget>[
                 Checkbox(
@@ -276,12 +274,19 @@ class _RegisterState extends State<Register> {
                       onTap: () {
                         widget.cancelBackToHome();
                       },
-                      child: Text(
-                        'CANCEL',
-                        style: TextStyle(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                            vertical: 16.0, horizontal: 34.0),
+                        decoration: BoxDecoration(
                             color: Colors.white,
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.bold),
+                            borderRadius: BorderRadius.circular(30.0)),
+                        child: Text(
+                          'CANCEL',
+                          style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
                     SizedBox(width: 38.0),
@@ -304,15 +309,15 @@ class _RegisterState extends State<Register> {
                           child: Text(
                             'SAVE',
                             style: TextStyle(
-                                color: Colors.red,
+                                color: Colors.lightGreen,
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold),
                           )),
                     )
                   ]),
-                  Padding(
-             padding: EdgeInsets.only(
-             bottom: MediaQuery.of(context).viewInsets.bottom))
+              Padding(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom))
             ],
           ),
         ),

@@ -125,7 +125,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                     child: Text(
                       'SAVE',
                       style: TextStyle(
-                          color: Colors.red,
+                          color: Colors.lightGreen,
                           fontSize: 20,
                           fontWeight: FontWeight.bold),
                     )),
