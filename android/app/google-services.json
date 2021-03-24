@@ -8,6 +8,42 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:687212317780:android:0d6b9c621484c1985cb1c1",
+        "android_client_info": {
+          "package_name": "com.majeltechnologies.iat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "687212317780-ou1qraf0c6drfnmarctobocmvsjdkldf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUH39IOpdGm5OXAzGh_P6DyK7yL6Unc8Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "687212317780-ou1qraf0c6drfnmarctobocmvsjdkldf.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "687212317780-d0m6lniofc24nu6g0mqmss74g1u450cc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.retroportalstudio.www.flutterMaps"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:687212317780:android:1dddf8f2209f34795cb1c1",
         "android_client_info": {
           "package_name": "com.retroportalstudio.www.flutter_maps"

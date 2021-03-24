@@ -33,6 +33,8 @@ class SignInRegistered extends StatefulWidget {
 class _SignInRegisteredState extends State<SignInRegistered> {
   final LocalAuthentication auth = LocalAuthentication();
   final FlutterSecureStorage storage = FlutterSecureStorage();
+      SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
+
   bool _useTouchID = false;
   bool userHasTouchID = false;
   String email, password;
@@ -140,7 +142,6 @@ class _SignInRegisteredState extends State<SignInRegistered> {
   // }
 
   void _signIn({String em, String pw}) async {
-    SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
 
     await locator
         .get<UserController>()
@@ -318,7 +319,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                   ],
                 ));
                 return Container();
-              } else if (snapshot.hasData) {
+              } else if (snapshot.hasData && socialSiginSingleton.isSocialLogin) {
                 WidgetsBinding.instance.addPostFrameCallback((_) =>
                     Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (context) {
@@ -345,6 +346,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                           SizedBox(height: 12.0),
                           TextField(
                             onChanged: (textVal) {
+                              if (!mounted) return;
                               setState(() {
                                 email = textVal;
                               });
@@ -366,6 +368,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                           SizedBox(height: 20.0),
                           TextField(
                             onChanged: (textVal) {
+                              if (!mounted) return;
                               setState(() {
                                 password = textVal;
                               });
