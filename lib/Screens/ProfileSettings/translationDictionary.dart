@@ -43,7 +43,11 @@ class Messages extends Translations {
           'portuguese': 'Portuguese',
           'french': 'French',
           'spanish': 'Spanish',
-          'offline_map': 'Offline Map'
+          'offline_map': 'Offline Map',
+          'rounded_geofence' : 'Rounded Geofence',
+          'Kilometre' : 'Kilometre',
+          'Miles' : 'Miles',
+          'Current' : 'Current'
         },
         'pt_BR': {
           'entry_message':
@@ -85,7 +89,11 @@ class Messages extends Translations {
           'portuguese': 'Português',
           'french': 'Francês',
           'spanish': 'Espanhol',
-          'offline_map': 'Mapa Offline'
+          'offline_map': 'Mapa Offline',
+          'rounded_geofence' : 'Cerca Geográfica Circular',
+          'Kilometre' : 'Quilômetro',
+          'Miles' : 'Milhas',
+          'Current' : 'Atual'
         }
       };
 }
