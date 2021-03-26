@@ -43,7 +43,13 @@ class Messages extends Translations {
           'portuguese': 'Portuguese',
           'french': 'French',
           'spanish': 'Spanish',
-          'offline_map': 'Offline Map'
+          'offline_map': 'Offline Map',
+          'kilometer': 'Kilometer',
+          'miles': 'Miles',
+          'current': 'Current',
+          'need_help': 'Need Some help?',
+          'howtouse': 'Don\'t know how to use? Need support?\n',
+          'sendusemail': 'Send us an email: ',
         },
         'pt_BR': {
           'entry_message':
@@ -85,7 +91,13 @@ class Messages extends Translations {
           'portuguese': 'Português',
           'french': 'Francês',
           'spanish': 'Espanhol',
-          'offline_map': 'Mapa Offline'
+          'offline_map': 'Mapa Offline',
+          'kilometer': 'Quilômetro',
+          'miles': 'Milhas',
+          'current': 'Atual',
+          'need_help': 'Precisa de ajuda?',
+          'howtouse': 'Não sabe como utilizar? Precisa de ajuda?',
+          'sendusemail': 'Nos mande um email: ',
         }
       };
 }

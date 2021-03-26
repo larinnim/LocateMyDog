@@ -112,6 +112,7 @@ flutter:
     - assets/images/dogpin_orange.png
     - assets/images/dogpin_red.png
     - assets/images/dogpin_purple.png
+    - assets/images/help.png
     - assets/lottie/devs.jpg
     - assets/lottie/powered_by.png
     - assets/icon/icon.png

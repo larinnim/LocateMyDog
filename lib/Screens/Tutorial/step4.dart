@@ -123,7 +123,7 @@ class _Step4State extends State<Step4> {
         .collection("gateway")
         .doc(FirestoreSetUp.instance.gateway).set({
           "timestamp": ""
-        }).then((value) async => {
+        },  SetOptions(merge: true)).then((value) async => {
   await FirebaseFirestore.instance
     .collection("locateDog")
     .doc(FirebaseAuth.instance.currentUser.uid)
@@ -133,7 +133,7 @@ class _Step4State extends State<Step4> {
       'longitude': 0.0,
       'rssi': 0,
       'ssid': "",
-      "timestamp": ""}).then((value) {
+      "timestamp": ""}, SetOptions(merge: true)).then((value) {
       print("New struture on Firebase");
         Navigator.of(context).push(MaterialPageRoute(
         builder: (context) => ProfileScreen(),

@@ -17,6 +17,7 @@ import 'package:flutter_maps/Screens/Fence/Geofence.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/offline_regions.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/settings_page.dart';
+import 'package:flutter_maps/Screens/help_support.dart';
 import 'package:flutter_maps/Services/Radar.dart';
 import 'package:flutter_maps/Services/bluetooth_conect.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
@@ -83,25 +84,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     //   if (Platform.isIOS || Platform.isAndroid) {
     //     if (availableBiometrics.contains(BiometricType.face) ||
     //         availableBiometrics.contains(BiometricType.fingerprint)) {
-          if (_currentUser != null) {
-            storage.write(key: 'email', value: _auth.currentUser.email);
-            storage.write(key: 'password', value: widget.password);
-            storage.write(key: 'usingBiometric', value: 'true');
-          } 
-          // else {
-          //   // Face ID.
-          //   final authenticated = await localauth.authenticateWithBiometrics(
-          //       localizedReason: 'Enable Face ID to sign in more easily');
-          //   if (authenticated) {
-          //     storage.write(key: 'email', value: _auth.currentUser.email);
-          //     storage.write(key: 'password', value: widget.password);
-          //     storage.write(key: 'usingBiometric', value: 'true');
-          //   }
-          // }
-        // } else if (availableBiometrics.contains(BiometricType.fingerprint)) {
-        //   // Touch ID.
-        // }
-      // }
+    if (_currentUser != null) {
+      storage.write(key: 'email', value: _auth.currentUser.email);
+      storage.write(key: 'password', value: widget.password);
+      storage.write(key: 'usingBiometric', value: 'true');
+    }
+    // else {
+    //   // Face ID.
+    //   final authenticated = await localauth.authenticateWithBiometrics(
+    //       localizedReason: 'Enable Face ID to sign in more easily');
+    //   if (authenticated) {
+    //     storage.write(key: 'email', value: _auth.currentUser.email);
+    //     storage.write(key: 'password', value: widget.password);
+    //     storage.write(key: 'usingBiometric', value: 'true');
+    //   }
+    // }
+    // } else if (availableBiometrics.contains(BiometricType.fingerprint)) {
+    //   // Touch ID.
+    // }
+    // }
     // } else {
     //   print('cant check');
     // }
@@ -164,106 +165,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
     final currentConnectionStatus = Provider.of<ConnectionStatusModel>(context);
     currentConnectionStatus.initConnectionListen();
-    // SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
-
-    // void signOut() async {
-    //   bool isGoogleSignedIn = await GoogleSignIn().isSignedIn();
-    //   bool isFacebookSignedIn = await FacebookLogin().isLoggedIn;
-    //   if (isGoogleSignedIn == true) {
-    //     GoogleSignIn().disconnect();
-    //   } else if (isFacebookSignedIn == true) {
-    //     FacebookLogin().logOut();
-    //   }
-    //   await _firebaseAuth.signOut();
-    // }
-
-    // var profileInfo = Expanded(
-    //   child: Container(
-    //     decoration: BoxDecoration(
-    //         color: Theme.of(context).primaryColor,
-    //         borderRadius: BorderRadius.circular(kSpacingUnit.w * 3)),
-    //     child: Column(
-    //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-    //       children: <Widget>[
-    //         Avatar(
-    //           avatarUrl:
-    //            _currentUser?.avatarUrl == null
-    //               ? _auth.currentUser?.photoURL
-    //               : _currentUser?.avatarUrl,
-    //           onTap: () async {
-    //             File image =
-    //                 await ImagePicker.pickImage(source: ImageSource.gallery);
-
-    //             await locator.get<UserController>().uploadProfilePicture(image);
-
-    //             setState(() {});
-    //           },
-    //         ),
-    //         SizedBox(height: kSpacingUnit.w * 2),
-
-    //         // _firebaseAuth.currentUser != null ?
-    //         Text(
-    //           "Where is  ${_auth.currentUser?.displayName} ?",
-    //           // style: kTitleTextStyle,
-    //           style: TextStyle(fontSize: 18.0),
-    //         ),
-    //         // Text(
-    //         //   "Where is  ${_firebaseAuth.currentUser.displayName} ?",
-    //         //   // style: kTitleTextStyle,
-    //         //   style: TextStyle(fontSize: 18.0),
-    //         // ): Text(""),
-    //       ],
-    //     ),
-    //   ),
-    // );
-    // var header = Row(
-    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    //   crossAxisAlignment: CrossAxisAlignment.start,
-    //   children: <Widget>[
-    //     SizedBox(width: kSpacingUnit.w * 3),
-    //     Expanded(
-    //   child: Container(
-    //     decoration: BoxDecoration(
-    //         color: Theme.of(context).primaryColor,
-    //         borderRadius: BorderRadius.circular(kSpacingUnit.w * 3)),
-    //     child: Column(
-    //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-    //       children: <Widget>[
-    //         Avatar(
-    //           avatarUrl:
-    //            _currentUser?.avatarUrl == null
-    //               ? _auth.currentUser?.photoURL
-    //               : _currentUser?.avatarUrl,
-    //           onTap: () async {
-    //             File image =
-    //                 await ImagePicker.pickImage(source: ImageSource.gallery);
-
-    //             await locator.get<UserController>().uploadProfilePicture(image);
-
-    //             setState(() {});
-    //           },
-    //         ),
-    //         SizedBox(height: kSpacingUnit.w * 2),
-
-    //         // _firebaseAuth.currentUser != null ?
-    //         Text(
-    //           "Where is  ${_auth.currentUser?.displayName} ?",
-    //           // style: kTitleTextStyle,
-    //           style: TextStyle(fontSize: 18.0),
-    //         ),
-    //         // Text(
-    //         //   "Where is  ${_firebaseAuth.currentUser.displayName} ?",
-    //         //   // style: kTitleTextStyle,
-    //         //   style: TextStyle(fontSize: 18.0),
-    //         // ): Text(""),
-    //       ],
-    //     ),
-    //   ),
-    // ),
-    //     SizedBox(width: kSpacingUnit.w * 3),
-    //   ],
-    // );
-
     return Builder(
       builder: (context) {
         return Stack(
@@ -346,18 +247,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         },
                                       ),
                                       SizedBox(height: kSpacingUnit.w * 2),
-
-                                      // _firebaseAuth.currentUser != null ?
-                                      Text(
-                                        "Where is  ${_auth.currentUser?.displayName} ?",
-                                        // style: kTitleTextStyle,
-                                        style: TextStyle(fontSize: 18.0),
-                                      ),
-                                      // Text(
-                                      //   "Where is  ${_firebaseAuth.currentUser.displayName} ?",
-                                      //   // style: kTitleTextStyle,
-                                      //   style: TextStyle(fontSize: 18.0),
-                                      // ): Text(""),
                                     ],
                                   ),
                                 ),
@@ -434,9 +323,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     text: 'geofence'.tr,
                                   ),
                                 ),
-                                ProfileListItem(
-                                  icon: LineAwesomeIcons.question_circle,
-                                  text: 'help_support'.tr,
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                        context,
+                                        new MaterialPageRoute(
+                                            builder: (context) =>
+                                                new HelpSupport()));
+                                  },
+                                  child: ProfileListItem(
+                                    icon: LineAwesomeIcons.question_circle,
+                                    text: 'help_support'.tr,
+                                  ),
                                 ),
                                 InkWell(
                                   onTap: () {

@@ -7,6 +7,7 @@ import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Profile/MapLocation.dart';
 import 'package:flutter_maps/Screens/SplashView.dart';
+import 'package:flutter_maps/Screens/help_support.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -63,6 +64,7 @@ class _MainPageState extends State<MainPage> {
           '/blueMap': (context) => MapLocation(),
           '/wifiConf': (context) => SetWiFiConf(),
           '/authenticate': (context) => Authenticate(),
+          '/helpSupport': (context) => HelpSupport(),
         },
         theme: ThemeData(
           primaryColor: Colors.white,

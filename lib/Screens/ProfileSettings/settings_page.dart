@@ -20,7 +20,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  String _units = "Kilometers";
+  String _units = "kilometer";
 
   void _updateUnits(String unitsChoose) {
     _db
@@ -106,10 +106,10 @@ class _SettingsPageState extends State<SettingsPage> {
                     InkWell(
                       onTap: () {
                         setState(() {
-                          if (_units == "Miles") {
-                            _units = "Kilometers";
+                          if (_units == "miles") {
+                            _units = "kilometer";
                           } else {
-                            _units = "Miles";
+                            _units = "miles";
                           }
                         });
                         _updateUnits(_units);
@@ -127,7 +127,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 color: Colors.grey[600],
                               ),
                             ),
-                            Text(_units != null ? _units : "Kilometers"),
+                            Text(_units != null ? _units.tr : "kilometer".tr),
                           ],
                         ),
                       ),
@@ -208,7 +208,7 @@ class _SettingsPageState extends State<SettingsPage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          title,
+          title.tr,
           style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w500,
@@ -284,10 +284,10 @@ class _SettingsPageState extends State<SettingsPage> {
     return InkWell(
       onTap: () {
         setState(() {
-          if (_units == "Miles") {
-            _units = "Kilometers";
+          if (_units == "miles") {
+            _units = "";
           } else {
-            _units = "Miles";
+            _units = "miles";
           }
         });
         _updateUnits(_units);
@@ -298,7 +298,7 @@ class _SettingsPageState extends State<SettingsPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              title,
+              title.tr,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
