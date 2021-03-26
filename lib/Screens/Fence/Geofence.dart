@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Models/user.dart';
@@ -13,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -37,14 +39,20 @@ class _GeofenceWidgetState extends State<Geofence> {
   AppUser _currentUser = locator.get<UserController>().currentUser;
   CollectionReference locateDogInstance =
       FirebaseFirestore.instance.collection('locateDog');
+  CollectionReference userInstance =
+      FirebaseFirestore.instance.collection('users');
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   bool _isPolygonFence = false;
   bool _isDoNotEnterFence = false;
   Set<Polygon> _polygonsFence = HashSet<Polygon>();
-  List<LatLng> polygonFenceLatLngs = List<LatLng>();
+  List<LatLng> polygonFenceLatLngs = [];
   int _polygonFenceIdCounter = 1;
   Set<Polygon> _doNotEnterFence = HashSet<Polygon>();
-  List<LatLng> dotNotEnterFenceLatLngs = List<LatLng>();
+  List<LatLng> dotNotEnterFenceLatLngs = [];
   int _doNotEnterFenceIdCounter = 1;
+  int _incrementRadius = 5;
+  String _units = 'kilometer';
   // List<Polygon> polygons = <Polygon>[
   //   new Polygon(
   // polygonId: PolygonId('area'),
@@ -63,12 +71,25 @@ class _GeofenceWidgetState extends State<Geofence> {
   @override
   void initState() {
     super.initState();
-    _getCircleRadius();
-    _getInitialLocation();
+    _getRadiusAndUnits();
+    // _getInitialLocation();
     _getCurrentLocation();
   }
 
-  Future<void> _getCircleRadius() async {
+  Future<void> _getRadiusAndUnits() async {
+    await userInstance
+     .doc(_currentUser.uid)
+    .get()
+    .then((DocumentSnapshot documentSnapshot) {
+     setState(() {
+          _units = documentSnapshot['units'];
+          if (_units == 'miles') {
+            _incrementRadius = (_incrementRadius * 0.621371).round();
+          }
+        });
+    });
+   
+
     await locateDogInstance.doc(_currentUser.uid).get().then((value) {
       //  _configuredRadius = value.data()['Geofence'].Circle.radius;
       setState(() {
@@ -109,6 +130,10 @@ class _GeofenceWidgetState extends State<Geofence> {
 
   void _getCurrentLocation() async {
     try {
+      Position position = await GeolocatorPlatform.instance
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    _initialPosition = LatLng(position.latitude, position.longitude);
+
       Uint8List imageData = await getMarker();
       var location = await _locationTracker.getLocation();
       updateMarkerAndCircle(location, imageData);
@@ -136,11 +161,11 @@ class _GeofenceWidgetState extends State<Geofence> {
     }
   }
 
-  void _getInitialLocation() async {
-    Position position = await GeolocatorPlatform.instance
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    _initialPosition = LatLng(position.latitude, position.longitude);
-  }
+  // void _getInitialLocation() async {
+  //   Position position = await GeolocatorPlatform.instance
+  //       .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+  //   _initialPosition = LatLng(position.latitude, position.longitude);
+  // }
 
   void _setPolygonFence() {
     final String polygonVal = 'polygon_id_$_polygonFenceIdCounter';
@@ -194,7 +219,7 @@ class _GeofenceWidgetState extends State<Geofence> {
 
   Column bottonNavigationBuilder(StateSetter mystate) {
     return Column(children: <Widget>[
-                  SizedBox(height: 50),
+      SizedBox(height: 50),
 
       ListTile(
         leading: Icon(Icons.adjust_rounded),
@@ -206,7 +231,12 @@ class _GeofenceWidgetState extends State<Geofence> {
                 children: <Widget>[
                   Text("Rounded Geofence"),
                   SizedBox(height: 5),
-                  Text(' Current: ' + _configuredRadius.toString() + ' meters',
+                  Text(
+                      'current'.tr +
+                          ': ' +
+                          _configuredRadius.toString() +
+                          ' ' +
+                          _units.tr,
                       style: TextStyle(color: Colors.black.withOpacity(0.6))),
                 ]),
             SizedBox(width: 30),
@@ -216,7 +246,8 @@ class _GeofenceWidgetState extends State<Geofence> {
                     icon: Icon(FontAwesomeIcons.plus, size: 20),
                     onPressed: () async {
                       mystate(() {
-                        _configuredRadius += 5; //Increase by 5 meters
+                        _configuredRadius +=
+                            _incrementRadius; //Increase by 5 meters
                       });
                       await DatabaseService(uid: _currentUser.uid)
                           .updateCircleRadius(
@@ -227,7 +258,8 @@ class _GeofenceWidgetState extends State<Geofence> {
                     icon: Icon(FontAwesomeIcons.minus, size: 20),
                     onPressed: () async {
                       mystate(() {
-                        _configuredRadius -= 5; //Increase by 5 meters
+                        _configuredRadius -=
+                            _incrementRadius; //Increase by 5 meters
                       });
                       await DatabaseService(uid: _currentUser.uid)
                           .updateCircleRadius(
@@ -309,10 +341,11 @@ class _GeofenceWidgetState extends State<Geofence> {
         backgroundColor: Colors.grey[100],
         body: Consumer<ConnectionStatusModel>(
             builder: (_, connectionProvider, child) {
-
           return FutureBuilder(
               initialData: false,
-              future: mounted ? connectionStatus.getCurrentStatus() : Future.value(null),
+              future: mounted
+                  ? connectionStatus.getCurrentStatus()
+                  : Future.value(null),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return connectionProvider.connectionStatus ==
@@ -340,8 +373,7 @@ class _GeofenceWidgetState extends State<Geofence> {
                                   'Loading Map...',
                                   style: TextStyle(
                                       fontFamily: 'Avenir-Medium',
-                                      color: Colors.grey[400]
-                                      ),
+                                      color: Colors.grey[400]),
                                 ),
                               ),
                             )
@@ -404,6 +436,14 @@ class _GeofenceWidgetState extends State<Geofence> {
                               //       )
                               //     : new Container()
                             ]);
+                } else {
+                  return Container(
+                    color: Colors.white,
+                    child: SpinKitCircle(
+                      color: Colors.red,
+                      size: 30.0,
+                    ),
+                  );
                 }
               });
         }));

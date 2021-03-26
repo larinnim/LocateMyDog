@@ -8,8 +8,8 @@ class Messages extends Translations {
               'Find your pet and be always happy with your furry friend',
           'sign_in': 'Sign In',
           'already_registered': 'Already Registered? Sign in',
-          'sign_in_google': 'Entre com o Google',
-          'sign_in_facebook': 'Entre com o Facebook',
+          'sign_in_google': 'Sign in with Google',
+          'sign_in_facebook': 'Sign in with Facebook',
           'register': 'Sign Up',
           'map': 'Map',
           'connect': 'Connect',
@@ -43,7 +43,13 @@ class Messages extends Translations {
           'portuguese': 'Portuguese',
           'french': 'French',
           'spanish': 'Spanish',
-          'offline_map': 'Offline Map'
+          'offline_map': 'Offline Map',
+          'kilometer': 'Kilometer',
+          'miles': 'Miles',
+          'current': 'Current',
+          'need_help': 'Need Some help?',
+          'howtouse': 'Don\'t know how to use? Need support?\n',
+          'sendusemail': 'Send us an email: ',
         },
         'pt_BR': {
           'entry_message':
@@ -85,7 +91,13 @@ class Messages extends Translations {
           'portuguese': 'Português',
           'french': 'Francês',
           'spanish': 'Espanhol',
-          'offline_map': 'Mapa Offline'
+          'offline_map': 'Mapa Offline',
+          'kilometer': 'Quilômetro',
+          'miles': 'Milhas',
+          'current': 'Atual',
+          'need_help': 'Precisa de ajuda?',
+          'howtouse': 'Não sabe como utilizar? Precisa de ajuda?',
+          'sendusemail': 'Nos mande um email: ',
         }
       };
 }
