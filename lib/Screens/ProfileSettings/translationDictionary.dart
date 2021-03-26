@@ -8,8 +8,8 @@ class Messages extends Translations {
               'Find your pet and be always happy with your furry friend',
           'sign_in': 'Sign In',
           'already_registered': 'Already Registered? Sign in',
-          'sign_in_google': 'Entre com o Google',
-          'sign_in_facebook': 'Entre com o Facebook',
+          'sign_in_google': 'Sign in with Google',
+          'sign_in_facebook': 'Sign in with Facebook',
           'register': 'Sign Up',
           'map': 'Map',
           'connect': 'Connect',
@@ -43,11 +43,7 @@ class Messages extends Translations {
           'portuguese': 'Portuguese',
           'french': 'French',
           'spanish': 'Spanish',
-          'offline_map': 'Offline Map',
-          'rounded_geofence' : 'Rounded Geofence',
-          'Kilometre' : 'Kilometre',
-          'Miles' : 'Miles',
-          'Current' : 'Current'
+          'offline_map': 'Offline Map'
         },
         'pt_BR': {
           'entry_message':
@@ -89,11 +85,7 @@ class Messages extends Translations {
           'portuguese': 'Português',
           'french': 'Francês',
           'spanish': 'Espanhol',
-          'offline_map': 'Mapa Offline',
-          'rounded_geofence' : 'Cerca Geográfica Circular',
-          'Kilometre' : 'Quilômetro',
-          'Miles' : 'Milhas',
-          'Current' : 'Atual'
+          'offline_map': 'Mapa Offline'
         }
       };
 }

@@ -84,7 +84,8 @@ class AuthRepo {
           email: email, password: password);
       return AppUser(authResult.user.uid,
           displayName: authResult.user.displayName);
-    } catch (error) {
+    } 
+    catch (error) {
       switch (error.code) {
         case "invalid-email":
           errorMessage = "Your email address appears to be malformed.";

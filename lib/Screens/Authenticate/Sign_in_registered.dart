@@ -33,7 +33,7 @@ class SignInRegistered extends StatefulWidget {
 class _SignInRegisteredState extends State<SignInRegistered> {
   final LocalAuthentication auth = LocalAuthentication();
   final FlutterSecureStorage storage = FlutterSecureStorage();
-      SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
+  final _passwordField = TextEditingController();
 
   bool _useTouchID = false;
   bool userHasTouchID = false;
@@ -142,6 +142,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
   // }
 
   void _signIn({String em, String pw}) async {
+    SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
 
     await locator
         .get<UserController>()
@@ -174,28 +175,18 @@ class _SignInRegisteredState extends State<SignInRegistered> {
           ),
         ));
         return;
+      } else {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+          // builder: (context) => Step1(), ENABLE when hardware is ready
+          builder: (context) => ProfileScreen(
+            password: password,
+            wantsTouchId: _useTouchID,
+          ),
+        ));
       }
-      Navigator.of(context).pushReplacement(MaterialPageRoute(
-        // builder: (context) => Step1(), ENABLE when hardware is ready
-        builder: (context) => ProfileScreen(
-          password: password,
-          wantsTouchId: _useTouchID,
-        ),
-      ));
     }).catchError((error, stackTrace) {
       // error is SecondError
       print("_signIn: $error");
-      Get.dialog(SimpleDialog(
-        title: Text(
-          "Sign In Error",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        shape: RoundedRectangleBorder(
-            borderRadius: new BorderRadius.circular(10.0)),
-        children: [
-          Text("Please type your password", style: TextStyle(fontSize: 20.0))
-        ],
-      ));
     });
 
     if (FirebaseAuth.instance.currentUser != null) {
@@ -319,7 +310,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                   ],
                 ));
                 return Container();
-              } else if (snapshot.hasData && socialSiginSingleton.isSocialLogin) {
+              } else if (snapshot.hasData) {
                 WidgetsBinding.instance.addPostFrameCallback((_) =>
                     Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (context) {
@@ -346,7 +337,6 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                           SizedBox(height: 12.0),
                           TextField(
                             onChanged: (textVal) {
-                              if (!mounted) return;
                               setState(() {
                                 email = textVal;
                               });
@@ -367,8 +357,8 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                           ),
                           SizedBox(height: 20.0),
                           TextField(
+                            controller: _passwordField,
                             onChanged: (textVal) {
-                              if (!mounted) return;
                               setState(() {
                                 password = textVal;
                               });
@@ -427,7 +417,35 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                               children: <Widget>[
                                 InkWell(
                                   onTap: () {
-                                    _signIn(em: email, pw: password);
+                                    _passwordField.text.isNotEmpty
+                                        ? _signIn(em: email, pw: password)
+                                        : Get.dialog(SimpleDialog(
+                                            title: Text(
+                                              "Sign in Error",
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            titlePadding: EdgeInsets.symmetric(
+                                              horizontal: 30,
+                                              vertical: 20,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    new BorderRadius.circular(
+                                                        10.0)),
+                                            children: [
+                                              Text("Please type your password",
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                      fontSize: 20.0)),
+                                            ],
+                                            contentPadding:
+                                                EdgeInsets.symmetric(
+                                              horizontal: 40,
+                                              vertical: 20,
+                                            ),
+                                          ));
                                   },
                                   child: Container(
                                       // width: double.infinity,

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../loading.dart';
 
@@ -31,19 +32,29 @@ class LanguagesPageState extends State<LanguagesPage> {
     LanguageValue(4, "portuguese".tr),
   ];
 
-  void _updateLanguage(int val) {
+  void _updateLanguage(int val) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
     if (val == 1) {
       _currentLang = "english";
       Get.updateLocale(Locale('en', 'US'));
+      prefs.setString('lan', 'en');
+      prefs.setString('countryLang', 'US');
     } else if (val == 2) {
       _currentLang = "french";
       Get.updateLocale(Locale('fr', 'CA'));
+      prefs.setString('lan', 'fr');
+      prefs.setString('countryLang', 'CA');
     } else if (val == 3) {
       _currentLang = "spanish";
       Get.updateLocale(Locale('es', 'ES'));
+      prefs.setString('lan', 'es');
+      prefs.setString('countryLang', 'ES');
     } else if (val == 4) {
       _currentLang = "portuguese";
       Get.updateLocale(Locale('pt', 'BR'));
+      prefs.setString('lan', 'pt');
+      prefs.setString('countryLang', 'BR');
     }
 
     _db
@@ -53,7 +64,6 @@ class LanguagesPageState extends State<LanguagesPage> {
   }
 
   void getLanguage(String dblang) {
-    
     if (dblang == null) {
       if (Get.locale.languageCode == 'pt') {
         lang = 4;
@@ -61,13 +71,12 @@ class LanguagesPageState extends State<LanguagesPage> {
       } else if (Get.locale.languageCode == 'en') {
         lang = 1;
         _currentLang = 'english';
-      }else if (Get.locale.languageCode == 'es') {
+      } else if (Get.locale.languageCode == 'es') {
         lang = 3;
-      _currentLang = "spanish";
-      }
-      else if (Get.locale.languageCode == 'fr') {
+        _currentLang = "spanish";
+      } else if (Get.locale.languageCode == 'fr') {
         lang = 2;
-      _currentLang = "french";
+        _currentLang = "french";
       }
     }
     if (dblang == "1") {

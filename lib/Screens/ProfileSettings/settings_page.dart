@@ -20,7 +20,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  String _units = "Kilometre";
+  String _units = "Kilometers";
 
   void _updateUnits(String unitsChoose) {
     _db
@@ -106,10 +106,10 @@ class _SettingsPageState extends State<SettingsPage> {
                     InkWell(
                       onTap: () {
                         setState(() {
-                          if (_units == "Miles".tr) {
-                            _units = "Kilometre".tr;
+                          if (_units == "Miles") {
+                            _units = "Kilometers";
                           } else {
-                            _units = "Miles".tr;
+                            _units = "Miles";
                           }
                         });
                         _updateUnits(_units);
@@ -127,7 +127,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 color: Colors.grey[600],
                               ),
                             ),
-                            Text(_units != null ? _units : "Kilometre"),
+                            Text(_units != null ? _units : "Kilometers"),
                           ],
                         ),
                       ),
@@ -284,10 +284,10 @@ class _SettingsPageState extends State<SettingsPage> {
     return InkWell(
       onTap: () {
         setState(() {
-          if (_units == "Kilometre") {
-            _units = "Kilometre";
+          if (_units == "Miles") {
+            _units = "Kilometers";
           } else {
-            _units = "Kilometre";
+            _units = "Miles";
           }
         });
         _updateUnits(_units);

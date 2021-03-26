@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -32,8 +31,6 @@ class _GeofenceWidgetState extends State<Geofence> {
   Circle circle;
   Marker marker;
   Polygon polygon;
-  String _units = "Kilometre";
-
   GoogleMapController _controller;
   static LatLng _initialPosition;
   var _configuredRadius = 0.0; //Radius is 30 meters
@@ -43,10 +40,10 @@ class _GeofenceWidgetState extends State<Geofence> {
   bool _isPolygonFence = false;
   bool _isDoNotEnterFence = false;
   Set<Polygon> _polygonsFence = HashSet<Polygon>();
-  List<LatLng> polygonFenceLatLngs = [];
+  List<LatLng> polygonFenceLatLngs = List<LatLng>();
   int _polygonFenceIdCounter = 1;
   Set<Polygon> _doNotEnterFence = HashSet<Polygon>();
-  List<LatLng> dotNotEnterFenceLatLngs = [];
+  List<LatLng> dotNotEnterFenceLatLngs = List<LatLng>();
   int _doNotEnterFenceIdCounter = 1;
   // List<Polygon> polygons = <Polygon>[
   //   new Polygon(
@@ -169,10 +166,6 @@ class _GeofenceWidgetState extends State<Geofence> {
     ));
   }
 
-  void getUnits(String unitsFromDB) {
-    _units = unitsFromDB;
-  }
-
   void updateMarkerAndCircle(
       localization.LocationData newLocalData, Uint8List imageData) {
     LatLng latlng = LatLng(newLocalData.latitude, newLocalData.longitude);
@@ -199,85 +192,83 @@ class _GeofenceWidgetState extends State<Geofence> {
     });
   }
 
-  FutureBuilder<DocumentSnapshot> bottonNavigationBuilder(StateSetter mystate) {
-    CollectionReference users = FirebaseFirestore.instance.collection('users');
+  Column bottonNavigationBuilder(StateSetter mystate) {
+    return Column(children: <Widget>[
+                  SizedBox(height: 50),
 
-    return FutureBuilder<DocumentSnapshot>(
-        future: users.doc(_currentUser.uid).get(),
-        builder:
-            (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            Map<String, dynamic> data = snapshot.data.data();
-            getUnits(data['units']);
-            return Column(children: <Widget>[
-              SizedBox(height: 50),
-              ListTile(
-                leading: Icon(Icons.adjust_rounded),
-                title: Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Text("rounded_geofence".tr),
-                          SizedBox(height: 5),
-                          Text(
-                              ' ' +
-                                  'Current'.tr +
-                                  ': ' +
-                                  _configuredRadius.toString() +
-                                  ' ' +
-                                  _units.tr,
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.6))),
-                        ]),
-                    SizedBox(width: 30),
-                    Row(
-                      children: [
-                        IconButton(
-                            icon: Icon(FontAwesomeIcons.plus, size: 20),
-                            onPressed: () async {
-                              mystate(() {
-                                _configuredRadius += 5; //Increase by 5 meters
-                              });
-                              await DatabaseService(uid: _currentUser.uid)
-                                  .updateCircleRadius(
-                                      _configuredRadius, _initialPosition);
-                            }),
-                        SizedBox(width: 50),
-                        IconButton(
-                            icon: Icon(FontAwesomeIcons.minus, size: 20),
-                            onPressed: () async {
-                              mystate(() {
-                                _configuredRadius -= 5; //Increase by 5 meters
-                              });
-                              await DatabaseService(uid: _currentUser.uid)
-                                  .updateCircleRadius(
-                                      _configuredRadius, _initialPosition);
-                            }),
-                        // })
-                      ],
-                    ),
-                  ],
-                ),
-                onTap: () => {
-                  mystate(() {
-                    _isPolygonFence = false;
-                    _isDoNotEnterFence = false;
-                  }),
-                  Navigator.of(context).pop()
-                },
-              ),
-            ]);
-          }
-          return Container(
-            color: Colors.white,
-            child: SpinKitCircle(
-              color: Colors.red,
-              size: 30.0,
+      ListTile(
+        leading: Icon(Icons.adjust_rounded),
+        title: Row(
+          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text("Rounded Geofence"),
+                  SizedBox(height: 5),
+                  Text(' Current: ' + _configuredRadius.toString() + ' meters',
+                      style: TextStyle(color: Colors.black.withOpacity(0.6))),
+                ]),
+            SizedBox(width: 30),
+            Row(
+              children: [
+                IconButton(
+                    icon: Icon(FontAwesomeIcons.plus, size: 20),
+                    onPressed: () async {
+                      mystate(() {
+                        _configuredRadius += 5; //Increase by 5 meters
+                      });
+                      await DatabaseService(uid: _currentUser.uid)
+                          .updateCircleRadius(
+                              _configuredRadius, _initialPosition);
+                    }),
+                SizedBox(width: 50),
+                IconButton(
+                    icon: Icon(FontAwesomeIcons.minus, size: 20),
+                    onPressed: () async {
+                      mystate(() {
+                        _configuredRadius -= 5; //Increase by 5 meters
+                      });
+                      await DatabaseService(uid: _currentUser.uid)
+                          .updateCircleRadius(
+                              _configuredRadius, _initialPosition);
+                    }),
+                // })
+              ],
             ),
-          );
-        });
+          ],
+        ),
+        onTap: () => {
+          mystate(() {
+            _isPolygonFence = false;
+            _isDoNotEnterFence = false;
+          }),
+          Navigator.of(context).pop()
+        },
+      ),
+      // ListTile(
+      //   leading: Icon(FontAwesomeIcons.drawPolygon),
+      //   title: Text("Polygon Geofence"),
+      //   onTap: () => {
+      //     mystate(() {
+      //       _isPolygonFence = true;
+      //       _isDoNotEnterFence = false;
+      //     }),
+      //     Navigator.of(context).pop()
+      //   },
+      // ),
+      // ListTile(
+      //   leading: Icon(Icons.do_disturb_on_outlined),
+      //   title: Text("Dot Not Enter Area"),
+      //   onTap: () => {
+      //     mystate(() {
+      //       _isPolygonFence = false;
+      //       _isDoNotEnterFence = true;
+      //     }),
+      //     Navigator.of(context).pop()
+      //   },
+      // )
+    ]);
   }
 
   @override
@@ -318,11 +309,10 @@ class _GeofenceWidgetState extends State<Geofence> {
         backgroundColor: Colors.grey[100],
         body: Consumer<ConnectionStatusModel>(
             builder: (_, connectionProvider, child) {
+
           return FutureBuilder(
               initialData: false,
-              future: mounted
-                  ? connectionStatus.getCurrentStatus()
-                  : Future.value(null),
+              future: mounted ? connectionStatus.getCurrentStatus() : Future.value(null),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return connectionProvider.connectionStatus ==
@@ -350,7 +340,8 @@ class _GeofenceWidgetState extends State<Geofence> {
                                   'Loading Map...',
                                   style: TextStyle(
                                       fontFamily: 'Avenir-Medium',
-                                      color: Colors.grey[400]),
+                                      color: Colors.grey[400]
+                                      ),
                                 ),
                               ),
                             )

@@ -36,7 +36,7 @@ class PushNotificationsManager {
               'token': token,
               'createdAt': FieldValue.serverTimestamp(), // optional
               'platform': Platform.operatingSystem // optional
-            }, SetOptions(merge: true));
+            });
       }
       _initialized = true;
     }

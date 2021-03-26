@@ -11,6 +11,7 @@ import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'Screens/Profile/profile.dart';
 import 'Screens/ProfileSettings/translationDictionary.dart';
 import 'Services/SetWiFiConf.dart';
@@ -19,50 +20,67 @@ import 'Services/bluetooth_conect.dart';
 // void main() => runApp(MyApp());
 
 void main() async {
-    await GetStorage.init();   //get storage initialization
+  await GetStorage.init(); //get storage initialization
 
   // void main() {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   setupServices();
-  runApp(MyApp());
+
+  runApp(MultiProvider(providers: [
+    ChangeNotifierProvider(create: (context) => BleModel()),
+    ChangeNotifierProvider(create: (context) => WiFiModel()),
+    ChangeNotifierProvider(create: (context) => ConnectionStatusModel()),
+    ChangeNotifierProvider(create: (context) => SocialSignInProvider())
+  ], child: MainPage()));
 }
 
-class MyApp extends StatelessWidget {
+class MainPage extends StatefulWidget {
+  @override
+  _MainPageState createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
+  Locale _currentLocale;
+
+  @override
+  void initState() {
+    super.initState();
+    _getLanguage(); //Get language from Shared Preferences
+  }
+
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      // DeviceOrientation.portraitDown,
-    ]); // this forces the app to keep portrait orientation- No Matter What
-    return MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (context) => BleModel()),
-          ChangeNotifierProvider(create: (context) => WiFiModel()),
-          ChangeNotifierProvider(create: (context) => ConnectionStatusModel()),
-          ChangeNotifierProvider(create: (context) => SocialSignInProvider())
-        ],
-        child: GetMaterialApp(
-            locale: Get.deviceLocale, //read the system locale
-            translations: Messages(),
-            fallbackLocale: Locale('en',
-                'US'), // specify the fallback locale in case an invalid locale is selected.
-            debugShowCheckedModeBanner: false,
-            title: 'Locate My Pet',
-            routes: {
-              '/profile': (context) => ProfileScreen(),
-              '/trackwalk': (context) => BluetoothConnection(),
-              '/blueMap': (context) => MapLocation(),
-              '/wifiConf': (context) => SetWiFiConf(),
-              '/authenticate': (context) => Authenticate(),
-            },
-            theme: ThemeData(
-              primaryColor: Colors.white,
-              visualDensity: VisualDensity.adaptivePlatformDensity,
-            ),
-            home: Material(
-              // child: SplashView(),
-              child: Wrapper(),
-            )));
+    return GetMaterialApp(
+        locale: Get.deviceLocale, //read the system locale
+        translations: Messages(),
+        fallbackLocale: Locale('en', 'US'),
+        debugShowCheckedModeBanner: false,
+        title: 'IAT',
+        routes: {
+          '/profile': (context) => ProfileScreen(),
+          '/trackwalk': (context) => BluetoothConnection(),
+          '/blueMap': (context) => MapLocation(),
+          '/wifiConf': (context) => SetWiFiConf(),
+          '/authenticate': (context) => Authenticate(),
+        },
+        theme: ThemeData(
+          primaryColor: Colors.white,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
+        home: Material(
+          // child: SplashView(),
+          child: Wrapper(),
+        ));
+  }
+
+  Future<void> _getLanguage() async {
+    SharedPreferences _prefs = await SharedPreferences.getInstance();
+    final _lang = _prefs.getString('lan');
+    final _countryLang = _prefs.getString('countryLang');
+    setState(() {
+      _currentLocale = Locale(_lang, _countryLang);
+      Get.updateLocale(_currentLocale);
+    });
   }
 }
