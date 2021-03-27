@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_maps/Services/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 
 class Avatar extends StatelessWidget {
   final String avatarUrl;
@@ -12,71 +13,61 @@ class Avatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: Center(
-        child: avatarUrl == null
-            ?
-            // ClipRRect(
-            //     borderRadius: BorderRadius.circular(kSpacingUnit.w * 5,),
-            //     child:Icon(Icons.photo_camera)
-            // ) :
-            // ClipRRect(
-            //   borderRadius: BorderRadius.circular(kSpacingUnit.w * 5,),
-            //   child:  Image.network(avatarUrl, loadingBuilder:
-            //               (BuildContext context, Widget child,
-            //                   ImageChunkEvent loadingProgress) {
-            //             if (loadingProgress == null) return child;
-            //             return Center(
-            //               child: CircularProgressIndicator(
-            //                 value: loadingProgress.expectedTotalBytes != null
-            //                     ? loadingProgress.cumulativeBytesLoaded /
-            //                         loadingProgress.expectedTotalBytes
-            //                     : null,
-            //               ),
-            //             );
-            //           }),
-            // )
-            // CircleAvatar(
-            //     radius: kSpacingUnit.w * 5,
-            //     child: Icon(Icons.photo_camera),
-            //   )
-            // : CircleAvatar(
-            //     radius: kSpacingUnit.w * 5,
-            //     backgroundImage:
-            //      NetworkImage(avatarUrl),
-            //   ),
-             CircleAvatar(
-                radius: kSpacingUnit.w * 5,
-                backgroundColor: Colors.lightGreen[100],
-                child: Icon(Icons.photo_camera, color: Colors.black,),
-              )
-            : CircleAvatar(
-              backgroundColor: Colors.transparent,
-                radius: kSpacingUnit.w * 5,
-                child: ClipOval(
-                    child: Image.network(
-                      avatarUrl, width: 100,
-                height: 100,
-                fit: BoxFit.cover,loadingBuilder:
-                (BuildContext context, Widget child,
-                    ImageChunkEvent loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Center(
-                child: CircularProgressIndicator(
-                  value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes
-                      : null,
-                ),
-              );
-            },
+        onTap: onTap,
+        child: Center(
+          child: avatarUrl == null
+              ? CircleAvatar(
+                  radius: kSpacingUnit.w * 5,
+                  backgroundColor: Colors.lightGreen[100],
+                  child: Icon(
+                    Icons.photo_camera,
+                    color: Colors.black,
+                  ),
+                )
+              : Stack(children: <Widget>[
+                  CircleAvatar(
+                    backgroundColor: Colors.transparent,
+                    radius: kSpacingUnit.w * 5,
+                    child: ClipOval(
+                      child: Image.network(
+                        avatarUrl,
+                        width: 200,
+                        height: 200,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (BuildContext context, Widget child,
+                            ImageChunkEvent loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes
+                                  : null,
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                ),
-            ),
-              //   backgroundImage:
-              //    NetworkImage(avatarUrl),
-              // ),
-      ),
-    );
+                  ),
+                  // Align(
+                      // alignment: Alignment.center,
+                      // child: Container(
+                      //     height: kSpacingUnit.w * 2.5,
+                      //     width: kSpacingUnit.w * 2.5,
+                      //     decoration: BoxDecoration(
+                      //       color: Colors.yellow,
+                      //       shape: BoxShape.circle,
+                      //     ),
+                      //     child: Center(
+                      //       heightFactor: kSpacingUnit.w * 1.5,
+                      //       widthFactor: kSpacingUnit.w * 1.5,
+                      //       child: Icon(
+                      //         Icons.photo_camera,
+                      //         color: kDarkPrimaryColor,
+                      //         size: ScreenUtil().setSp(kSpacingUnit.w * 1.5),
+                      //       ),
+                      //     )))
+                ]),
+        ));
   }
 }
