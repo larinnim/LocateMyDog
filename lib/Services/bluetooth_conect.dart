@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
+import 'package:flutter_maps/Screens/Profile/gateway_detail.dart';
+import 'package:flutter_maps/Services/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:provider/provider.dart';
@@ -372,230 +374,250 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
       return ListView.builder(
           itemCount: bleProvider.items.length,
           itemBuilder: (context, index) {
+            return Column(children: <Widget>[
+              SizedBox(height: 20.0),
+              //                 StreamBuilder<BluetoothDeviceState>(
+              // stream: bleProvider.deviceList[index].device.state
+              //     .asBroadcastStream(),
+              // builder: (context, snapshot) {
+              // return
+              // snapshot.data == BluetoothDeviceState.disconnected ?
+              //  Container() :
+              // custom.ExpansionTile(
+              //     headerBackgroundColor: Colors.lightBlue,
+              //     iconColor: Colors.white,
+              //     initiallyExpanded: true,
+              //     title:
+              Container(
+                margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(13),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.grey[200],
+                        blurRadius: 10,
+                        spreadRadius: 3,
+                        offset: Offset(3, 4))
+                  ],
+                ),
+                child: ListTile(
+                  leading: Icon(
+                    Icons.router_outlined,
+                    color: Colors.green,
+                    size: 30.0,
+                  ),
+                  title: Text(
+                    "Device: " + bleProvider.deviceList[index].device.name,
+                    style: TextStyle(fontSize: 25),
+                  ),
+                  trailing: Icon(Icons.arrow_forward_ios_rounded),
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => GatewayDetails(
+                                title: bleProvider
+                                    .deviceList[index].device.name)));
+                  },
+                ),
 
-                  return Column(children: <Widget>[
-                    SizedBox(height: 20.0),
-                //                 StreamBuilder<BluetoothDeviceState>(
-                // stream: bleProvider.deviceList[index].device.state
-                //     .asBroadcastStream(),
-                // builder: (context, snapshot) {
-                  // return
-                  // snapshot.data == BluetoothDeviceState.disconnected ? 
-                  //  Container() :
-                     custom.ExpansionTile(
-                        headerBackgroundColor: Colors.lightBlue,
-                        iconColor: Colors.white,
-                        initiallyExpanded: true,
-                        title: ListTile(
-                          title: Text(
-                            "Device: " +
-                                bleProvider.deviceList[index].device.name,
-                            style: TextStyle(
-                                fontSize: 18.0,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
-                          ),
-                          trailing: RichText(
-                            text: TextSpan(children: <InlineSpan>[
-                              TextSpan(
-                                  text: '85%',
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold)),
-                              WidgetSpan(
-                                alignment: ui.PlaceholderAlignment.middle,
-                                child: Icon(
-                                  LineAwesomeIcons.battery_3_4_full,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              WidgetSpan(
-                                  alignment: ui.PlaceholderAlignment.middle,
-                                  child: Container(
-                                    child: Icon(
-                                      LineAwesomeIcons.wifi,
-                                      color: Colors.black87,
-                                    ),
-                                    padding: EdgeInsets.all(12.0),
-                                  )),
-                            ]),
-                          ),
-                          // trailing:Column(children: <Widget>[Text("85%", style: TextStyle(fontSize: 10.0),), Icon(LineAwesomeIcons.battery_3_4_full)]),
-                        ),
-                        children: <Widget>[
-                          bleProvider.connectedDevices.length > 0 
-                          // &&
-                          //         snapshot.data ==
-                          //             BluetoothDeviceState.connected 
-                              ? ListTile(
-                                  onTap: () {
-                                    Navigator.pushNamed(context, '/wifiConf');
-                                  },
-                                  title: Text("Configure Device WiFi"),
-                                  trailing: IconButton(
-                                      icon: Icon(Icons.wifi),
-                                      tooltip: 'Go to WiFI',
-                                      // onPressed: () => {},
-                                      onPressed: () => Navigator.pushNamed(
-                                          context, '/wifiConf')))
-                              : Column(),
-                          bleProvider.connectedDevices.length > 0 
-                          // &&
-                                  // snapshot.data ==
-                                  //     BluetoothDeviceState.connected 
-                              ? 
-                              ListTile(
-                                  onTap: () {
-                                    Navigator.pushNamed(context, '/blueMap');
-                                  },
-                                  title: Text("Go to Map"),
-                                  trailing: IconButton(
-                                      icon: Icon(Icons.map),
-                                      tooltip: 'Go to Map',
-                                      // onPressed: () => {},
-                                      onPressed: () => Navigator.pushNamed(
-                                          context, '/blueMap')))
-                              // onPressed: () => Navigator.pushReplacement(context,
-                              //         MaterialPageRoute(builder: (context) {
-                              //       return MapLocation();
-                              //     })))),
-                              : Column(),
-                          ExpansionTile(
-                              title: Text(
-                                'Current Data',
-                              ),
-                              initiallyExpanded: true,
-                              children: <Widget>[
-                                ListTile(
-                                    title: (bleProvider.lat != null &&
-                                                wifiProvider.lat == null) ||
-                                            (bleProvider.timestampBLE != null &&
-                                                wifiProvider.timestampWiFi !=
-                                                    null &&
-                                                bleProvider.timestampBLE
-                                                    .isAfter(wifiProvider
-                                                        .timestampWiFi))
-                                        ? Text("Lat: " +
-                                            bleProvider.lat.toString() +
-                                            // Utf8Decoder().convert(bleProvider.lat) +
-                                            " | Long: " +
-                                            bleProvider.lng.toString() +
-                                            // Utf8Decoder().convert(bleProvider.lng) +
-                                            " at : " +
-                                            DateFormat('hh:mm:ss').format(
-                                                bleProvider.timestampBLE))
-                                        : (bleProvider.lat == null &&
-                                                    wifiProvider.lat != null) ||
-                                                wifiProvider.timestampWiFi !=
-                                                        null &&
-                                                    bleProvider.timestampBLE !=
-                                                        null &&
-                                                    wifiProvider.timestampWiFi
-                                                        .isAfter(bleProvider
-                                                            .timestampBLE)
-                                            ? Text("Lat: " +
-                                                wifiProvider.lat.toString() +
-                                                // Utf8Decoder().convert(wifiProvider.lat) +
-                                                " | Long: " +
-                                                wifiProvider.lng.toString() +
-                                                // Utf8Decoder().convert(wifiProvider.lng) +
-                                                " at : " +
-                                                DateFormat('hh:mm:ss').format(wifiProvider.timestampWiFi))
-                                            : Text(
-                                                "No Data. Please Connect",
-                                                style: TextStyle(
-                                                    fontFamily: 'Raleway',
-                                                    fontSize: 13,
-                                                    color: Colors.grey),
-                                              ),
-                                    trailing:
-                                        // StreamBuilder<BluetoothDeviceState>(
-                                        //     stream: bleProvider
-                                        //         .deviceList[index].device.state
-                                        //         .asBroadcastStream(),
-                                        //     builder: (context, snapshot) {
-                                        // return
-                                        FlatButton(
-                                      color:
-                                          (bleProvider.connectedDevices ==
-                                                      null ||
-                                                  bleProvider.connectedDevices
-                                                          .length ==
-                                                      0
-                                                      //  ||
-                                                  // snapshot.data !=
-                                                  //         BluetoothDeviceState
-                                                  //             .connected &&
-                                                  //     snapshot.data !=
-                                                  //         BluetoothDeviceState
-                                                  //             .connecting
-                                                              )
-                                              ? Colors.green
-                                              : Colors.red,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(18.0)),
-                                      onPressed: () {
-                                        if (bleProvider.connectedDevices !=
-                                            null) {
-                                          if (bleProvider.connectedDevices
-                                                      .length ==
-                                                  0 
-                                                  // ||
-                                              // snapshot.data !=
-                                              //         BluetoothDeviceState
-                                              //             .connected &&
-                                              //     snapshot.data !=
-                                              //         BluetoothDeviceState
-                                              //             .connecting
-                                                          ) {
-                                            connectDev(bleProvider
-                                                .deviceList[index].device);
-                                          } else {
-                                            bleProvider.deviceList[index].device
-                                                .disconnect()
-                                                .then((status) async => {
-                                                      context
-                                                          .read<BleModel>()
-                                                          .removeConnectedDevice(
-                                                              bleProvider
-                                                                  .deviceList[
-                                                                      index]
-                                                                  .device),
-                                                      setState(() {})
-                                                    });
-                                          }
-                                        } else {
-                                          connectDev(bleProvider
-                                              .deviceList[index].device);
-                                        }
-                                      },
-                                      child: Text(
-                                        bleProvider.connectedDevices == null ||
-                                                bleProvider.connectedDevices
-                                                        .length ==
-                                                    0 
-                                                    // ||
-                                                // snapshot.data !=
-                                                //         BluetoothDeviceState
-                                                //             .connected &&
-                                                //     snapshot.data !=
-                                                //         BluetoothDeviceState
-                                                //             .connecting
-                                            ? "Connect"
-                                            : "Disconnect",
-                                        style: TextStyle(
-                                            fontSize: 15.0,
-                                            color: Colors.white),
-                                      ),
-                                    ))
-                              ])
-                        ])
+                // ListTile(
+                //   title: Text(
+                //     "Device: " + bleProvider.deviceList[index].device.name,
+                //     style: TextStyle(
+                //         fontSize: 18.0,
+                //         fontWeight: FontWeight.bold,
+                //         color: Colors.white),
+                //   ),
+                //   trailing: RichText(
+                //     text: TextSpan(children: <InlineSpan>[
+                //       TextSpan(
+                //           text: '85%',
+                //           style: TextStyle(
+                //               color: Colors.black,
+                //               fontWeight: FontWeight.bold)),
+                //       WidgetSpan(
+                //         alignment: ui.PlaceholderAlignment.middle,
+                //         child: Icon(
+                //           LineAwesomeIcons.battery_3_4_full,
+                //           color: Colors.black87,
+                //         ),
+                //       ),
+                //       WidgetSpan(
+                //           alignment: ui.PlaceholderAlignment.middle,
+                //           child: Container(
+                //             child: Icon(
+                //               LineAwesomeIcons.wifi,
+                //               color: Colors.black87,
+                //             ),
+                //             padding: EdgeInsets.all(12.0),
+                //           )),
+                //     ]),
+                //   ),
+                //   // trailing:Column(children: <Widget>[Text("85%", style: TextStyle(fontSize: 10.0),), Icon(LineAwesomeIcons.battery_3_4_full)]),
+                // ),
+
+                // children: <Widget>[
+                //   bleProvider.connectedDevices.length > 0
+                //       // &&
+                //       //         snapshot.data ==
+                //       //             BluetoothDeviceState.connected
+                //       ? ListTile(
+                //           onTap: () {
+                //             Navigator.pushNamed(context, '/wifiConf');
+                //           },
+                //           title: Text("Configure Device WiFi"),
+                //           trailing: IconButton(
+                //               icon: Icon(Icons.wifi),
+                //               tooltip: 'Go to WiFI',
+                //               // onPressed: () => {},
+                //               onPressed: () =>
+                //                   Navigator.pushNamed(context, '/wifiConf')))
+                //       : Column(),
+                //   bleProvider.connectedDevices.length > 0
+                //       // &&
+                //       // snapshot.data ==
+                //       //     BluetoothDeviceState.connected
+                //       ? ListTile(
+                //           onTap: () {
+                //             Navigator.pushNamed(context, '/blueMap');
+                //           },
+                //           title: Text("Go to Map"),
+                //           trailing: IconButton(
+                //               icon: Icon(Icons.map),
+                //               tooltip: 'Go to Map',
+                //               // onPressed: () => {},
+                //               onPressed: () =>
+                //                   Navigator.pushNamed(context, '/blueMap')))
+                //       // onPressed: () => Navigator.pushReplacement(context,
+                //       //         MaterialPageRoute(builder: (context) {
+                //       //       return MapLocation();
+                //       //     })))),
+                //       : Column(),
+                //   ExpansionTile(
+                //       title: Text(
+                //         'Current Data',
+                //       ),
+                //       initiallyExpanded: true,
+                //       children: <Widget>[
+                //         ListTile(
+                //             title: (bleProvider.lat != null &&
+                //                         wifiProvider.lat == null) ||
+                //                     (bleProvider.timestampBLE != null &&
+                //                         wifiProvider.timestampWiFi != null &&
+                //                         bleProvider.timestampBLE.isAfter(
+                //                             wifiProvider.timestampWiFi))
+                //                 ? Text("Lat: " +
+                //                     bleProvider.lat.toString() +
+                //                     // Utf8Decoder().convert(bleProvider.lat) +
+                //                     " | Long: " +
+                //                     bleProvider.lng.toString() +
+                //                     // Utf8Decoder().convert(bleProvider.lng) +
+                //                     " at : " +
+                //                     DateFormat('hh:mm:ss')
+                //                         .format(bleProvider.timestampBLE))
+                //                 : (bleProvider.lat == null &&
+                //                             wifiProvider.lat != null) ||
+                //                         wifiProvider.timestampWiFi != null &&
+                //                             bleProvider.timestampBLE !=
+                //                                 null &&
+                //                             wifiProvider.timestampWiFi
+                //                                 .isAfter(
+                //                                     bleProvider.timestampBLE)
+                //                     ? Text("Lat: " +
+                //                         wifiProvider.lat.toString() +
+                //                         // Utf8Decoder().convert(wifiProvider.lat) +
+                //                         " | Long: " +
+                //                         wifiProvider.lng.toString() +
+                //                         // Utf8Decoder().convert(wifiProvider.lng) +
+                //                         " at : " +
+                //                         DateFormat('hh:mm:ss').format(
+                //                             wifiProvider.timestampWiFi))
+                //                     : Text(
+                //                         "No Data. Please Connect",
+                //                         style: TextStyle(
+                //                             fontFamily: 'Raleway',
+                //                             fontSize: 13,
+                //                             color: Colors.grey),
+                //                       ),
+                //             trailing:
+                //                 // StreamBuilder<BluetoothDeviceState>(
+                //                 //     stream: bleProvider
+                //                 //         .deviceList[index].device.state
+                //                 //         .asBroadcastStream(),
+                //                 //     builder: (context, snapshot) {
+                //                 // return
+                //                 FlatButton(
+                              // color: (bleProvider.connectedDevices == null ||
+                              //         bleProvider.connectedDevices.length == 0
+                //                   //  ||
+                //                   // snapshot.data !=
+                //                   //         BluetoothDeviceState
+                //                   //             .connected &&
+                //                   //     snapshot.data !=
+                //                   //         BluetoothDeviceState
+                //                   //             .connecting
+                //                   )
+                //                   ? Colors.green
+                //                   : Colors.red,
+                //               shape: RoundedRectangleBorder(
+                //                   borderRadius: BorderRadius.circular(18.0)),
+                //               onPressed: () {
+                //                 if (bleProvider.connectedDevices != null) {
+                //                   if (bleProvider.connectedDevices.length == 0
+                //                       // ||
+                //                       // snapshot.data !=
+                //                       //         BluetoothDeviceState
+                //                       //             .connected &&
+                //                       //     snapshot.data !=
+                //                       //         BluetoothDeviceState
+                //                       //             .connecting
+                //                       ) {
+                //                     connectDev(
+                //                         bleProvider.deviceList[index].device);
+                //                   } else {
+                //                     bleProvider.deviceList[index].device
+                //                         .disconnect()
+                //                         .then((status) async => {
+                //                               context
+                //                                   .read<BleModel>()
+                //                                   .removeConnectedDevice(
+                //                                       bleProvider
+                //                                           .deviceList[index]
+                //                                           .device),
+                //                               setState(() {})
+                //                             });
+                //                   }
+                //                 } else {
+                //                   connectDev(
+                //                       bleProvider.deviceList[index].device);
+                //                 }
+                //               },
+                //               child: Text(
+                //                 bleProvider.connectedDevices == null ||
+                //                         bleProvider.connectedDevices.length ==
+                //                             0
+                //                     // ||
+                //                     // snapshot.data !=
+                //                     //         BluetoothDeviceState
+                //                     //             .connected &&
+                //                     //     snapshot.data !=
+                //                     //         BluetoothDeviceState
+                //                     //             .connecting
+                //                     ? "Connect"
+                //                     : "Disconnect",
+                //                 style: TextStyle(
+                //                     fontSize: 15.0, color: Colors.white),
+                //               ),
+                //             ))
+                //       ])
+                // ]
                 // })
-                ]
-                  );
-                });
+              )
+            ]);
           });
+    });
     // });
   }
 
@@ -615,15 +637,57 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
       ),
       backgroundColor: Colors.grey[100],
       body: Center(
-        //디바이스 리스트 함수 호출
-        child: list(),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: scan, //버튼이 눌리면 스캔 ON/OFF 동작
-        child: Icon(_isScanning
-            ? Icons.stop
-            : Icons.bluetooth_searching), //_isScanning 변수에 따라 아이콘 표시 변경
-      ),
+          child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: list(),
+            ),
+          ),
+          Expanded(
+              child:
+                  // list(),
+                  Align(
+            alignment: Alignment.bottomCenter,
+            child: SizedBox(
+              height: 50,
+              width: 200,
+              child: ElevatedButton.icon(
+                label: Text(
+                    _isScanning
+                        ? 'Scanning'.toUpperCase()
+                        : 'Scan'.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                    )),
+                icon:
+                    Icon(_isScanning ? Icons.stop : Icons.bluetooth_searching),
+                onPressed: () {
+                  scan();
+                },
+                style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(Colors.red[300]),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18.0),
+                            side: BorderSide(color: Colors.red)))),
+              ),
+            ),
+          )),
+          SizedBox(height: 30)
+        ],
+      )
+          // child: list(),
+          ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: scan, //버튼이 눌리면 스캔 ON/OFF 동작
+      // child: Icon(_isScanning
+      //     ? Icons.stop
+      //     : Icons.bluetooth_searching), //_isScanning 변수에 따라 아이콘 표시 변경
+      // ),
     );
   }
 }
