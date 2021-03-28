@@ -14,16 +14,18 @@ class DatabaseService {
 
   Future<void> updateUserData(
       String dogname, String ownername, String breed) async {
-         _db
-            .collection('users')
-            .doc(uid)
-            .set({
-              'dogname': dogname,
-              'ownername': ownername,
-              'breed': breed
-            }, SetOptions(merge: true));
-        
-        // SetOptions(merge: true);
+    _db.collection('users').doc(uid).set(
+        {'dogname': dogname, 'ownername': ownername, 'breed': breed},
+        SetOptions(merge: true));
+
+    // SetOptions(merge: true);
+  }
+
+  Future<void> updateDeviceColor(
+      String deviceColor, String senderNumber) async {
+    await locateCollection.doc(uid).set({
+      senderNumber: {"color": deviceColor},
+    }, SetOptions(merge: true));
   }
 
   Future<void> updateCircleRadius(double radius, LatLng initialLocation) async {
@@ -40,9 +42,13 @@ class DatabaseService {
 
   Future<void> updateGatewayName(String name) async {
     await locateCollection.doc(uid).set({
-      'gateway': {
-        "name": name
-      },
+      'gateway': {"name": name},
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> updateDeviceName(String name, String senderNumber) async {
+    await locateCollection.doc(uid).set({
+      senderNumber: {"name": name},
     }, SetOptions(merge: true));
   }
 

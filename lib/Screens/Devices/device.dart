@@ -4,8 +4,17 @@ class Device {
   final int batteryLevel;
   final String latitude;
   final String longitude;
+  final String color;
+  final String senderNumber;
 
-  Device({this.id, this.name, this.batteryLevel, this.latitude, this.longitude});
+  Device(
+      {this.id,
+      this.name,
+      this.batteryLevel,
+      this.latitude,
+      this.longitude,
+      this.color,
+      this.senderNumber});
 
   // Device.fromJson(Map<String, dynamic> json)
   //     : name = json['name'],

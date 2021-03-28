@@ -2,9 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/Devices/device.dart';
+import 'package:flutter_maps/Screens/Devices/device_detail.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Services/database.dart';
+import './functions_aux.dart';
 
 // ignore: must_be_immutable
 class GatewayDetails extends StatefulWidget {
@@ -21,6 +23,12 @@ class _GatewayDetailsState extends State<GatewayDetails> {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   TextEditingController _renameController = TextEditingController();
   List<Device> _devices = [];
+  List<Color> _availableColors = [
+    Colors.green,
+    Colors.orange,
+    Colors.purple,
+    Colors.red
+  ];
 
   @override
   void initState() {
@@ -43,16 +51,25 @@ class _GatewayDetailsState extends State<GatewayDetails> {
           if (key.startsWith('Sender')) {
             setState(() {
               _devices.add(Device(
-                  id: value['ID'],
-                  name: value['name'],
-                  batteryLevel: value['battery'],
-                  latitude: value['Location']["Latitude"],
-                  longitude: value['Location']["Longitude"]));
+                id: value['ID'],
+                name: value['name'],
+                batteryLevel: value['battery'],
+                latitude: value['Location']["Latitude"],
+                longitude: value['Location']["Longitude"],
+                color: value['color'],
+                senderNumber: key,
+              ));
             });
           }
         });
         print('Document exists on the database');
       }
+    });
+
+    _devices.forEach((deviceColor) {
+      Color devColor = AuxFunc().getColor(deviceColor.color);
+      _availableColors
+          .removeWhere((colorAvailable) => devColor == colorAvailable);
     });
   }
 
@@ -249,7 +266,18 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                             ),
                           ),
                           onTap: () {
-                            Navigator.pop(context);
+                            Navigator.pushReplacement(context,
+                                MaterialPageRoute(builder: (context) {
+                              return Material(
+                                  child: DeviceDetail(
+                                title: _devices[index].name,
+                                color: AuxFunc().getColor(_devices[index].color),
+                                battery: _devices[index].batteryLevel,
+                                id: _devices[index].id,
+                                senderNumber: _devices[index].senderNumber,
+                                availableColors: _availableColors,
+                              ));
+                            }));
                           },
                         ),
                       ],

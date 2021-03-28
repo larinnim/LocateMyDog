@@ -60,6 +60,8 @@ dependencies:
   get_storage: ^1.4.0
   geocoding: ^1.0.5
   flutter_google_places: ^0.2.6
+  flutter_colorpicker: ^0.3.5
+
   mapbox_gl:
     git: 
       url: git://github.com/tobrun/flutter-mapbox-gl.git
