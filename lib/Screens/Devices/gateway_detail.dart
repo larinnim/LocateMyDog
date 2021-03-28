@@ -49,6 +49,9 @@ class _GatewayDetailsState extends State<GatewayDetails> {
       if (documentSnapshot.exists) {
         documentSnapshot.data().forEach((key, value) {
           if (key.startsWith('Sender')) {
+            Color devColor = AuxFunc().getColor(value['color']);
+            _availableColors
+                .removeWhere((colorAvailable) => devColor == colorAvailable);
             setState(() {
               _devices.add(Device(
                 id: value['ID'],
@@ -66,11 +69,11 @@ class _GatewayDetailsState extends State<GatewayDetails> {
       }
     });
 
-    _devices.forEach((deviceColor) {
-      Color devColor = AuxFunc().getColor(deviceColor.color);
-      _availableColors
-          .removeWhere((colorAvailable) => devColor == colorAvailable);
-    });
+    // _devices.map((deviceColor) {
+    //   Color devColor = AuxFunc().getColor(deviceColor.color);
+    //   _availableColors
+    //       .removeWhere((colorAvailable) => devColor == colorAvailable);
+    // });
   }
 
   @override
@@ -271,7 +274,8 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                               return Material(
                                   child: DeviceDetail(
                                 title: _devices[index].name,
-                                color: AuxFunc().getColor(_devices[index].color),
+                                color:
+                                    AuxFunc().getColor(_devices[index].color),
                                 battery: _devices[index].batteryLevel,
                                 id: _devices[index].id,
                                 senderNumber: _devices[index].senderNumber,
