@@ -38,6 +38,14 @@ class DatabaseService {
     }, SetOptions(merge: true));
   }
 
+  Future<void> updateGatewayName(String name) async {
+    await locateCollection.doc(uid).set({
+      'gateway': {
+        "name": name
+      },
+    }, SetOptions(merge: true));
+  }
+
   Future<void> updateFencePreference(String fencePref) async {
     return await locateCollection.doc(uid).set({
       'Geofence': {"Preference": fencePref},

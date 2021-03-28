@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
-import 'package:flutter_maps/Screens/Profile/gateway_detail.dart';
+import 'package:flutter_maps/Screens/Devices/gateway_detail.dart';
 import 'package:flutter_maps/Services/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
@@ -626,7 +626,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
     // return Consumer<BleModel>(builder: (context, dev, _) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Locate My Pet"),
+        title: Text("Bluetooth Connection"),
         centerTitle: true,
         // backgroundColor: Colors.blueGrey,
         leading: IconButton(

@@ -1,22 +1,40 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_maps/Services/database.dart';
 
-class GatewayDetails extends StatelessWidget {
-  final String title;
-
+// ignore: must_be_immutable
+class GatewayDetails extends StatefulWidget {
+  String title;
   GatewayDetails({Key key, @required this.title}) : super(key: key);
+
+  @override
+  _GatewayDetailsState createState() => _GatewayDetailsState();
+}
+
+class _GatewayDetailsState extends State<GatewayDetails> {
+  CollectionReference locationDB =
+      FirebaseFirestore.instance.collection('locateDog');
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  TextEditingController _renameController = TextEditingController();
+
+  void updateName() async {
+    await DatabaseService(uid:_firebaseAuth.currentUser.uid).updateGatewayName(_renameController.text);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: Text(title),
+        title: Text(widget.title),
         centerTitle: true,
         leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {
-              Navigator.pushNamed(context, '/trackwalk');
+              Navigator.pushNamed(context, '/profile');
             }),
       ),
       body: Center(
@@ -31,6 +49,24 @@ class GatewayDetails extends StatelessWidget {
             size: 100.0,
           ),
           SizedBox(
+            height: 10.0,
+          ),
+          ElevatedButton(
+            style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Colors.black),
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0),
+                ))),
+            child: Text(
+              'Rename'.toUpperCase(),
+              style: TextStyle(fontSize: 16, color: Colors.white),
+            ),
+            onPressed: () {
+              _displayTextInputDialog(context);
+            },
+          ),
+          SizedBox(
             height: 30.0,
           ),
           Expanded(
@@ -42,8 +78,7 @@ class GatewayDetails extends StatelessWidget {
                   title: Text('Wifi Connection Status'),
                   trailing: ElevatedButton(
                     style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.all(Colors.red),
+                        backgroundColor: MaterialStateProperty.all(Colors.red),
                         shape:
                             MaterialStateProperty.all<RoundedRectangleBorder>(
                                 RoundedRectangleBorder(
@@ -64,8 +99,9 @@ class GatewayDetails extends StatelessWidget {
                       style: ButtonStyle(
                           backgroundColor:
                               MaterialStateProperty.all(Colors.red),
-                          shape: MaterialStateProperty.all<
-                              RoundedRectangleBorder>(RoundedRectangleBorder(
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18.0),
                           ))),
                       child: Text(
@@ -141,5 +177,45 @@ class GatewayDetails extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _displayTextInputDialog(BuildContext context) async {
+    locationDB
+        .doc(_firebaseAuth.currentUser.uid)
+        .get()
+        .then((DocumentSnapshot querySnapshot) {
+      return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Rename Gateway'),
+            content: TextField(
+              controller: _renameController,
+              decoration: InputDecoration(
+                  hintText: querySnapshot.data()["gateway"]["name"]),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('CANCEL'),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  print(_renameController.text);
+                  updateName();
+                  setState(() {
+                    widget.title = _renameController.text;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          );
+        },
+      );
+    });
   }
 }
