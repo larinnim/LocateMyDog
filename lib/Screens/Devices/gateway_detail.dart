@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_maps/Screens/Devices/device.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Services/database.dart';
@@ -19,82 +20,94 @@ class _GatewayDetailsState extends State<GatewayDetails> {
       FirebaseFirestore.instance.collection('locateDog');
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   TextEditingController _renameController = TextEditingController();
+  List<Device> _devices = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _getDevices();
+  }
 
   void updateName() async {
-    await DatabaseService(uid:_firebaseAuth.currentUser.uid).updateGatewayName(_renameController.text);
+    await DatabaseService(uid: _firebaseAuth.currentUser.uid)
+        .updateGatewayName(_renameController.text);
+  }
+
+  void _getDevices() async {
+    locationDB
+        .doc(_firebaseAuth.currentUser.uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        documentSnapshot.data().forEach((key, value) {
+          if (key.startsWith('Sender')) {
+            setState(() {
+              _devices.add(Device(
+                  id: value['ID'],
+                  name: value['name'],
+                  batteryLevel: value['battery'],
+                  latitude: value['Location']["Latitude"],
+                  longitude: value['Location']["Longitude"]));
+            });
+          }
+        });
+        print('Document exists on the database');
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
-      appBar: AppBar(
-        title: Text(widget.title),
-        centerTitle: true,
-        leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pushNamed(context, '/profile');
-            }),
-      ),
-      body: Center(
-          child: Column(
-        children: [
-          SizedBox(
-            height: 30.0,
-          ),
-          Icon(
-            Icons.router_outlined,
-            color: Colors.green,
-            size: 100.0,
-          ),
-          SizedBox(
-            height: 10.0,
-          ),
-          ElevatedButton(
-            style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(Colors.black),
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                    RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18.0),
-                ))),
-            child: Text(
-              'Rename'.toUpperCase(),
-              style: TextStyle(fontSize: 16, color: Colors.white),
+        backgroundColor: Colors.grey[200],
+        appBar: AppBar(
+          title: Text(widget.title),
+          centerTitle: true,
+          leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pushNamed(context, '/profile');
+              }),
+        ),
+        body: Center(
+            child: Column(
+          children: [
+            SizedBox(
+              height: 30.0,
             ),
-            onPressed: () {
-              _displayTextInputDialog(context);
-            },
-          ),
-          SizedBox(
-            height: 30.0,
-          ),
-          Expanded(
-            child: ListView(
-              children: <Widget>[
-                ListTile(
-                  tileColor: Colors.white70,
-                  leading: Icon(LineAwesomeIcons.wifi),
-                  title: Text('Wifi Connection Status'),
-                  trailing: ElevatedButton(
-                    style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Colors.red),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18.0),
-                        ))),
-                    child: Text(
-                      'Connected'.toUpperCase(),
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    onPressed: () {},
-                  ),
-                ),
-                ListTile(
+            Icon(
+              Icons.router_outlined,
+              color: Colors.green,
+              size: 100.0,
+            ),
+            SizedBox(
+              height: 10.0,
+            ),
+            ElevatedButton(
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(Colors.black),
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18.0),
+                  ))),
+              child: Text(
+                'Rename'.toUpperCase(),
+                style: TextStyle(fontSize: 16, color: Colors.white),
+              ),
+              onPressed: () {
+                _displayTextInputDialog(context);
+              },
+            ),
+            SizedBox(
+              height: 30.0,
+            ),
+            Expanded(
+              child: ListView(
+                children: <Widget>[
+                  ListTile(
                     tileColor: Colors.white70,
-                    leading: Icon(LineAwesomeIcons.bluetooth),
-                    title: Text('Bluetooth Connection Status'),
+                    leading: Icon(LineAwesomeIcons.wifi),
+                    title: Text('Wifi Connection Status'),
                     trailing: ElevatedButton(
                       style: ButtonStyle(
                           backgroundColor:
@@ -109,75 +122,176 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                         style: TextStyle(fontSize: 16),
                       ),
                       onPressed: () {},
-                    )),
-                ListTile(
-                  tileColor: Colors.white70,
-                  leading: Icon(LineAwesomeIcons.battery_1_2_full),
-                  title: Text('Baterry Level'),
-                  trailing: Text('50%'),
-                ),
-                SizedBox(
-                  height: 30.0,
-                ),
-                ListTile(
-                  tileColor: Colors.white70,
-                  title: Text('Manufacturer'),
-                  trailing: Text('Majel Tecnologies'),
-                ),
-                ListTile(
-                  tileColor: Colors.white70,
-                  title: Text('Model'),
-                  trailing: Text('1.0'),
-                ),
-                ListTile(
-                  tileColor: Colors.white70,
-                  title: Text('Serial Number'),
-                  trailing: Text('ABCD12345'),
-                ),
-              ],
-            ),
-          ),
-        ],
-      )),
-      endDrawer: SafeArea(
-        child: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              Container(
-                  height: 80.0,
-                  child: DrawerHeader(
-                    child: Text('Devices'.toUpperCase(),
-                        style: TextStyle(color: Colors.white, fontSize: 20)),
-                    decoration: BoxDecoration(color: Colors.red[300]),
+                    ),
                   ),
-                  margin: EdgeInsets.all(0.0),
-                  padding: EdgeInsets.all(0.0)),
+                  ListTile(
+                      tileColor: Colors.white70,
+                      leading: Icon(LineAwesomeIcons.bluetooth),
+                      title: Text('Bluetooth Connection Status'),
+                      trailing: ElevatedButton(
+                        style: ButtonStyle(
+                            backgroundColor:
+                                MaterialStateProperty.all(Colors.red),
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18.0),
+                            ))),
+                        child: Text(
+                          'Connected'.toUpperCase(),
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        onPressed: () {},
+                      )),
+                  ListTile(
+                    tileColor: Colors.white70,
+                    leading: Icon(LineAwesomeIcons.battery_1_2_full),
+                    title: Text('Baterry Level'),
+                    trailing: Text('50%'),
+                  ),
+                  SizedBox(
+                    height: 30.0,
+                  ),
+                  ListTile(
+                    tileColor: Colors.white70,
+                    title: Text('Manufacturer'),
+                    trailing: Text('Majel Tecnologies'),
+                  ),
+                  ListTile(
+                    tileColor: Colors.white70,
+                    title: Text('Model'),
+                    trailing: Text('1.0'),
+                  ),
+                  ListTile(
+                    tileColor: Colors.white70,
+                    title: Text('Serial Number'),
+                    trailing: Text('ABCD12345'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        )),
+        endDrawer: SafeArea(
+            child: Drawer(
+          child: Column(
+            children: [
+              Container(
+                height: 80.0,
+                width: 500,
+                child: DrawerHeader(
+                  child: Text('Devices'.toUpperCase(),
+                      style: TextStyle(color: Colors.white, fontSize: 20)),
+                  decoration: BoxDecoration(color: Colors.red[300]),
+                ),
+                // margin: EdgeInsets.all(0.0),
+                // padding: EdgeInsets.all(0.0)
+              ),
+              // Container(
+              //     // height: 80.0,
+              //     child: DrawerHeader(
+              //       child: Text('Devices'.toUpperCase(),
+              //           style: TextStyle(color: Colors.white, fontSize: 20)),
+              //       decoration: BoxDecoration(color: Colors.red[300]),
+              //     ),
+              //     margin: EdgeInsets.all(0.0),
+              //     padding: EdgeInsets.all(0.0)),
+
+              // ExpansionTile(
+              // title: new Text(
+              //   'Gateway ' + widget.title,
+              //   style: new TextStyle(
+              //       fontSize: 20.0,
+              //   ),
+              // ),
+              // children: <Widget>[
+              //   new ListView.builder(
+              //       itemCount: _devices.length,
+              //       // padding: EdgeInsets.zero,
+              //       shrinkWrap: true,
+              //       scrollDirection: Axis.vertical,
+              //       itemBuilder: (context, index) {
+              //         // children:
+              //         // <Widget>[
+              //         return new Column(
+              //           children: _buildExpandableContent(_devices[index]),
+              //         );
+              //         // ];
+              //       })
+              // ]),
               ListTile(
-                title: Text('Item 1'.toUpperCase(),
+                title: Text('Gateway: ' + widget.title.toUpperCase(),
                     style:
                         TextStyle(fontSize: 20, fontWeight: FontWeight.w300)),
-                leading: Icon(LineAwesomeIcons.mobile_phone),
+                leading: Icon(Icons.router_outlined),
                 onTap: () {
                   Navigator.pop(context);
                 },
               ),
-              Divider(),
+              new ListView.builder(
+                  itemCount: _devices.length,
+                  // padding: EdgeInsets.zero,
+                  shrinkWrap: true,
+                  scrollDirection: Axis.vertical,
+                  itemBuilder: (context, index) {
+                    // children:
+                    // <Widget>[
+                    return new Column(
+                      children: <Widget>[
+                        new ListTile(
+                          title: Text(_devices[index].name.toUpperCase(),
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.w300)),
+                          leading: Padding(
+                            // change left :
+                            padding: const EdgeInsets.only(left: 60),
+                            child: Icon(
+                              LineAwesomeIcons.mobile_phone,
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ],
+                    );
+                    // ];
+                  }),
+              // ]),
+              // Divider(
+              //   thickness: 3,
+              //   color: Colors.lightGreenAccent,
+              // ),
               ListTile(
-                title: Text('Item 2'.toUpperCase(),
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.w300)),
-                leading: Icon(LineAwesomeIcons.mobile_phone),
-                onTap: () {
-                  Navigator.pop(context);
-                },
+                tileColor: Colors.red[200],
+                title: Text('Add a New Device'.toUpperCase(),
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w300,
+                        color: Colors.white)),
+                leading: Icon(LineAwesomeIcons.plus_circle),
+                onTap: () {},
               ),
             ],
           ),
-        ),
-      ),
-    );
+        )));
   }
+
+  // _buildExpandableContent(Device device) {
+  //   List<Widget> columnContent = [];
+
+  //   // for (String content in device.contents)
+  //   columnContent.add(
+  // new ListTile(
+  //   title: Text(device.name.toUpperCase(),
+  //       style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300)),
+  //   leading: Icon(LineAwesomeIcons.mobile_phone),
+  //   onTap: () {
+  //     Navigator.pop(context);
+  //   },
+  // ),
+  //   );
+  //   return columnContent;
+  // }
 
   Future<void> _displayTextInputDialog(BuildContext context) async {
     locationDB
