@@ -258,6 +258,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_barcode_scanner:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: a7ebcffd8d9f510b1909de776c960f1903a7c9cb
+      url: "https://github.com/larinnim/flutter_barcode_scanner.git"
+    source: git
+    version: "1.0.2"
   flutter_ble_lib:
     dependency: "direct main"
     description:

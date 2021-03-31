@@ -48,7 +48,7 @@ dependencies:
   wifi: ^0.1.5
   percent_indicator: "^2.1.7+2"
   lottie: ^0.7.0+1
-  # flutter_barcode_scanner: ^1.0.1 
+  # flutter_barcode_scanner: ^1.0.2
   firebase_messaging: ^7.0.3
   connectivity: ^2.0.2
   flushbar: ^1.10.4
@@ -65,6 +65,10 @@ dependencies:
   mapbox_gl:
     git: 
       url: git://github.com/tobrun/flutter-mapbox-gl.git
+
+  flutter_barcode_scanner:
+    git:
+      url: https://github.com/larinnim/flutter_barcode_scanner.git
 
   flutter:
     sdk: flutter

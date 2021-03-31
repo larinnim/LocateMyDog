@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter_maps/Screens/Devices/device.dart';
 import 'package:flutter_maps/Screens/Devices/device_detail.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
@@ -22,6 +23,8 @@ class _GatewayDetailsState extends State<GatewayDetails> {
       FirebaseFirestore.instance.collection('locateDog');
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   TextEditingController _renameController = TextEditingController();
+  String _scanBarcode = 'Unknown';
+  List<String> _senders = [];
   List<Device> _devices = [];
   List<Color> _availableColors = [
     Colors.green,
@@ -39,6 +42,63 @@ class _GatewayDetailsState extends State<GatewayDetails> {
   void updateName() async {
     await DatabaseService(uid: _firebaseAuth.currentUser.uid)
         .updateGatewayName(_renameController.text);
+  }
+
+  startBarcodeScanStream() async {
+    FlutterBarcodeScanner.getBarcodeStreamReceiver(
+            "#ff6666", "Cancel", true, ScanMode.BARCODE)
+        .listen((barcode) => print(barcode));
+  }
+
+  Future<void> scanQR() async {
+    String barcodeScanRes;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    try {
+      barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
+          "#ff6666", "Cancel", true, ScanMode.QR);
+
+      String newSender = "Sender" + _devices.length.toString();
+
+      locationDB.doc(_firebaseAuth.currentUser.uid).set({
+        newSender: {
+          'ID': barcodeScanRes,
+          'LastRequestedWifiSSID': '',
+          'Location': [
+            {'Latitude': '', 'Longitude': ''}
+          ],
+          'LocationTimestamp': '',
+          'RSSI': '',
+          'battery': '',
+          'color': '',
+          'name': newSender
+        },
+      }, SetOptions(merge: true)).then((value) {
+        setState(() {
+          _devices.add(Device(
+                id: barcodeScanRes,
+                name: newSender,
+                batteryLevel: null,
+                latitude: null,
+                longitude: null,
+                color: null,
+                senderNumber: (_devices.length + 1).toString(),
+              ));
+        });
+      }).catchError((error) => print("Failed to add user: $error"));
+
+      print(barcodeScanRes);
+    } on PlatformException {
+      barcodeScanRes = 'Failed to get platform version.';
+    }
+
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) return;
+
+    setState(() {
+      _scanBarcode = barcodeScanRes;
+    });
   }
 
   void _getDevices() async {
@@ -301,7 +361,9 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                         fontWeight: FontWeight.w300,
                         color: Colors.white)),
                 leading: Icon(LineAwesomeIcons.plus_circle),
-                onTap: () {},
+                onTap: () {
+                  scanQR();
+                },
               ),
             ],
           ),
