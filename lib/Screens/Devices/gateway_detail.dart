@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter_maps/Screens/Devices/device.dart';
@@ -56,35 +57,65 @@ class _GatewayDetailsState extends State<GatewayDetails> {
     try {
       barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
           "#ff6666", "Cancel", true, ScanMode.QR);
-
-      String newSender = "Sender" + _devices.length.toString();
+      String newSender = "Sender" + (_devices.length + 1).toString();
 
       locationDB.doc(_firebaseAuth.currentUser.uid).set({
         newSender: {
           'ID': barcodeScanRes,
           'LastRequestedWifiSSID': '',
-          'Location': [
-            {'Latitude': '', 'Longitude': ''}
-          ],
+          'Location': 
+            {'Latitude': '', 'Longitude': ''},
           'LocationTimestamp': '',
-          'RSSI': '',
-          'battery': '',
-          'color': '',
+          'RSSI': 0,
+          'battery': 0,
+          'color': AuxFunc().colorNamefromColor(_availableColors[0]),
           'name': newSender
         },
       }, SetOptions(merge: true)).then((value) {
         setState(() {
-          _devices.add(Device(
-                id: barcodeScanRes,
-                name: newSender,
-                batteryLevel: null,
-                latitude: null,
-                longitude: null,
-                color: null,
-                senderNumber: (_devices.length + 1).toString(),
-              ));
+            _devices.add(Device(
+            id: barcodeScanRes,
+            name: newSender,
+            batteryLevel: null,
+            latitude: null,
+            longitude: null,
+            color: AuxFunc().colorNamefromColor(_availableColors[0]),
+            senderNumber:  "Sender" + (_devices.length + 1).toString(),
+          ));
+          _availableColors.removeAt(0);
+        
         });
       }).catchError((error) => print("Failed to add user: $error"));
+
+      // String newSender = "Sender" + _devices.length.toString();
+
+      // locationDB.doc(_firebaseAuth.currentUser.uid).set({
+      //   newSender: {
+      //     'ID': barcodeScanRes,
+      //     'LastRequestedWifiSSID': '',
+      //     'Location': [
+      //       {'Latitude': '', 'Longitude': ''}
+      //     ],
+      //     'LocationTimestamp': '',
+      //     'RSSI': '',
+      //     'battery': '',
+      //     'color': _availableColors[0],
+      //     'name': newSender
+      //   },
+      // }, SetOptions(merge: true)).then((value) {
+      //   setState(() {
+      //     _availableColors.removeAt(0);
+      //     _devices.add(Device(
+      //       id: barcodeScanRes,
+      //       name: newSender,
+      //       batteryLevel: null,
+      //       latitude: null,
+      //       longitude: null,
+      //       color: null,
+      //       senderNumber: (_devices.length + 1).toString(),
+      //     ));
+      //   });
+      // }).catchError((error) => print("Failed to add user: $error"));
 
       print(barcodeScanRes);
     } on PlatformException {
@@ -338,7 +369,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                     AuxFunc().getColor(_devices[index].color),
                                 battery: _devices[index].batteryLevel,
                                 id: _devices[index].id,
-                                senderNumber: _devices[index].senderNumber,
+                                senderNumber: _devices[index].senderNumber.toString(),
                                 availableColors: _availableColors,
                               ));
                             }));
@@ -360,9 +391,27 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                         fontSize: 20,
                         fontWeight: FontWeight.w300,
                         color: Colors.white)),
-                leading: Icon(LineAwesomeIcons.plus_circle),
+                leading: Icon(LineAwesomeIcons.plus_circle, color: Colors.white,),
                 onTap: () {
-                  scanQR();
+                  if (_devices.length <= 4) {
+                    scanQR(); //Maximum 4 devices
+                  } else {
+                    showCupertinoDialog(
+                        context: context,
+                        builder: (context) {
+                          return CupertinoAlertDialog(
+                            title: Text('Maximum number of devices paired'),
+                            actions: [
+                              CupertinoDialogAction(
+                                child: Text('OK'),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                              )
+                            ],
+                          );
+                        });
+                  }
                 },
               ),
             ],

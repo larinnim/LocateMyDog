@@ -50,7 +50,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
   void changeColor(Color color) {
     setState(() => _pickerColor = color);
     DatabaseService(uid: _firebaseAuth.currentUser.uid).updateDeviceColor(
-        AuxFunc().colorNamefromColor(_pickerColor), widget.senderNumber);
+        AuxFunc().colorNamefromColor(_pickerColor), widget.senderNumber.toString());
   }
 
   void updateName() async {
@@ -122,32 +122,11 @@ class _DeviceDetailState extends State<DeviceDetail> {
                         return AlertDialog(
                           title: const Text('Pick a color'),
                           content: SingleChildScrollView(
-                            // child: ColorPicker(
-                            //   pickerColor: pickerColor,
-                            //   onColorChanged: changeColor,
-                            //   showLabel: true,
-                            //   pickerAreaHeightPercent: 0.8,
-                            // ),
-                            // Use Material color picker:
-                            //
-                            // child: MaterialPicker(
-                            //   pickerColor: pickerColor,
-                            //   onColorChanged: changeColor,
-                            //   showLabel: true, // only on portrait mode
-                            // ),
-                            //
-                            // Use Block color picker:
-                            //
                             child: BlockPicker(
                               pickerColor: currentColor,
                               onColorChanged: changeColor,
                               availableColors: widget.availableColors,
                             ),
-                            //
-                            // child: MultipleChoiceBlockPicker(
-                            //   pickerColors: currentColors,
-                            //   onColorsChanged: changeColors,
-                            // ),
                           ),
                           actions: <Widget>[
                             TextButton(
