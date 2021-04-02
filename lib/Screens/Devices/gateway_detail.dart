@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter_maps/Screens/Devices/device.dart';
 import 'package:flutter_maps/Screens/Devices/device_detail.dart';
+import 'package:get/get.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Services/database.dart';
@@ -63,8 +64,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
         newSender: {
           'ID': barcodeScanRes,
           'LastRequestedWifiSSID': '',
-          'Location': 
-            {'Latitude': '', 'Longitude': ''},
+          'Location': {'Latitude': '', 'Longitude': ''},
           'LocationTimestamp': '',
           'RSSI': 0,
           'battery': 0,
@@ -73,17 +73,16 @@ class _GatewayDetailsState extends State<GatewayDetails> {
         },
       }, SetOptions(merge: true)).then((value) {
         setState(() {
-            _devices.add(Device(
+          _devices.add(Device(
             id: barcodeScanRes,
             name: newSender,
             batteryLevel: null,
             latitude: null,
             longitude: null,
             color: AuxFunc().colorNamefromColor(_availableColors[0]),
-            senderNumber:  "Sender" + (_devices.length + 1).toString(),
+            senderNumber: "Sender" + (_devices.length + 1).toString(),
           ));
           _availableColors.removeAt(0);
-        
         });
       }).catchError((error) => print("Failed to add user: $error"));
 
@@ -369,7 +368,8 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                     AuxFunc().getColor(_devices[index].color),
                                 battery: _devices[index].batteryLevel,
                                 id: _devices[index].id,
-                                senderNumber: _devices[index].senderNumber.toString(),
+                                senderNumber:
+                                    _devices[index].senderNumber.toString(),
                                 availableColors: _availableColors,
                               ));
                             }));
@@ -391,26 +391,36 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                         fontSize: 20,
                         fontWeight: FontWeight.w300,
                         color: Colors.white)),
-                leading: Icon(LineAwesomeIcons.plus_circle, color: Colors.white,),
+                leading: Icon(
+                  LineAwesomeIcons.plus_circle,
+                  color: Colors.white,
+                ),
                 onTap: () {
-                  if (_devices.length <= 4) {
+                  if (_devices.length < 4) {
                     scanQR(); //Maximum 4 devices
                   } else {
-                    showCupertinoDialog(
-                        context: context,
-                        builder: (context) {
-                          return CupertinoAlertDialog(
-                            title: Text('Maximum number of devices paired'),
-                            actions: [
-                              CupertinoDialogAction(
-                                child: Text('OK'),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                              )
-                            ],
-                          );
-                        });
+                    Get.dialog(SimpleDialog(
+                      title: Text(
+                        "Error",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      titlePadding: EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 20,
+                      ),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: new BorderRadius.circular(10.0)),
+                      children: [
+                        Text("Maximum number of devices paired",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 20.0)),
+                      ],
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 40,
+                        vertical: 20,
+                      ),
+                    ));
                   }
                 },
               ),
