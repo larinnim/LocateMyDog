@@ -138,68 +138,68 @@ class _Step1State extends State<Step1> {
 //Characteristic 2: Wifi Data
 //Characteristic 3: End Device
   void connectDev(BluetoothDevice dev) async {
-    if (!BleSingleton.shared.connectedDevices.contains(dev)) {
-      print("connectDev - Line 243");
-      await dev.connect().then((status) async {
-        //add connected device to the list
-        context.read<BleModel>().addconnectedDevices(dev);
+    // if (!BleSingleton.shared.connectedDevices.contains(dev)) {
+    //   print("connectDev - Line 243");
+    //   await dev.connect().then((status) async {
+    //     //add connected device to the list
+    //     context.read<BleModel>().addconnectedDevices(dev);
 
-        context.read<BleModel>().services = await dev.discoverServices();
-        //Only works if I have 1 service. Review the logic if there is more than 1
-        context.read<BleModel>().services.forEach((service) {
-          context.read<BleModel>().characteristics = service.characteristics;
-        });
-        await context
-            .read<BleModel>()
-            .characteristics
-            .elementAt(0)
-            .setNotifyValue(true); //ESP32 - Latitude
-        await context
-            .read<BleModel>()
-            .characteristics
-            .elementAt(1)
-            .setNotifyValue(true); //ESP32 - Longitude
+    //     context.read<BleModel>().services = await dev.discoverServices();
+    //     //Only works if I have 1 service. Review the logic if there is more than 1
+    //     context.read<BleModel>().services.forEach((service) {
+    //       context.read<BleModel>().characteristics = service.characteristics;
+    //     });
+    //     await context
+    //         .read<BleModel>()
+    //         .characteristics
+    //         .elementAt(0)
+    //         .setNotifyValue(true); //ESP32 - Latitude
+    //     await context
+    //         .read<BleModel>()
+    //         .characteristics
+    //         .elementAt(1)
+    //         .setNotifyValue(true); //ESP32 - Longitude
 
-        context
-            .read<BleModel>()
-            .characteristics
-            .elementAt(0)
-            .value
-            .listen((value) {
-          context.read<BleModel>().addLat(double.parse(
-              Utf8Decoder().convert(value))); // Add lat to provider
-        });
-        context
-            .read<BleModel>()
-            .characteristics
-            .elementAt(1)
-            .value
-            .listen((value) {
-          context.read<BleModel>().addLng(double.parse(
-              Utf8Decoder().convert(value))); // Add lng to provider
-        });
+    //     // context
+    //     //     .read<BleModel>()
+    //     //     .characteristics
+    //     //     .elementAt(0)
+    //     //     .value
+    //     //     .listen((value) {
+    //     //   context.read<BleModel>().addLat(double.parse(
+    //     //       Utf8Decoder().convert(value))); // Add lat to provider
+    //     // });
+    //     // context
+    //     //     .read<BleModel>()
+    //     //     .characteristics
+    //     //     .elementAt(1)
+    //     //     .value
+    //     //     .listen((value) {
+    //     //   context.read<BleModel>().addLng(double.parse(
+    //     //       Utf8Decoder().convert(value))); // Add lng to provider
+    //     // });
 
-        print("Connected");
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => Step2(),
-        ));
-        // setState(() {});
-      }).catchError((e) async {
-        print("Connection Error $e");
-        List<BluetoothDevice> connectedDevices =
-            await flutterBlue.connectedDevices;
+    //     print("Connected");
+    //     Navigator.of(context).push(MaterialPageRoute(
+    //       builder: (context) => Step2(),
+    //     ));
+    //     // setState(() {});
+    //   }).catchError((e) async {
+    //     print("Connection Error $e");
+    //     List<BluetoothDevice> connectedDevices =
+    //         await flutterBlue.connectedDevices;
 
-        if (connectedDevices.contains(dev)) {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => Step2(),
-          ));
-        }
-      });
-    } else {
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => Step2(),
-      ));
-    }
+    //     if (connectedDevices.contains(dev)) {
+    //       Navigator.of(context).push(MaterialPageRoute(
+    //         builder: (context) => Step2(),
+    //       ));
+    //     }
+    //   });
+    // } else {
+    //   Navigator.of(context).push(MaterialPageRoute(
+    //     builder: (context) => Step2(),
+    //   ));
+    // }
   }
 
   //스캔 ON/OFF

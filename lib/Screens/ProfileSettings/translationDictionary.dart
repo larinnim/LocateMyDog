@@ -12,6 +12,7 @@ class Messages extends Translations {
           'sign_in_facebook': 'Sign in with Facebook',
           'register': 'Sign Up',
           'map': 'Map',
+          'disconnect': 'Disconnect',
           'connect': 'Connect',
           'geofence': 'Geofence',
           'help_support': 'Help & Support',
@@ -50,6 +51,8 @@ class Messages extends Translations {
           'need_help': 'Need Some help?',
           'howtouse': 'Don\'t know how to use? Need support?\n',
           'sendusemail': 'Send us an email: ',
+          'scanning': 'Scanning',
+          'scan': 'Scan'
         },
         'pt_BR': {
           'entry_message':
@@ -60,6 +63,7 @@ class Messages extends Translations {
           'sign_in_facebook': 'Entre com o Facebook',
           'register': 'Registre',
           'map': 'Mapa',
+          'disconnect': 'Disconnectar',
           'connect': 'Connectar',
           'geofence': 'Cerca Geográfica',
           'help_support': 'Ajuda e Supporte',
@@ -98,6 +102,8 @@ class Messages extends Translations {
           'need_help': 'Precisa de ajuda?',
           'howtouse': 'Não sabe como utilizar? Precisa de ajuda?',
           'sendusemail': 'Nos mande um email: ',
+          'scanning': 'Escaneando',
+          'scan': 'Escanear'
         }
       };
 }

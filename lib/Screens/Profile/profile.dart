@@ -139,22 +139,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .snapshots()
           .listen((DocumentSnapshot documentSnapshot) {
         Map<String, dynamic> firestoreInfo = documentSnapshot.data();
+        firestoreInfo.forEach((key, value) {
+          print(key);
+          print(value);
+          if (key.contains('Sender')) {
+            context.read<WiFiModel>().addLat(
+              firestoreInfo[key]["Location"]["Latitude"] != "" ? 
+                double.parse(firestoreInfo[key]["Location"]["Latitude"]) : 0, key);
+           context.read<WiFiModel>().addLng(
+              firestoreInfo[key]["Location"]["Longitude"] != "" ? 
+             double.parse(
+                firestoreInfo[key]["Location"]["Longitude"]) : 0, key);
+            context.read<WiFiModel>().addRSSI(firestoreInfo[key]["RSSI"], key);
+            context
+                .read<WiFiModel>()
+                .addSSID(firestoreInfo[key]["ConnectedWifiSSID"], key);
+            context
+                .read<WiFiModel>()
+                .addTimeStamp(firestoreInfo[key]["LocationTimestamp"] != "" && firestoreInfo[key]["LocationTimestamp"] != null ? firestoreInfo[key]["LocationTimestamp"] : DateTime.now().toString(), key);
 
-        context.read<WiFiModel>().addLat(
-            double.parse(firestoreInfo["Sender1"]["Location"]["Latitude"]));
-        context.read<WiFiModel>().addLng(
-            double.parse(firestoreInfo["Sender1"]["Location"]["Longitude"]));
-        context.read<WiFiModel>().addRSSI(firestoreInfo["Sender1"]["RSSI"]);
-        context
-            .read<WiFiModel>()
-            .addSSID(firestoreInfo["Sender1"]["ConnectedWifiSSID"]);
-        context
-            .read<WiFiModel>()
-            .addTimeStamp(firestoreInfo["Sender1"]["LocationTimestamp"]);
+            context
+                .read<WiFiModel>()
+                .connectionWiFiTimestamp(firestoreInfo["WifiTimestamp"] != "" && firestoreInfo[key]["WifiTimestamp"] != null ? firestoreInfo["WifiTimestamp"] : DateTime.now().toString(), key);
+          }
+        });
 
-        context
-            .read<WiFiModel>()
-            .connectionWiFiTimestamp(firestoreInfo["WifiTimestamp"]);
         // .addTimeStamp(firestoreInfo["Sender1"]["LocationTimestamp"]);
       }).onError((e) => print("ERROR reading snapshot" + e));
     }

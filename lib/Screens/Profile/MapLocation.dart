@@ -9,6 +9,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
+import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/offline_regions.dart';
 import 'package:flutter_maps/Services/Radar.dart';
@@ -25,6 +26,10 @@ class MapLocation extends StatefulWidget {
 }
 
 class _MapLocationState extends State<MapLocation> {
+  CollectionReference locationDB =
+      FirebaseFirestore.instance.collection('locateDog');
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
   List<Marker> markers = <Marker>[];
   List<Polyline> mapPolylines = <Polyline>[];
   LatLng _currentPosition;
@@ -92,9 +97,28 @@ class _MapLocationState extends State<MapLocation> {
     return false;
   }
 
-  Future<Set<Marker>> updateMarkerAndCircle(LatLng latlong) async {
+  Future<Set<Marker>> updateMarkerAndCircle(
+      LatLng latlong, String sender) async {
     LatLng latlng = LatLng(latlong.latitude, latlong.longitude);
-    Uint8List imageData = await getMarker();
+    Uint8List imageData;
+    locationDB
+        .doc(_firebaseAuth.currentUser.uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        documentSnapshot.data().forEach((key, value) async {
+          if (key == sender) {
+            String pathColor =
+                'assets/images/' + 'dogpin_' + value['color'] + '.png';
+            ByteData byteData =
+                await DefaultAssetBundle.of(context).load(pathColor);
+            imageData = byteData.buffer.asUint8List();
+          }
+        });
+      }
+    });
+
+    // Uint8List imageData = await getMarker();
     _currentPosition = latlong;
 
     if (markers.length > 0) {
@@ -109,7 +133,7 @@ class _MapLocationState extends State<MapLocation> {
         marker = Marker(
             markerId: MarkerId("home"),
             position: latlng,
-            rotation: BleSingleton.shared.heading,
+            // rotation: BleSingleton.shared.heading,
             draggable: false,
             zIndex: 2,
             flat: true,
@@ -181,19 +205,19 @@ class _MapLocationState extends State<MapLocation> {
                                         bleProvider.timestampBLE.isAfter(
                                             wifiProvider.timestampWiFi))
                                     ? updateMarkerAndCircle(LatLng(
-                                        bleProvider.lat, bleProvider.lng))
+                                        bleProvider.lat, bleProvider.lng), bleProvider.senderNumber)
                                     : (bleProvider.timestampBLE == null &&
                                             wifiProvider.timestampWiFi != null)
                                         ? updateMarkerAndCircle(LatLng(
-                                            wifiProvider.lat, wifiProvider.lng))
+                                            wifiProvider.lat, wifiProvider.lng), wifiProvider.senderNumber)
                                         : (bleProvider != null &&
                                                 wifiProvider == null)
                                             ? updateMarkerAndCircle(LatLng(
                                                 bleProvider.lat,
-                                                bleProvider.lng))
+                                                bleProvider.lng), bleProvider.senderNumber)
                                             : updateMarkerAndCircle(LatLng(
                                                 wifiProvider.lat,
-                                                wifiProvider.lng)),
+                                                wifiProvider.lng), wifiProvider.senderNumber),
                                 initialData: Set.of(<Marker>[]),
                                 builder: (context, snapshotMarker) {
                                   return new Stack(
