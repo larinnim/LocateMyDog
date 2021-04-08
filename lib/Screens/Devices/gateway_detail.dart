@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,6 +11,7 @@ import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Screens/Devices/device.dart';
 import 'package:flutter_maps/Screens/Devices/device_detail.dart';
 import 'package:flutter_maps/Services/bluetooth_conect.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:flutter/services.dart';
@@ -83,8 +86,9 @@ class _GatewayDetailsState extends State<GatewayDetails> {
               element.advertisementData = r.advertisementData;
               element.rssi = r.rssi;
               return true;
+            } else {
+              return false;
             }
-            return false;
           });
 
           //If it is the first device found, add it to the devicelist
@@ -97,8 +101,11 @@ class _GatewayDetailsState extends State<GatewayDetails> {
             print("\tTx Power Level : ${r.advertisementData.txPowerLevel}");
             context.read<BleModel>().addDeviceList(
                 BleDeviceItem(r.rssi, r.advertisementData, r.device));
+            setState(() {
+              _isScanning = false;
+            });
           }
-          setState(() {});
+          // setState(() {});
         }
       });
       setState(() {
@@ -109,6 +116,113 @@ class _GatewayDetailsState extends State<GatewayDetails> {
       setState(() {
         _isScanning = false;
       });
+    }
+  }
+
+  void connectDev(BluetoothDevice dev) async {
+    //sleep(const Duration(seconds: 1));
+    // List<BluetoothDevice> connectedDevices = await flutterBlue.connectedDevices;
+    print("Size connected devices: " +
+        context.read<BleModel>().connectedDevices.length.toString());
+    if (!context.read<BleModel>().connectedDevices.contains(dev)) {
+      print("connectDev - Line 243");
+      await dev.connect().then((status) async {
+        //add connected device to the list
+        context.read<BleModel>().addconnectedDevices(dev);
+
+        context.read<BleModel>().services = await dev.discoverServices();
+        //Only works if I have 1 service. Review the logic if there is more than 1
+        // context.read<BleModel>().services.forEach((service) async {
+        for (BluetoothService service in await dev.discoverServices()) {
+          if (service.uuid.toString() == serviceUUID) {
+            for (BluetoothCharacteristic c in service.characteristics) {
+              if (c.uuid.toString() == 'c67d4d7e-87c7-4e93-86e4-683cf2af76a0' &&
+                  c.properties.read) {
+                List<int> value = await c.read().then((value) {
+                  print(value);
+                  return value;
+                });
+                print(value);
+                // await c.setNotifyValue(true);
+                // c.value.listen((value) {
+                //   final split = Utf8Decoder().convert(value).split(',');
+                //   final Map<int, String> values = {
+                //     for (int i = 0; i < split.length; i++) i: split[i]
+                //   };
+                //   print(values); // {0: grubs, 1:  sheep}
+
+                //   final lat = values[0];
+                //   final lng = values[1];
+                //   final sender = values[2];
+
+                //   // print("LAT VALUEE:" + value.toString());
+                //   context.read<BleModel>().addLatLng(double.parse(lat),
+                //       double.parse(lng), sender); // Add lat to provider
+                // });
+              }
+
+              context.read<BleModel>().addcharacteristics(c);
+              // List<int> value = await c.read();
+              // print(value);
+            }
+          }
+        }
+
+        // context.read<BleModel>().characteristics = service.characteristics;
+        // print("Characteristics: " + service.characteristics.toString());
+        // });
+        // await context
+        //     .read<BleModel>()
+        //     .characteristics
+        //     .elementAt(1)
+        //     .setNotifyValue(true);
+        // await context
+        //     .read<BleModel>()
+        //     .characteristics
+        //     .elementAt(1)
+        //     .setNotifyValue(true);
+        //   await context
+        // .read<BleModel>()
+        // .characteristics
+        // .elementAt(2)
+        // .setNotifyValue(true);
+        //    await context
+        // .read<BleModel>()
+        // .characteristics
+        // .elementAt(3)
+        // .setNotifyValue(true);
+        // await context
+        //     .read<BleModel>()
+        //     .characteristics
+        //     .elementAt(1)
+        //     .setNotifyValue(true); //ESP32 - Longitude
+
+        // print("Size characteristics: " +
+        //     context.read<BleModel>().characteristics.length.toString());
+        // context
+        //     .read<BleModel>()
+        //     .characteristics
+        //     .elementAt(1)
+        //     .value
+        //     .listen((value) {
+        //   final split = Utf8Decoder().convert(value).split(',');
+        //   final Map<int, String> values = {
+        //     for (int i = 0; i < split.length; i++) i: split[i]
+        //   };
+        //   print(values); // {0: grubs, 1:  sheep}
+
+        //   final lat = values[0];
+        //   final lng = values[1];
+        //   final sender = values[2];
+
+        //   // print("LAT VALUEE:" + value.toString());
+        //   context.read<BleModel>().addLatLng(double.parse(lat),
+        //       double.parse(lng), sender); // Add lat to provider
+        // });
+
+        print("Connected");
+        setState(() {});
+      }).catchError((e) => print("Connection Error $e"));
     }
   }
 
@@ -205,117 +319,174 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                 }),
           ),
           body: Center(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 30.0,
-                ),
-                Icon(
-                  Icons.router_outlined,
-                  color: Colors.green,
-                  size: 100.0,
-                ),
-                SizedBox(
-                  height: 10.0,
-                ),
-                ElevatedButton(
-                  style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(Colors.black),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0),
-                      ))),
-                  child: Text(
-                    'Rename'.toUpperCase(),
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
-                  onPressed: () {
-                    _displayTextInputDialog(context);
-                  },
-                ),
-                SizedBox(
-                  height: 30.0,
-                ),
-                Expanded(
-                  child: ListView(
-                    children: <Widget>[
-                      ListTile(
-                        tileColor: Colors.white70,
-                        leading: Icon(LineAwesomeIcons.wifi),
-                        title: Text('Wifi Connection Status'),
-                        trailing: ElevatedButton(
-                          style: ButtonStyle(
-                              backgroundColor:
-                                  MaterialStateProperty.all(Colors.red),
-                              shape: MaterialStateProperty.all<
-                                      RoundedRectangleBorder>(
-                                  RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(18.0),
-                              ))),
-                          child: Text(
-                            'connect'.toUpperCase(),
-                            style: TextStyle(fontSize: 16),
+            child: _isScanning
+                ? Container(
+                    color: Colors.red[300],
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SpinKitFoldingCube(
+                            color: Colors.white,
+                            size: 50.0,
                           ),
-                          onPressed: () {},
-                        ),
+                          SizedBox(
+                            height: 30.0,
+                          ),
+                          Text(
+                            'Scanning...',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 28.0),
+                          )
+                        ]),
+                  )
+                : Column(
+                    children: [
+                      SizedBox(
+                        height: 30.0,
                       ),
-                      ListTile(
-                          tileColor: Colors.white70,
-                          leading: Icon(LineAwesomeIcons.bluetooth),
-                          title: Text('Bluetooth Connection Status'),
-                          trailing: ElevatedButton(
-                            style: ButtonStyle(
-                                backgroundColor:
-                                bleProvider.connectedDevices.length == 0 ? MaterialStateProperty.all(Colors.red[300]) : 
-                                      _isScanning
-                                ? MaterialStateProperty.all(Colors.red[300]) 
-                                : bleProvider.connectedDevices.length > 0 ? MaterialStateProperty.all(Colors.red) : MaterialStateProperty.all(Colors.green[300]) ,
-                                shape: MaterialStateProperty.all<
-                                        RoundedRectangleBorder>(
-                                    RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(18.0),
-                                ))),
-                            child: 
-                            Text(
-                              bleProvider.connectedDevices.length == 0 && !_isScanning? 'scan'.tr.toUpperCase():
-                            _isScanning
-                                ? 'scanning'.tr.toUpperCase() + '...'
-                                : bleProvider.connectedDevices.length > 0 ? 'disconnect'.tr.toUpperCase(): 'connect'.tr.toUpperCase(),
-                              style: TextStyle(fontSize: 16),
-                            ),
-                            onPressed: () {
-                              scan();
-                            },
-                          )),
-                      ListTile(
-                        tileColor: Colors.white70,
-                        leading: Icon(LineAwesomeIcons.battery_1_2_full),
-                        title: Text('Baterry Level'),
-                        trailing: Text('50%'),
+                      Icon(
+                        Icons.router_outlined,
+                        color: Colors.green,
+                        size: 100.0,
+                      ),
+                      SizedBox(
+                        height: 10.0,
+                      ),
+                      ElevatedButton(
+                        style: ButtonStyle(
+                            backgroundColor:
+                                MaterialStateProperty.all(Colors.black),
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18.0),
+                            ))),
+                        child: Text(
+                          'Rename'.toUpperCase(),
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
+                        onPressed: () {
+                          _displayTextInputDialog(context);
+                        },
                       ),
                       SizedBox(
                         height: 30.0,
                       ),
-                      ListTile(
-                        tileColor: Colors.white70,
-                        title: Text('Manufacturer'),
-                        trailing: Text('Majel Tecnologies'),
-                      ),
-                      ListTile(
-                        tileColor: Colors.white70,
-                        title: Text('Model'),
-                        trailing: Text('1.0'),
-                      ),
-                      ListTile(
-                        tileColor: Colors.white70,
-                        title: Text('Serial Number'),
-                        trailing: Text('ABCD12345'),
+                      Expanded(
+                        child: ListView(
+                          children: <Widget>[
+                            ListTile(
+                              tileColor: Colors.white70,
+                              leading: Icon(LineAwesomeIcons.wifi),
+                              title: Text('Wifi Connection Status'),
+                              trailing: ElevatedButton(
+                                style: ButtonStyle(
+                                    backgroundColor:
+                                        MaterialStateProperty.all(Colors.red),
+                                    shape: MaterialStateProperty.all<
+                                            RoundedRectangleBorder>(
+                                        RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(18.0),
+                                    ))),
+                                child: Text(
+                                  'connect'.toUpperCase(),
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                onPressed: () {},
+                              ),
+                            ),
+                            ListTile(
+                                tileColor: Colors.white70,
+                                leading: Icon(LineAwesomeIcons.bluetooth),
+                                title: Text('Bluetooth Connection Status'),
+                                trailing: ElevatedButton(
+                                  style: ButtonStyle(
+                                      backgroundColor: bleProvider
+                                                      .deviceList.length ==
+                                                  0 &&
+                                              !_isScanning
+                                          ? MaterialStateProperty.all(
+                                              Colors.red[300])
+                                          : bleProvider.deviceList.length > 0 &&
+                                                  bleProvider.connectedDevices
+                                                          .length ==
+                                                      0
+                                              ? MaterialStateProperty.all(
+                                                  Colors.green[300])
+                                              : MaterialStateProperty.all(
+                                                  Colors.red),
+                                      shape: MaterialStateProperty.all<
+                                              RoundedRectangleBorder>(
+                                          RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(18.0),
+                                      ))),
+                                  child: Text(
+                                    bleProvider.deviceList.length == 0 &&
+                                            !_isScanning
+                                        ? 'scan'.tr.toUpperCase()
+                                        : bleProvider.deviceList.length > 0 &&
+                                                bleProvider.connectedDevices
+                                                        .length ==
+                                                    0
+                                            ? 'connect'.tr.toUpperCase()
+                                            : 'disconnect'.tr.toUpperCase(),
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  onPressed: () {
+                                    bleProvider.deviceList.length == 0 &&
+                                            !_isScanning
+                                        ? scan()
+                                        : bleProvider.deviceList.length > 0 &&
+                                                bleProvider.connectedDevices
+                                                        .length ==
+                                                    0
+                                            ? connectDev(bleProvider
+                                                .deviceList[0]
+                                                .device) //Connects to only one gateway
+                                            // ignore: unnecessary_statements
+                                            : bleProvider.deviceList[0].device
+                                                .disconnect()
+                                                .then((status) async => {
+                                                      context
+                                                          .read<BleModel>()
+                                                          .removeConnectedDevice(
+                                                              bleProvider
+                                                                  .deviceList[0]
+                                                                  .device),
+                                                    });
+                                  },
+                                )),
+                            ListTile(
+                              tileColor: Colors.white70,
+                              leading: Icon(LineAwesomeIcons.battery_1_2_full),
+                              title: Text('Baterry Level'),
+                              trailing: Text('50%'),
+                            ),
+                            SizedBox(
+                              height: 30.0,
+                            ),
+                            ListTile(
+                              tileColor: Colors.white70,
+                              title: Text('Manufacturer'),
+                              trailing: Text('Majel Tecnologies'),
+                            ),
+                            ListTile(
+                              tileColor: Colors.white70,
+                              title: Text('Model'),
+                              trailing: Text('1.0'),
+                            ),
+                            ListTile(
+                              tileColor: Colors.white70,
+                              title: Text('Serial Number'),
+                              trailing: Text('ABCD12345'),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
           ),
           endDrawer: SafeArea(
               child: Drawer(

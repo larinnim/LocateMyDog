@@ -133,9 +133,11 @@ class BleModel extends ChangeNotifier {
   /// cart from the outside.
   void addDeviceList(BleDeviceItem item) {
     print("addDeviceList - Line 138");
-    deviceList.add(item);
+    if (item != null) {
+      deviceList.add(item);
+      notifyListeners();
+    }
     // This call tells the widgets that are listening to this model to rebuild.
-    notifyListeners();
   }
 
   void removeConnectedDevice(BluetoothDevice device) {
@@ -291,8 +293,8 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
           final sender = values[2];
 
           // print("LAT VALUEE:" + value.toString());
-          context.read<BleModel>().addLatLng(double.parse(
-              lat), double.parse(lng), sender); // Add lat to provider
+          context.read<BleModel>().addLatLng(double.parse(lat),
+              double.parse(lng), sender); // Add lat to provider
         });
         // context
         //     .read<BleModel>()
@@ -595,17 +597,17 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                 //                     connectDev(
                 //                         bleProvider.deviceList[index].device);
                 //                   } else {
-                //                     bleProvider.deviceList[index].device
-                //                         .disconnect()
-                //                         .then((status) async => {
-                //                               context
-                //                                   .read<BleModel>()
-                //                                   .removeConnectedDevice(
-                //                                       bleProvider
-                //                                           .deviceList[index]
-                //                                           .device),
-                //                               setState(() {})
-                //                             });
+                                    // bleProvider.deviceList[index].device
+                                    //     .disconnect()
+                                    //     .then((status) async => {
+                                    //           context
+                                    //               .read<BleModel>()
+                                    //               .removeConnectedDevice(
+                                    //                   bleProvider
+                                    //                       .deviceList[index]
+                                    //                       .device),
+                                    //           setState(() {})
+                                    //         });
                 //                   }
                 //                 } else {
                 //                   connectDev(
