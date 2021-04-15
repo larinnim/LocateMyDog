@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flushbar/flushbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -49,7 +48,7 @@ class _MapLocationState extends State<MapLocation> {
   Marker marker;
   int _markerId = 1;
   Timer timer;
-  final List<Flushbar> flushBars = [];
+  // final List<Flushbar> flushBars = [];
 
   @override
   void initState() {

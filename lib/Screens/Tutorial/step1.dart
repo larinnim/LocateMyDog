@@ -11,7 +11,7 @@ import 'package:flutter_maps/Screens/Tutorial/step2.dart';
 import 'package:flutter_maps/Screens/Tutorial/step4.dart';
 import 'package:flutter_maps/Services/bluetooth_conect.dart';
 import 'package:flutter_maps/Services/database.dart';
-import 'package:flutter_maps/Services/setWiFiConf.dart';
+// import 'package:flutter_maps/Services/setWiFiConf.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';

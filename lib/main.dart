@@ -15,7 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Screens/Profile/profile.dart';
 import 'Screens/ProfileSettings/translationDictionary.dart';
-import 'Services/SetWiFiConf.dart';
+// import 'Services/SetWiFiConf.dart';
 import 'locator.dart';
 import 'Services/bluetooth_conect.dart';
 // void main() => runApp(MyApp());
@@ -62,7 +62,7 @@ class _MainPageState extends State<MainPage> {
           '/profile': (context) => ProfileScreen(),
           '/trackwalk': (context) => BluetoothConnection(),
           '/blueMap': (context) => MapLocation(),
-          '/wifiConf': (context) => SetWiFiConf(),
+          // '/wifiConf': (context) => SetWiFiConf(),
           '/authenticate': (context) => Authenticate(),
           '/helpSupport': (context) => HelpSupport(),
         },

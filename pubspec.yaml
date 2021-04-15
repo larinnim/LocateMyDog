@@ -45,13 +45,11 @@ dependencies:
   convert: ^2.1.1
   intl: ^0.16.1
   shared_preferences: ^0.5.12+2
-  wifi: ^0.1.5
   percent_indicator: "^2.1.7+2"
   lottie: ^0.7.0+1
   # flutter_barcode_scanner: ^1.0.2
   firebase_messaging: ^7.0.3
   connectivity: ^2.0.2
-  flushbar: ^1.10.4
   flutter_compass: '^0.4.3'
   google_sign_in: ^4.5.9
   google_fonts: ^1.1.2
