@@ -292,11 +292,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: "8e6cf7236b22b79f4bacbc0ac29bd6f459f06b64"
+      ref: nullsafety
+      resolved-ref: d2fc7def718460c9fa40a3a78224af081effae41
       url: "git://github.com/privatdoktor/FlutterBleLib.git"
     source: git
-    version: "2.3.2"
+    version: "2.4.0"
   flutter_blue:
     dependency: "direct main"
     description:
