@@ -2,17 +2,18 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class AuthRepo {
   // final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  bool _isFacebookLoggedIn;
 
   AuthRepo();
 
@@ -50,18 +51,21 @@ class AuthRepo {
   // }
 
   Future<AppUser> signInWithFacebook() async {
-    final facebookLogin = FacebookLogin();
-    final result = await facebookLogin.logIn([
-      'email',
-    ]);
+    // final facebookLogin = FacebookLogin();
+    // final result = await facebookLogin.logIn([
+    //   'email',
+    // ]);
     // if (result.errorMessage == null) {
     try {
-      final token = result.accessToken.token;
-      final graphResponse = await http.get(
-          'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=$token');
-      print(graphResponse.body);
-      if (result.status == FacebookLoginStatus.loggedIn) {
-        final facebookCredential = FacebookAuthProvider.credential(token);
+      // final token = result.accessToken.token;
+      LoginResult result = await FacebookAuth.instance.login();
+      final userData = await FacebookAuth.instance.getUserData();
+
+      // final graphResponse = await http.get(
+      //     'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=$token');
+      // print(graphResponse.body);
+      if (result.status == LoginStatus.success) {
+        final facebookCredential = FacebookAuthProvider.credential(result.accessToken.toString());
         final UserCredential userCredential =
             await _auth.signInWithCredential(facebookCredential);
         return AppUser(userCredential.user.uid,
@@ -74,6 +78,17 @@ class AuthRepo {
     }
   }
 
+  Future<bool> _checkIfIsLogged() async {
+  final AccessToken accessToken = await FacebookAuth.instance.accessToken;
+  if (accessToken != null) {
+    // now you can call to  FacebookAuth.instance.getUserData();
+    return true;
+    // final userData = await FacebookAuth.instance.getUserData(fields: "email,birthday,friends,gender,link");
+  }else{
+     return false;
+  }
+}
+
   Future<AppUser> signInWithEmailAndPassword(
       {String email, String password}) async {
     String errorMessage;
@@ -84,8 +99,7 @@ class AuthRepo {
           email: email, password: password);
       return AppUser(authResult.user.uid,
           displayName: authResult.user.displayName);
-    } 
-    catch (error) {
+    } catch (error) {
       switch (error.code) {
         case "invalid-email":
           errorMessage = "Your email address appears to be malformed.";

@@ -7,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Providers/SocialSignin.dart';
@@ -26,7 +26,6 @@ import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:flutter_maps/Services/constants.dart';
 import 'package:flutter_maps/Services/push_notification.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
-import 'package:flutter_screenutil/screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -56,6 +55,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   AppUser _currentUser = locator.get<UserController>().currentUser;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final LocalAuthentication localauth = LocalAuthentication();
+  final picker = ImagePicker();
+  File _image;
 
   SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
   final box = GetStorage();
@@ -74,6 +75,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     super.dispose();
+  }
+
+  Future getImage() async {
+    final pickedFile = await picker.getImage(source: ImageSource.camera);
+
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+      } else {
+        print('No image selected.');
+      }
+    });
+  }
+
+  Future<bool> _checkIfIsLogged() async {
+    final AccessToken accessToken = await FacebookAuth.instance.accessToken;
+    if (accessToken != null) {
+      // now you can call to  FacebookAuth.instance.getUserData();
+      return true;
+      // final userData = await FacebookAuth.instance.getUserData(fields: "email,birthday,friends,gender,link");
+    } else {
+      return false;
+    }
   }
 
   void checkAuthentication() async {
@@ -115,11 +139,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // FirebaseAuth.instance.signOut();
 
     bool isGoogleSignedIn = await GoogleSignIn().isSignedIn();
-    bool isFacebookSignedIn = await FacebookLogin().isLoggedIn;
+    bool isFacebookSignedIn = await _checkIfIsLogged();
     if (isGoogleSignedIn == true) {
       GoogleSignIn().disconnect();
     } else if (isFacebookSignedIn == true) {
-      FacebookLogin().logOut();
+      FacebookAuth.instance.logOut();
     }
     FirebaseAuth.instance.signOut().then((value) {
       Get.offAll(Authenticate());
@@ -144,23 +168,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
           print(value);
           if (key.contains('Sender')) {
             context.read<WiFiModel>().addLat(
-              firestoreInfo[key]["Location"]["Latitude"] != "" ? 
-                double.parse(firestoreInfo[key]["Location"]["Latitude"]) : 0, key);
-           context.read<WiFiModel>().addLng(
-              firestoreInfo[key]["Location"]["Longitude"] != "" ? 
-             double.parse(
-                firestoreInfo[key]["Location"]["Longitude"]) : 0, key);
+                firestoreInfo[key]["Location"]["Latitude"] != ""
+                    ? double.parse(firestoreInfo[key]["Location"]["Latitude"])
+                    : 0,
+                key);
+            context.read<WiFiModel>().addLng(
+                firestoreInfo[key]["Location"]["Longitude"] != ""
+                    ? double.parse(firestoreInfo[key]["Location"]["Longitude"])
+                    : 0,
+                key);
             context.read<WiFiModel>().addRSSI(firestoreInfo[key]["RSSI"], key);
             context
                 .read<WiFiModel>()
                 .addSSID(firestoreInfo[key]["ConnectedWifiSSID"], key);
-            context
-                .read<WiFiModel>()
-                .addTimeStamp(firestoreInfo[key]["LocationTimestamp"] != "" && firestoreInfo[key]["LocationTimestamp"] != null ? firestoreInfo[key]["LocationTimestamp"] : DateTime.now().toString(), key);
+            context.read<WiFiModel>().addTimeStamp(
+                firestoreInfo[key]["LocationTimestamp"] != "" &&
+                        firestoreInfo[key]["LocationTimestamp"] != null
+                    ? firestoreInfo[key]["LocationTimestamp"]
+                    : DateTime.now().toString(),
+                key);
 
-            context
-                .read<WiFiModel>()
-                .connectionWiFiTimestamp(firestoreInfo["WifiTimestamp"] != "" && firestoreInfo[key]["WifiTimestamp"] != null ? firestoreInfo["WifiTimestamp"] : DateTime.now().toString(), key);
+            context.read<WiFiModel>().connectionWiFiTimestamp(
+                firestoreInfo["WifiTimestamp"] != "" &&
+                        firestoreInfo[key]["WifiTimestamp"] != null
+                    ? firestoreInfo["WifiTimestamp"]
+                    : DateTime.now().toString(),
+                key);
           }
         });
 
@@ -171,8 +204,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ScreenUtil.init(context,
-        designSize: Size(750, 1334), allowFontScaling: true);
+    // ScreenUtil.init(context,
+    //     designSize: Size(750, 1334), allowFontScaling: true);
+    ScreenUtil.init(
+        BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width,
+            maxHeight: MediaQuery.of(context).size.height),
+        designSize: Size(750, 1334),
+        orientation: Orientation.portrait);
     final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
     final currentConnectionStatus = Provider.of<ConnectionStatusModel>(context);
     currentConnectionStatus.initConnectionListen();
@@ -240,12 +279,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 //         ? _auth.currentUser?.photoURL
                                 //         : _currentUser?.avatarUrl,
                                 onTap: () async {
-                                  File image = await ImagePicker.pickImage(
-                                      source: ImageSource.gallery);
+                                  getImage();
+                                  // File image = await ImagePicker.pickImage(
+                                  //     source: ImageSource.gallery);
 
                                   await locator
                                       .get<UserController>()
-                                      .uploadProfilePicture(image);
+                                      .uploadProfilePicture(_image);
 
                                   setState(() {});
                                 },

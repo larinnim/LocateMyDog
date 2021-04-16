@@ -143,7 +143,7 @@ class _GeofenceWidgetState extends State<Geofence> {
       }
 
       _locationSubscription =
-          _locationTracker.onLocationChanged().listen((newLocalData) {
+          _locationTracker.onLocationChanged.listen((newLocalData) {
         if (_controller != null) {
           _controller.animateCamera(CameraUpdate.newCameraPosition(
               new CameraPosition(
