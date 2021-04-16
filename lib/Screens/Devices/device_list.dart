@@ -13,7 +13,7 @@ class _DeviceListState extends State<DeviceList> {
   CollectionReference locationDB =
       FirebaseFirestore.instance.collection('locateDog');
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  String _gatewayName = '';
+  String? _gatewayName = '';
 
   @override
   void initState() {
@@ -22,9 +22,9 @@ class _DeviceListState extends State<DeviceList> {
   }
 
   Future<void> _getGatewayName() async {
-    await locationDB.doc(_firebaseAuth.currentUser.uid).get().then((value) {
+    await locationDB.doc(_firebaseAuth.currentUser!.uid).get().then((value) {
       setState(() {
-        _gatewayName = value.data()['gateway']['name'];
+        _gatewayName = value.data()!['gateway']['name'];
       });
     });
   }
@@ -69,7 +69,7 @@ class _DeviceListState extends State<DeviceList> {
                 borderRadius: BorderRadius.circular(13),
                 boxShadow: [
                   BoxShadow(
-                      color: Colors.grey[200],
+                      color: Colors.grey[200]!,
                       blurRadius: 10,
                       spreadRadius: 3,
                       offset: Offset(3, 4))
@@ -82,7 +82,7 @@ class _DeviceListState extends State<DeviceList> {
                   size: 30.0,
                 ),
                 title: Text(
-                  "Gateway: " + _gatewayName,
+                  "Gateway: " + _gatewayName!,
                   style: TextStyle(fontSize: 25),
                 ),
                 trailing: Icon(Icons.arrow_forward_ios_rounded),

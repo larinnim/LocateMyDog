@@ -24,8 +24,8 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
   final newPasswordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
-  String password, passwordConfirm, currentPassword;
-  Color color;
+  String? password, passwordConfirm, currentPassword;
+  Color? color;
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   @override
@@ -39,10 +39,10 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
   void _updatePassword() {
     _firebaseAuth
         .signInWithEmailAndPassword(
-            email: _firebaseAuth.currentUser.email,
+            email: _firebaseAuth.currentUser!.email!,
             password: currentPasswordController.text)
         .then((userCredential) {
-      _firebaseAuth.currentUser
+      _firebaseAuth.currentUser!
           .updatePassword(confirmPasswordController.text)
           .then((value) => {
                 Get.dialog(SimpleDialog(
@@ -179,7 +179,7 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                   });
                 },
                 validator: (currentPassword) {
-                  if (currentPassword.isEmpty) {
+                  if (currentPassword!.isEmpty) {
                     return 'current_password'.tr;
                   }
                   return null;
@@ -231,7 +231,7 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                   });
                 },
                 validator: (pwValue) {
-                  if (pwValue.isEmpty) {
+                  if (pwValue!.isEmpty) {
                     return 'field_mandatory'.tr;
                   }
                   if (pwValue.length < 8) {
@@ -283,7 +283,7 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                   });
                 },
                 validator: (pwConfirmValue) {
-                  if (pwConfirmValue.isEmpty) {
+                  if (pwConfirmValue!.isEmpty) {
                     return 'field_mandatory'.tr;
                   }
                   if (pwConfirmValue != password) {
@@ -343,8 +343,8 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                 ),
                 RaisedButton(
                   onPressed: () {
-                    if (formKey.currentState.validate()) {
-                      formKey.currentState.save();
+                    if (formKey.currentState!.validate()) {
+                      formKey.currentState!.save();
                       _updatePassword();
                     }
                   },

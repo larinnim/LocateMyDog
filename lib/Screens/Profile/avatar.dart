@@ -5,15 +5,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 
 class Avatar extends StatelessWidget {
-  final String avatarUrl;
-  final Function onTap;
+  final String? avatarUrl;
+  final Function? onTap;
 
   const Avatar({this.avatarUrl, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-        onTap: onTap,
+        onTap: onTap as void Function()?,
         child: Center(
           child: avatarUrl == null
               ? CircleAvatar(
@@ -30,18 +30,18 @@ class Avatar extends StatelessWidget {
                     radius: kSpacingUnit.w * 5,
                     child: ClipOval(
                       child: Image.network(
-                        avatarUrl,
+                        avatarUrl!,
                         width: 200,
                         height: 200,
                         fit: BoxFit.cover,
                         loadingBuilder: (BuildContext context, Widget child,
-                            ImageChunkEvent loadingProgress) {
+                            ImageChunkEvent? loadingProgress) {
                           if (loadingProgress == null) return child;
                           return Center(
                             child: CircularProgressIndicator(
                               value: loadingProgress.expectedTotalBytes != null
                                   ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes
+                                      loadingProgress.expectedTotalBytes!
                                   : null,
                             ),
                           );

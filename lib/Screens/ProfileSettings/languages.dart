@@ -20,7 +20,7 @@ class LanguagesPage extends StatefulWidget {
 
 class LanguagesPageState extends State<LanguagesPage> {
   String _currentLang = "english";
-  int lang = 1;
+  int? lang = 1;
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -32,7 +32,7 @@ class LanguagesPageState extends State<LanguagesPage> {
     LanguageValue(4, "portuguese".tr),
   ];
 
-  void _updateLanguage(int val) async {
+  void _updateLanguage(int? val) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     if (val == 1) {
@@ -59,22 +59,22 @@ class LanguagesPageState extends State<LanguagesPage> {
 
     _db
         .collection('users')
-        .doc(_firebaseAuth.currentUser.uid)
+        .doc(_firebaseAuth.currentUser!.uid)
         .set({'language': val.toString()}, SetOptions(merge: true));
   }
 
-  void getLanguage(String dblang) {
+  void getLanguage(String? dblang) {
     if (dblang == null) {
-      if (Get.locale.languageCode == 'pt') {
+      if (Get.locale!.languageCode == 'pt') {
         lang = 4;
         _currentLang = "portuguese";
-      } else if (Get.locale.languageCode == 'en') {
+      } else if (Get.locale!.languageCode == 'en') {
         lang = 1;
         _currentLang = 'english';
-      } else if (Get.locale.languageCode == 'es') {
+      } else if (Get.locale!.languageCode == 'es') {
         lang = 3;
         _currentLang = "spanish";
-      } else if (Get.locale.languageCode == 'fr') {
+      } else if (Get.locale!.languageCode == 'fr') {
         lang = 2;
         _currentLang = "french";
       }
@@ -110,7 +110,7 @@ class LanguagesPageState extends State<LanguagesPage> {
     CollectionReference users = FirebaseFirestore.instance.collection('users');
 
     return FutureBuilder<DocumentSnapshot>(
-        future: users.doc(_firebaseAuth.currentUser.uid).get(),
+        future: users.doc(_firebaseAuth.currentUser!.uid).get(),
         builder:
             (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
 // if (snapshot.hasError) {
@@ -119,7 +119,7 @@ class LanguagesPageState extends State<LanguagesPage> {
           if (snapshot.connectionState != ConnectionState.done) {
             return Loading();
           } else if (snapshot.hasData) {
-            Map<String, dynamic> data = snapshot.data.data();
+            Map<String, dynamic> data = snapshot.data!.data()!;
             // return Text("Full Name: ${data['full_name']} ${data['last_name']}");
             getLanguage(data['language']);
             return Scaffold(
@@ -149,7 +149,7 @@ class LanguagesPageState extends State<LanguagesPage> {
                           groupValue: lang,
                           title: Text(langVal._value.tr),
                           value: langVal._key,
-                          onChanged: (val) {
+                          onChanged: (dynamic val) {
                             setState(() {
                               debugPrint('VAL = $val');
                               lang = val;

@@ -22,8 +22,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../locator.dart';
 
 class SignInRegistered extends StatefulWidget {
-  final Function gotoSignUp;
-  final Function goToForgotPW;
+  final Function? gotoSignUp;
+  final Function? goToForgotPW;
   SignInRegistered({this.gotoSignUp, this.goToForgotPW});
 
   @override
@@ -35,9 +35,9 @@ class _SignInRegisteredState extends State<SignInRegistered> {
   final FlutterSecureStorage storage = FlutterSecureStorage();
   final _passwordField = TextEditingController();
 
-  bool _useTouchID = false;
+  bool? _useTouchID = false;
   bool userHasTouchID = false;
-  String email, password;
+  String? email, password;
 
   @override
   void initState() {
@@ -82,7 +82,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                   });
                 }
 
-                _signIn(em: userStoredEmail, pw: userStoredPassword);
+                _signIn(em: userStoredEmail!, pw: userStoredPassword!);
               }
               // if (!mounted) return;
             }
@@ -110,7 +110,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                   });
                 }
 
-                _signIn(em: userStoredEmail, pw: userStoredPassword);
+                _signIn(em: userStoredEmail!, pw: userStoredPassword!);
               }
               // if (!mounted) return;
             }
@@ -141,7 +141,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
   //   });
   // }
 
-  void _signIn({String em, String pw}) async {
+  void _signIn({required String em, required String pw}) async {
     SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
 
     await locator
@@ -152,7 +152,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
 
       if (currentUser == null) {
         final prefs = await SharedPreferences.getInstance();
-        final signinError = prefs.getString("siginError");
+        final signinError = prefs.getString("siginError")!;
         Get.dialog(SimpleDialog(
           title: Text(
             "Sign in Error",
@@ -279,9 +279,9 @@ class _SignInRegisteredState extends State<SignInRegistered> {
             builder: (context, snapshot) {
               final provider = Provider.of<SocialSignInProvider>(context);
 
-              if (provider.isSigningIn) {
+              if (provider.isSigningIn!) {
                 return Loading();
-              } else if (provider.isCancelledByUser) {
+              } else if (provider.isCancelledByUser!) {
                 Get.dialog(SimpleDialog(
                   title: Text(
                     "Error",
@@ -295,7 +295,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                   ],
                 ));
                 return Container();
-              } else if (provider.isError) {
+              } else if (provider.isError!) {
                 Get.dialog(SimpleDialog(
                   title: Text(
                     "Error",
@@ -311,7 +311,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                 ));
                 return Container();
               } else if (snapshot.hasData) {
-                WidgetsBinding.instance.addPostFrameCallback((_) =>
+                WidgetsBinding.instance!.addPostFrameCallback((_) =>
                     Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (context) {
                       return Material(child: ProfileScreen());
@@ -418,7 +418,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                                 InkWell(
                                   onTap: () {
                                     _passwordField.text.isNotEmpty
-                                        ? _signIn(em: email, pw: password)
+                                        ? _signIn(em: email!, pw: password!)
                                         : Get.dialog(SimpleDialog(
                                             title: Text(
                                               "Sign in Error",
@@ -505,7 +505,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                           SizedBox(height: 20.0),
                           InkWell(
                             onTap: () {
-                              widget.goToForgotPW();
+                              widget.goToForgotPW!();
                             },
                             child: Text('FORGOT PASSWORD?',
                                 style: TextStyle(
@@ -519,7 +519,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                     ),
                     InkWell(
                       onTap: () {
-                        widget.gotoSignUp();
+                        widget.gotoSignUp!();
                       },
                       child: Container(
                           padding: EdgeInsets.all(10.0),

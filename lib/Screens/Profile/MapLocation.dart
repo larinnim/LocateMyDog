@@ -29,11 +29,11 @@ class _MapLocationState extends State<MapLocation> {
       FirebaseFirestore.instance.collection('locateDog');
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  List<Marker> markers = <Marker>[];
+  List<Marker?> markers = <Marker?>[];
   List<Polyline> mapPolylines = <Polyline>[];
-  LatLng _currentPosition;
-  Circle circle;
-  GoogleMapController _controller;
+  late LatLng _currentPosition;
+  Circle? circle;
+  late GoogleMapController _controller;
   // Map<PolylineId, Polyline> _mapPolylines = {};
   int _polylineIdCounter = 1;
   final List<LatLng> points = <LatLng>[];
@@ -43,11 +43,11 @@ class _MapLocationState extends State<MapLocation> {
       FirebaseFirestore.instance.collection('locations');
   List<LatLng> polyLinesLatLongs = List<LatLng>(); // our list of geopoints
   var mapLocation;
-  Uint8List imageData;
+  Uint8List? imageData;
   // BitmapDescriptor icon;
-  Marker marker;
+  Marker? marker;
   int _markerId = 1;
-  Timer timer;
+  Timer? timer;
   // final List<Flushbar> flushBars = [];
 
   @override
@@ -96,16 +96,16 @@ class _MapLocationState extends State<MapLocation> {
     return false;
   }
 
-  Future<Set<Marker>> updateMarkerAndCircle(
-      LatLng latlong, String sender) async {
+  Future<Set<Marker?>> updateMarkerAndCircle(
+      LatLng latlong, String? sender) async {
     LatLng latlng = LatLng(latlong.latitude, latlong.longitude);
-    Uint8List imageData;
+    late Uint8List imageData;
     locationDB
-        .doc(_firebaseAuth.currentUser.uid)
+        .doc(_firebaseAuth.currentUser!.uid)
         .get()
         .then((DocumentSnapshot documentSnapshot) {
       if (documentSnapshot.exists) {
-        documentSnapshot.data().forEach((key, value) async {
+        documentSnapshot.data()!.forEach((key, value) async {
           if (key == sender) {
             String pathColor =
                 'assets/images/' + 'dogpin_' + value['color'] + '.png';
@@ -121,10 +121,10 @@ class _MapLocationState extends State<MapLocation> {
     _currentPosition = latlong;
 
     if (markers.length > 0) {
-      Marker marker = markers[0];
+      Marker? marker = markers[0];
 
       setState(() {
-        markers[0] = marker.copyWith(
+        markers[0] = marker!.copyWith(
             positionParam: LatLng(latlong.latitude, latlong.longitude));
       });
     } else {
@@ -201,27 +201,27 @@ class _MapLocationState extends State<MapLocation> {
                             : FutureBuilder(
                                 future: (bleProvider.timestampBLE != null &&
                                         wifiProvider.timestampWiFi != null &&
-                                        bleProvider.timestampBLE.isAfter(
-                                            wifiProvider.timestampWiFi))
+                                        bleProvider.timestampBLE!.isAfter(
+                                            wifiProvider.timestampWiFi!))
                                     ? updateMarkerAndCircle(
                                         LatLng(
-                                            bleProvider.lat, bleProvider.lng),
+                                            bleProvider.lat!, bleProvider.lng!),
                                         bleProvider.senderNumber)
                                     : (bleProvider.timestampBLE == null &&
                                             wifiProvider.timestampWiFi != null)
                                         ? updateMarkerAndCircle(
-                                            LatLng(wifiProvider.lat,
-                                                wifiProvider.lng),
+                                            LatLng(wifiProvider.lat!,
+                                                wifiProvider.lng!),
                                             wifiProvider.senderNumber)
                                         : (bleProvider != null &&
                                                 wifiProvider == null)
                                             ? updateMarkerAndCircle(
-                                                LatLng(bleProvider.lat,
-                                                    bleProvider.lng),
+                                                LatLng(bleProvider.lat!,
+                                                    bleProvider.lng!),
                                                 bleProvider.senderNumber)
                                             : updateMarkerAndCircle(
-                                                LatLng(wifiProvider.lat,
-                                                    wifiProvider.lng),
+                                                LatLng(wifiProvider.lat!,
+                                                    wifiProvider.lng!),
                                                 wifiProvider.senderNumber),
                                 initialData: Set.of(<Marker>[]),
                                 builder: (context, snapshotMarker) {
@@ -235,35 +235,35 @@ class _MapLocationState extends State<MapLocation> {
                                           initialCameraPosition: (bleProvider.timestampBLE != null &&
                                                   wifiProvider.timestampWiFi !=
                                                       null &&
-                                                  bleProvider.timestampBLE
+                                                  bleProvider.timestampBLE!
                                                       .isAfter(wifiProvider
-                                                          .timestampWiFi))
+                                                          .timestampWiFi!))
                                               ? CameraPosition(
                                                   target: LatLng(
-                                                      bleProvider.lat,
-                                                      bleProvider.lng),
+                                                      bleProvider.lat!,
+                                                      bleProvider.lng!),
                                                   zoom: 16.0)
                                               : (bleProvider.timestampBLE == null &&
                                                       wifiProvider.timestampWiFi !=
                                                           null)
                                                   ? CameraPosition(
                                                       target: LatLng(
-                                                          wifiProvider.lat,
-                                                          wifiProvider.lng),
+                                                          wifiProvider.lat!,
+                                                          wifiProvider.lng!),
                                                       zoom: 16.0)
                                                   : (bleProvider != null &&
                                                           wifiProvider == null)
                                                       ? CameraPosition(
                                                           target: LatLng(
-                                                              bleProvider.lat,
-                                                              bleProvider.lng),
+                                                              bleProvider.lat!,
+                                                              bleProvider.lng!),
                                                           zoom: 16.0)
                                                       : CameraPosition(
-                                                          target: LatLng(bleProvider.lat, bleProvider.lng),
+                                                          target: LatLng(bleProvider.lat!, bleProvider.lng!),
                                                           zoom: 16.0),
                                           markers: snapshotMarker.data,
                                           circles: Set.of(
-                                              (circle != null) ? [circle] : []),
+                                              (circle != null) ? [circle!] : []),
                                           // polylines: snapshotPolyline.data,
                                           myLocationButtonEnabled: false,
                                           zoomGesturesEnabled: true,

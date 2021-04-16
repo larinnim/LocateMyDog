@@ -16,8 +16,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 
 class HomeSignInWidget extends StatelessWidget {
-  final Function gotoSignUp;
-  final Function gotoSignIn;
+  final Function? gotoSignUp;
+  final Function? gotoSignIn;
   HomeSignInWidget({this.gotoSignUp, this.gotoSignIn});
 
   // GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -53,9 +53,9 @@ class HomeSignInWidget extends StatelessWidget {
           builder: (context, snapshot) {
             final provider = Provider.of<SocialSignInProvider>(context);
 
-            if (provider.isSigningIn) {
+            if (provider.isSigningIn!) {
               return Loading();
-            } else if (provider.isCancelledByUser) {
+            } else if (provider.isCancelledByUser!) {
               Get.dialog(SimpleDialog(
                 title: Text(
                   "Error",
@@ -69,7 +69,7 @@ class HomeSignInWidget extends StatelessWidget {
                 ],
               ));
               return Container();
-            } else if (provider.isError) {
+            } else if (provider.isError!) {
               Get.dialog(SimpleDialog(
                 title: Text(
                   "Error",
@@ -84,7 +84,7 @@ class HomeSignInWidget extends StatelessWidget {
               ));
               return Container();
             } else if (snapshot.hasData) {
-              WidgetsBinding.instance.addPostFrameCallback((_) =>
+              WidgetsBinding.instance!.addPostFrameCallback((_) =>
                   Navigator.pushReplacement(context,
                       MaterialPageRoute(builder: (context) {
                     return Material(child: ProfileScreen());
@@ -161,7 +161,7 @@ class HomeSignInWidget extends StatelessWidget {
                   ),
                   InkWell(
                     onTap: () {
-                      gotoSignUp();
+                      gotoSignUp!();
                     },
                     child: Container(
                         padding: EdgeInsets.symmetric(
@@ -189,7 +189,7 @@ class HomeSignInWidget extends StatelessWidget {
                   ),
                   InkWell(
                     onTap: () {
-                      gotoSignIn();
+                      gotoSignIn!();
                     },
                     child: Text(
                       'already_registered'.tr,

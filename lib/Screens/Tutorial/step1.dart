@@ -119,7 +119,7 @@ class _Step1State extends State<Step1> {
                 title: new Text("Bluetooth Disconnected"),
                 content: new Text("Please Turn on your Bluetooth"),
               );
-            });
+            } as Widget Function(BuildContext));
         _isShowingDialog = true;
         //Alert user to turn on bluetooth.
       } else if (state == BluetoothState.on) {

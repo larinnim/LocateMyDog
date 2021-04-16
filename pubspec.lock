@@ -633,7 +633,7 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
+      ref: master
       resolved-ref: "8f69835feab55bfa7cd9b9a57aa383d3f89a9f19"
       url: "git://github.com/morvagergely/flutter-mapbox-gl.git"
     source: git

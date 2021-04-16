@@ -15,7 +15,7 @@ class SocialSignInSingleton {
   static final SocialSignInSingleton _instance =
       SocialSignInSingleton._privateConstructor();
 
-  String facebookToken = "";
+  String? facebookToken = "";
   bool isSocialLogin = false;
 
   factory SocialSignInSingleton() {
@@ -27,11 +27,11 @@ class SocialSignInProvider extends ChangeNotifier {
   final googleSignIn = GoogleSignIn();
   // final facebookSignIn = FacebookLogin();
 
-  bool _isSigningIn;
-  bool _isCancelledByUser;
-  bool _isError;
-  bool _isSignedIn;
-  String _facebookToken;
+  bool? _isSigningIn;
+  bool? _isCancelledByUser;
+  bool? _isError;
+  bool? _isSignedIn;
+  String? _facebookToken;
   SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
   final box = GetStorage();
 
@@ -43,34 +43,34 @@ class SocialSignInProvider extends ChangeNotifier {
     _facebookToken = "";
   }
 
-  bool get isSigningIn => _isSigningIn;
-  bool get isCancelledByUser => _isCancelledByUser;
-  bool get isError => _isError;
-  bool get isSignedIn => _isSignedIn;
-  String get facebookToken => _facebookToken;
+  bool? get isSigningIn => _isSigningIn;
+  bool? get isCancelledByUser => _isCancelledByUser;
+  bool? get isError => _isError;
+  bool? get isSignedIn => _isSignedIn;
+  String? get facebookToken => _facebookToken;
 
-  set facebookToken(String facebookToken) {
+  set facebookToken(String? facebookToken) {
     _facebookToken = facebookToken;
     socialSiginSingleton.facebookToken = _facebookToken;
     notifyListeners();
   }
 
-  set isSigningIn(bool isSigningIn) {
+  set isSigningIn(bool? isSigningIn) {
     _isSigningIn = isSigningIn;
     notifyListeners();
   }
 
-  set isCancelledByUser(bool isCancelledByUser) {
+  set isCancelledByUser(bool? isCancelledByUser) {
     _isCancelledByUser = isCancelledByUser;
     notifyListeners();
   }
 
-  set isError(bool isError) {
+  set isError(bool? isError) {
     _isError = isError;
     notifyListeners();
   }
 
-  set isSignedIn(bool isSignedIn) {
+  set isSignedIn(bool? isSignedIn) {
     _isSignedIn = isSignedIn;
     notifyListeners();
   }
@@ -175,7 +175,7 @@ class SocialSignInProvider extends ChangeNotifier {
   }
 
   Future<bool> _checkIfIsLogged() async {
-    final AccessToken accessToken = await FacebookAuth.instance.accessToken;
+    final AccessToken? accessToken = await FacebookAuth.instance.accessToken;
     if (accessToken != null) {
       // now you can call to  FacebookAuth.instance.getUserData();
       return true;

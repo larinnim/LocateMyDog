@@ -42,8 +42,8 @@ import 'MapLocation.dart';
 import 'avatar.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final bool wantsTouchId;
-  final String password;
+  final bool? wantsTouchId;
+  final String? password;
 
   ProfileScreen({this.wantsTouchId, this.password});
 
@@ -52,11 +52,11 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  AppUser _currentUser = locator.get<UserController>().currentUser;
+  AppUser? _currentUser = locator.get<UserController>().currentUser;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final LocalAuthentication localauth = LocalAuthentication();
   final picker = ImagePicker();
-  File _image;
+  late File _image;
 
   SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
   final box = GetStorage();
@@ -90,7 +90,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<bool> _checkIfIsLogged() async {
-    final AccessToken accessToken = await FacebookAuth.instance.accessToken;
+    final AccessToken? accessToken = await FacebookAuth.instance.accessToken;
     if (accessToken != null) {
       // now you can call to  FacebookAuth.instance.getUserData();
       return true;
@@ -111,7 +111,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     //     if (availableBiometrics.contains(BiometricType.face) ||
     //         availableBiometrics.contains(BiometricType.fingerprint)) {
     if (_currentUser != null) {
-      storage.write(key: 'email', value: _auth.currentUser.email);
+      storage.write(key: 'email', value: _auth.currentUser!.email);
       storage.write(key: 'password', value: widget.password);
       storage.write(key: 'usingBiometric', value: 'true');
     }
@@ -162,7 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .doc(_auth.currentUser?.uid)
           .snapshots()
           .listen((DocumentSnapshot documentSnapshot) {
-        Map<String, dynamic> firestoreInfo = documentSnapshot.data();
+        Map<String, dynamic> firestoreInfo = documentSnapshot.data()!;
         firestoreInfo.forEach((key, value) {
           print(key);
           print(value);
@@ -251,10 +251,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 avatarUrl:
                                     // _auth.currentUser != null ? _auth.currentUser?.photoURL + "?height=500&access_token=" + socialSiginSingleton.facebookToken : "",
                                     _auth.currentUser != null
-                                        ? _auth.currentUser.photoURL != null
+                                        ? _auth.currentUser!.photoURL != null
                                             ?
                                             // _auth.currentUser.photoURL.contains('facebook') == false
-                                            !_auth.currentUser.photoURL
+                                            !_auth.currentUser!.photoURL!
                                                     .contains('facebook')
                                                 //  ||
                                                 // socialSiginSingleton
@@ -263,8 +263,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                 // socialSiginSingleton
                                                 //         .isSocialLogin ==
                                                 //     false
-                                                ? _auth.currentUser.photoURL
-                                                : _auth.currentUser.photoURL +
+                                                ? _auth.currentUser!.photoURL
+                                                : _auth.currentUser!.photoURL! +
                                                     "?height=500&access_token=" +
                                                     box.read('token')
                                             : _currentUser?.avatarUrl != null
@@ -507,12 +507,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 }
 
 class ProfileListItem extends StatelessWidget {
-  final IconData icon;
-  final String text;
+  final IconData? icon;
+  final String? text;
   final bool hasNavigation;
 
   const ProfileListItem({
-    Key key,
+    Key? key,
     this.icon,
     this.text,
     this.hasNavigation = true,
@@ -544,7 +544,7 @@ class ProfileListItem extends StatelessWidget {
           ),
           SizedBox(width: kSpacingUnit.w * 1.5),
           Text(
-            this.text,
+            this.text!,
             style: kTitleTextStyle.copyWith(
                 fontWeight: FontWeight.w500,
                 color: Theme.of(context).primaryColor),

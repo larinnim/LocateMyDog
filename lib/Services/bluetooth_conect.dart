@@ -18,16 +18,16 @@ import 'dart:ui' as ui;
 
 class LocationValues {
   /// Latitude in degrees
-  final double latitude;
+  final double? latitude;
 
   /// Longitude, in degrees
-  final double longitude;
+  final double? longitude;
 
   /// timestamp of the LocationData
-  final double time;
+  final double? time;
 
   /// Heading is the horizontal direction of travel of this device, in degrees
-  double heading = 90;
+  double? heading = 90;
 
   LocationValues._(this.latitude, this.longitude, this.time, this.heading);
 
@@ -120,10 +120,10 @@ class BleModel extends ChangeNotifier {
   List<BluetoothService> services = [];
   List<BluetoothCharacteristic> characteristics = [];
   List<BluetoothDevice> connectedDevices = [];
-  double lat;
-  double lng;
-  DateTime timestampBLE;
-  String senderNumber;
+  double? lat;
+  double? lng;
+  DateTime? timestampBLE;
+  String? senderNumber;
 
   /// An unmodifiable view of the items in the cart.
   UnmodifiableListView<BleDeviceItem> get items =>
@@ -177,7 +177,7 @@ class BleModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addLatLng(double receivedLat, double receivedLng, String sender) {
+  void addLatLng(double receivedLat, double receivedLng, String? sender) {
     //print("addLat - Line 166");
     lat = receivedLat;
     lng = receivedLng;
@@ -213,7 +213,7 @@ class BleModel extends ChangeNotifier {
 }
 
 class BluetoothConnection extends StatefulWidget {
-  const BluetoothConnection({Key key}) : super(key: key);
+  const BluetoothConnection({Key? key}) : super(key: key);
 
   @override
   _BluetoothConnectionState createState() => _BluetoothConnectionState();
@@ -288,8 +288,8 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
           };
           print(values); // {0: grubs, 1:  sheep}
 
-          final lat = values[0];
-          final lng = values[1];
+          final lat = values[0]!;
+          final lng = values[1]!;
           final sender = values[2];
 
           // print("LAT VALUEE:" + value.toString());
@@ -415,7 +415,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                   borderRadius: BorderRadius.circular(13),
                   boxShadow: [
                     BoxShadow(
-                        color: Colors.grey[200],
+                        color: Colors.grey[200]!,
                         blurRadius: 10,
                         spreadRadius: 3,
                         offset: Offset(3, 4))

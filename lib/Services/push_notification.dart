@@ -34,7 +34,7 @@ class PushNotificationsManager {
       // _firebaseMessaging.configure();
 
       // For testing purposes print the Firebase Messaging token
-      String token = await _firebaseMessaging.getToken();
+      String? token = await _firebaseMessaging.getToken();
       print("FirebaseMessaging token: $token");
 
       // Save it to Firestore
@@ -42,7 +42,7 @@ class PushNotificationsManager {
       if (token != null) {
             _db
             .collection('users')
-            .doc(FirebaseAuth.instance.currentUser.uid)
+            .doc(FirebaseAuth.instance.currentUser!.uid)
             .set({
               'token': token,
               'createdAt': FieldValue.serverTimestamp(), // optional

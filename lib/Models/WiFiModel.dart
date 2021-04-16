@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class WiFiModel extends ChangeNotifier {
-  double lat;
-  double lng;
-  int rssi;
-  String ssid;
-  DateTime timestampWiFi;
-  DateTime wifiConnectedTimestamp;
-  String senderNumber;
+  double? lat;
+  double? lng;
+  int? rssi;
+  String? ssid;
+  DateTime? timestampWiFi;
+  DateTime? wifiConnectedTimestamp;
+  String? senderNumber;
   // DateTime now = DateTime.now();
 
   /// An unmodifiable view of the items in the cart.
@@ -31,7 +31,7 @@ class WiFiModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addRSSI(int value, String sender) {
+  void addRSSI(int? value, String sender) {
     rssi = value;
     senderNumber = sender;
 
@@ -39,7 +39,7 @@ class WiFiModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addSSID(String value, String sender) {
+  void addSSID(String? value, String sender) {
     //print("addLat - Line 166");
     ssid = value;
     senderNumber = sender;

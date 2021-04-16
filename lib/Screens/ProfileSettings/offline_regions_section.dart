@@ -10,7 +10,7 @@ class OfflineMapRegion {
 
 class OfflineRegionMapSelection extends StatefulWidget {
   // Declare a field that holds the Todo.
-  final OfflineMapRegion offlineRegion;
+  final OfflineMapRegion? offlineRegion;
 
   OfflineRegionMapSelection({this.offlineRegion});
 
@@ -20,10 +20,10 @@ class OfflineRegionMapSelection extends StatefulWidget {
 }
 
 class _OfflineRegionMapSelectionState extends State<OfflineRegionMapSelection> {
-  MapboxMapController mapController;
+  late MapboxMapController mapController;
   int _numberOfRegions = 0;
-  LatLngBounds mapBounds;
-  CameraPosition _position;
+  LatLngBounds? mapBounds;
+  CameraPosition? _position;
 
   @override
   void initState() {
@@ -49,7 +49,7 @@ class _OfflineRegionMapSelectionState extends State<OfflineRegionMapSelection> {
                   onMapCreated: onMapCreated,
                   trackCameraPosition: true,
                   initialCameraPosition: CameraPosition(
-                    target: widget.offlineRegion.latitude_longitude,
+                    target: widget.offlineRegion!.latitude_longitude,
                     zoom: 12,
                   ),
                   minMaxZoomPreference: MinMaxZoomPreference(
@@ -82,7 +82,7 @@ class _OfflineRegionMapSelectionState extends State<OfflineRegionMapSelection> {
                       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                           RoundedRectangleBorder(
                               borderRadius: BorderRadius.zero,
-                              side: BorderSide(color: Colors.red[300])))),
+                              side: BorderSide(color: Colors.red[300]!)))),
                   onPressed: () {
                     _downloadRegion();
                   }),
@@ -135,9 +135,9 @@ class _OfflineRegionMapSelectionState extends State<OfflineRegionMapSelection> {
 
       final downloadingRegion = await downloadOfflineRegion(
         OfflineRegionDefinition(
-          bounds: mapBounds,
-          minZoom: _position.zoom - 1,
-          maxZoom: _position.zoom + 1,
+          bounds: mapBounds!,
+          minZoom: _position!.zoom - 1,
+          maxZoom: _position!.zoom + 1,
           mapStyleUrl: MapboxStyles.MAPBOX_STREETS,
         ),
         metadata: {

@@ -9,44 +9,44 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 
 class UserController {
-  AppUser _currentUser;
+  AppUser? _currentUser;
   AuthRepo _authRepo = locator.get<AuthRepo>();
   StorageRepo _storageRepo = locator.get<StorageRepo>();
-  Future init;
+  Future? init;
 
   UserController() {
     init = initUser();
   }
 
-  Future<AppUser> initUser() async {
+  Future<AppUser?> initUser() async {
     _currentUser = await _authRepo.getUser();
     return _currentUser;
   }
 
-  AppUser get currentUser => _currentUser;
+  AppUser? get currentUser => _currentUser;
 
   void uploadProfilePicture(File image) async {
     print("In uploadProfile pic");
-    _currentUser.avatarUrl = await _storageRepo.uploadFile(image);
+    _currentUser!.avatarUrl = await _storageRepo.uploadFile(image);
   }
 
   Future<String> getDownloadUrl() async {
-    return await _storageRepo.getUserProfileImage(currentUser.uid);
+    return await _storageRepo.getUserProfileImage(currentUser!.uid);
   }
 
   void updateDisplayName(String displayName) {
-    _currentUser.displayName = displayName;
+    _currentUser!.displayName = displayName;
     updateDisplayName(displayName);
     // _authRepo.updateDisplayName(displayName);
   }
 
-  Future<AppUser> signInWithEmailAndPassword(
-      {String email, String password}) async {
+  Future<AppUser?> signInWithEmailAndPassword(
+      {required String email, required String password}) async {
     _currentUser = await _authRepo.signInWithEmailAndPassword(
         email: email, password: password);
 
     if (_currentUser != null) {
-      _currentUser.avatarUrl = await getDownloadUrl();
+      _currentUser!.avatarUrl = await getDownloadUrl();
     }
 
     return _currentUser;

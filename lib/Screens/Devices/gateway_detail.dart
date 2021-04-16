@@ -21,8 +21,8 @@ import 'package:provider/provider.dart';
 
 // ignore: must_be_immutable
 class GatewayDetails extends StatefulWidget {
-  String title;
-  GatewayDetails({Key key, @required this.title}) : super(key: key);
+  String? title;
+  GatewayDetails({Key? key, required this.title}) : super(key: key);
 
   @override
   _GatewayDetailsState createState() => _GatewayDetailsState();
@@ -53,13 +53,13 @@ class _GatewayDetailsState extends State<GatewayDetails> {
   }
 
   void updateName() async {
-    await DatabaseService(uid: _firebaseAuth.currentUser.uid)
+    await DatabaseService(uid: _firebaseAuth.currentUser!.uid)
         .updateGatewayName(_renameController.text);
   }
 
   startBarcodeScanStream() async {
     barcode.FlutterBarcodeScanner.getBarcodeStreamReceiver(
-            "#ff6666", "Cancel", true, barcode.ScanMode.BARCODE)
+            "#ff6666", "Cancel", true, barcode.ScanMode.BARCODE)!
         .listen((barcode) => print(barcode));
   }
 
@@ -234,7 +234,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
           "#ff6666", "Cancel", true, barcode.ScanMode.QR);
       String newSender = "Sender" + (_devices.length + 1).toString();
 
-      locationDB.doc(_firebaseAuth.currentUser.uid).set({
+      locationDB.doc(_firebaseAuth.currentUser!.uid).set({
         newSender: {
           'ID': barcodeScanRes,
           'LastRequestedWifiSSID': '',
@@ -276,11 +276,11 @@ class _GatewayDetailsState extends State<GatewayDetails> {
 
   void _getDevices() async {
     locationDB
-        .doc(_firebaseAuth.currentUser.uid)
+        .doc(_firebaseAuth.currentUser!.uid)
         .get()
         .then((DocumentSnapshot documentSnapshot) {
       if (documentSnapshot.exists) {
-        documentSnapshot.data().forEach((key, value) {
+        documentSnapshot.data()!.forEach((key, value) {
           if (key.startsWith('Sender')) {
             Color devColor = AuxFunc().getColor(value['color']);
             _availableColors
@@ -310,7 +310,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
       return Scaffold(
           backgroundColor: Colors.grey[200],
           appBar: AppBar(
-            title: Text(widget.title),
+            title: Text(widget.title!),
             centerTitle: true,
             leading: IconButton(
                 icon: Icon(Icons.arrow_back),
@@ -502,7 +502,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                   ),
                 ),
                 ListTile(
-                  title: Text('Gateway: ' + widget.title.toUpperCase(),
+                  title: Text('Gateway: ' + widget.title!.toUpperCase(),
                       style:
                           TextStyle(fontSize: 20, fontWeight: FontWeight.w300)),
                   leading: Icon(Icons.router_outlined),
@@ -521,7 +521,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                       return new Column(
                         children: <Widget>[
                           new ListTile(
-                            title: Text(_devices[index].name.toUpperCase(),
+                            title: Text(_devices[index].name!.toUpperCase(),
                                 style: TextStyle(
                                     fontSize: 20, fontWeight: FontWeight.w300)),
                             leading: Padding(
@@ -599,7 +599,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
 
   Future<void> _displayTextInputDialog(BuildContext context) async {
     locationDB
-        .doc(_firebaseAuth.currentUser.uid)
+        .doc(_firebaseAuth.currentUser!.uid)
         .get()
         .then((DocumentSnapshot querySnapshot) {
       return showDialog(
@@ -610,7 +610,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
             content: TextField(
               controller: _renameController,
               decoration: InputDecoration(
-                  hintText: querySnapshot.data()["gateway"]["name"]),
+                  hintText: querySnapshot.data()!["gateway"]["name"]),
             ),
             actions: <Widget>[
               TextButton(

@@ -10,7 +10,7 @@ import 'functions_aux.dart';
 // ignore: must_be_immutable
 class DeviceDetail extends StatefulWidget {
   DeviceDetail(
-      {Key key,
+      {Key? key,
       this.title,
       this.color,
       this.battery,
@@ -23,12 +23,12 @@ class DeviceDetail extends StatefulWidget {
 
   // Fields in a Widget subclass are always marked "final".
 
-  String title;
-  Color color;
-  int battery;
-  String id;
-  String senderNumber;
-  List<Color> availableColors;
+  String? title;
+  Color? color;
+  int? battery;
+  String? id;
+  String? senderNumber;
+  List<Color>? availableColors;
 }
 
 class _DeviceDetailState extends State<DeviceDetail> {
@@ -37,8 +37,8 @@ class _DeviceDetailState extends State<DeviceDetail> {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   TextEditingController _renameController = TextEditingController();
 
-  Color currentColor = Color(0xff443a49);
-  Color _pickerColor = Color(0xff443a49);
+  Color? currentColor = Color(0xff443a49);
+  Color? _pickerColor = Color(0xff443a49);
 
   @override
   void initState() {
@@ -47,14 +47,14 @@ class _DeviceDetailState extends State<DeviceDetail> {
   }
 
 // ValueChanged<Color> callback
-  void changeColor(Color color) {
+  void changeColor(Color? color) {
     setState(() => _pickerColor = color);
-    DatabaseService(uid: _firebaseAuth.currentUser.uid).updateDeviceColor(
+    DatabaseService(uid: _firebaseAuth.currentUser!.uid).updateDeviceColor(
         AuxFunc().colorNamefromColor(_pickerColor), widget.senderNumber.toString());
   }
 
   void updateName() async {
-    await DatabaseService(uid: _firebaseAuth.currentUser.uid)
+    await DatabaseService(uid: _firebaseAuth.currentUser!.uid)
         .updateDeviceName(_renameController.text, widget.senderNumber);
   }
 
@@ -64,7 +64,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(widget.title!),
         centerTitle: true,
         leading: IconButton(
             icon: Icon(Icons.arrow_back),
@@ -123,9 +123,9 @@ class _DeviceDetailState extends State<DeviceDetail> {
                           title: const Text('Pick a color'),
                           content: SingleChildScrollView(
                             child: BlockPicker(
-                              pickerColor: currentColor,
+                              pickerColor: currentColor!,
                               onColorChanged: changeColor,
-                              availableColors: widget.availableColors,
+                              availableColors: widget.availableColors!,
                             ),
                           ),
                           actions: <Widget>[
@@ -189,7 +189,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
 
   Future<void> _displayTextInputDialog(BuildContext context) async {
     locationDB
-        .doc(_firebaseAuth.currentUser.uid)
+        .doc(_firebaseAuth.currentUser!.uid)
         .get()
         .then((DocumentSnapshot querySnapshot) {
       return showDialog(
@@ -200,7 +200,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
             content: TextField(
               controller: _renameController,
               decoration: InputDecoration(
-                  hintText: querySnapshot.data()[widget.senderNumber]["name"]),
+                  hintText: querySnapshot.data()![widget.senderNumber!]["name"]),
             ),
             actions: <Widget>[
               TextButton(

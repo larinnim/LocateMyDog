@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AuxFunc {
-  Color getColor(String color) {
+  Color getColor(String? color) {
     var _color = Colors.white;
     switch (color) {
       case "green":
@@ -31,7 +31,7 @@ class AuxFunc {
     return _color;
   }
 
-  String colorNamefromColor(Color color) {
+  String colorNamefromColor(Color? color) {
     var _color = 'white';
     if (color == Colors.green) {
       _color = 'green';

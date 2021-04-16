@@ -3,8 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class Point {
-  final double x;
-  final double y;
+  final double? x;
+  final double? y;
 
   Point(this.x, this.y);
 }
@@ -20,13 +20,13 @@ class BackgroundPainter extends CustomPainter {
           ..color = Colors.lightBlue.shade300
           ..style = PaintingStyle.fill,
         greyPaint = Paint()
-          ..color = Colors.blueGrey[900]
+          ..color = Colors.blueGrey[900]!
           ..style = PaintingStyle.fill,
         orangePaint = Paint()
           ..color = Colors.orange.shade400
           ..style = PaintingStyle.fill,
         linePaint = Paint()
-          ..color = Colors.orange[300]
+          ..color = Colors.orange[300]!
           ..style = PaintingStyle.stroke
           ..strokeWidth = 4;
 
@@ -36,17 +36,17 @@ class BackgroundPainter extends CustomPainter {
     }
 
     for (var i = 0; i < points.length - 2; i++) {
-      final xc = (points[i].x + points[i + 1].x) / 2;
-      final yc = (points[i].y + points[i + 1].y) / 2;
-      path.quadraticBezierTo(points[i].x, points[i].y, xc, yc);
+      final xc = (points[i].x! + points[i + 1].x!) / 2;
+      final yc = (points[i].y! + points[i + 1].y!) / 2;
+      path.quadraticBezierTo(points[i].x!, points[i].y!, xc, yc);
     }
 
     // connect the last two points
     path.quadraticBezierTo(
-      points[points.length - 2].x,
-      points[points.length - 2].y,
-      points[points.length - 1].x,
-      points[points.length - 1].y,
+      points[points.length - 2].x!,
+      points[points.length - 2].y!,
+      points[points.length - 1].x!,
+      points[points.length - 1].y!,
     );
   }
 
@@ -87,7 +87,7 @@ class BackgroundPainter extends CustomPainter {
     path.moveTo(size.width, 300);
     path.lineTo(size.width, 0);
     path.lineTo(0, 0);
-    path.lineTo(0, lerpDouble(size.height / 4, size.height / 2, 0.9));
+    path.lineTo(0, lerpDouble(size.height / 4, size.height / 2, 0.9)!);
     _addPointsToPath(
       path,
       [
@@ -111,7 +111,7 @@ class BackgroundPainter extends CustomPainter {
 
     path.moveTo(size.width * 3 / 4, 0);
     path.lineTo(0, 0);
-    path.lineTo(0, lerpDouble(0, size.height / 4.5, 1));
+    path.lineTo(0, lerpDouble(0, size.height / 4.5, 1)!);
 
     _addPointsToPath(path, [
       Point(size.width / 6, lerpDouble(0, size.height / 5, 1.2)),

@@ -17,7 +17,7 @@ class OfflineRegionMap extends StatefulWidget {
 }
 
 class _OfflineRegionMapState extends State<OfflineRegionMap> {
-  MapboxMapController controller;
+  late MapboxMapController controller;
   int symbolCount = 1;
 
   @override

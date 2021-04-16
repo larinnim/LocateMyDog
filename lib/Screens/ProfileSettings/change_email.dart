@@ -19,12 +19,12 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
   final passwordController = TextEditingController();
   FocusNode _emailFocus = FocusNode();
   FocusNode _passwordFocus = FocusNode();
-  Color color;
+  Color? color;
   final formKey = GlobalKey<FormState>();
-  String emailEntry, passwordEntry;
+  String? emailEntry, passwordEntry;
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  String user_email = "";
+  String? user_email = "";
 
   @override
   void dispose() {
@@ -37,10 +37,10 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
   void _updateEmail() {
     _firebaseAuth
         .signInWithEmailAndPassword(
-            email: _firebaseAuth.currentUser.email,
+            email: _firebaseAuth.currentUser!.email!,
             password: passwordController.text)
         .then((userCredential) {
-      userCredential.user.updateEmail(emailController.text).then((value) {
+      userCredential.user!.updateEmail(emailController.text).then((value) {
         Get.dialog(SimpleDialog(
           title: Text(
             "Sucess",
@@ -98,7 +98,7 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
 
   @override
   Widget build(BuildContext context) {
-    user_email = _firebaseAuth.currentUser.email;
+    user_email = _firebaseAuth.currentUser!.email;
 
     _emailFocus.addListener(() {
       setState(() {
@@ -145,7 +145,7 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
                   });
                 },
                 validator: (emailEntry) {
-                  if (emailEntry.isEmpty) {
+                  if (emailEntry!.isEmpty) {
                     return 'field_mandatory'.tr;
                   }
                   return null;
@@ -183,7 +183,7 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
                   });
                 },
                 validator: (passwordEntry) {
-                  if (passwordEntry.isEmpty) {
+                  if (passwordEntry!.isEmpty) {
                     return 'field_mandatory'.tr;
                   }
                   return null;
@@ -239,8 +239,8 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
                 ),
                 RaisedButton(
                   onPressed: () {
-                    if (formKey.currentState.validate()) {
-                      formKey.currentState.save();
+                    if (formKey.currentState!.validate()) {
+                      formKey.currentState!.save();
                       _updateEmail();
                     }
                   },

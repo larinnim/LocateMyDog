@@ -28,15 +28,15 @@ class Geofence extends StatefulWidget {
 }
 
 class _GeofenceWidgetState extends State<Geofence> {
-  StreamSubscription _locationSubscription;
+  StreamSubscription? _locationSubscription;
   localization.Location _locationTracker = localization.Location();
-  Circle circle;
-  Marker marker;
-  Polygon polygon;
-  GoogleMapController _controller;
-  static LatLng _initialPosition;
-  var _configuredRadius = 0.0; //Radius is 30 meters
-  AppUser _currentUser = locator.get<UserController>().currentUser;
+  Circle? circle;
+  Marker? marker;
+  Polygon? polygon;
+  GoogleMapController? _controller;
+  static LatLng? _initialPosition;
+  double _configuredRadius = 0.0; //Radius is 30 meters
+  AppUser? _currentUser = locator.get<UserController>().currentUser;
   CollectionReference locateDogInstance =
       FirebaseFirestore.instance.collection('locateDog');
   CollectionReference userInstance =
@@ -52,7 +52,7 @@ class _GeofenceWidgetState extends State<Geofence> {
   List<LatLng> dotNotEnterFenceLatLngs = [];
   int _doNotEnterFenceIdCounter = 1;
   int _incrementRadius = 5;
-  String _units = 'kilometer';
+  String? _units = 'kilometer';
   // List<Polygon> polygons = <Polygon>[
   //   new Polygon(
   // polygonId: PolygonId('area'),
@@ -78,7 +78,7 @@ class _GeofenceWidgetState extends State<Geofence> {
 
   Future<void> _getRadiusAndUnits() async {
     await userInstance
-     .doc(_currentUser.uid)
+     .doc(_currentUser!.uid)
     .get()
     .then((DocumentSnapshot documentSnapshot) {
      setState(() {
@@ -90,10 +90,10 @@ class _GeofenceWidgetState extends State<Geofence> {
     });
    
 
-    await locateDogInstance.doc(_currentUser.uid).get().then((value) {
+    await locateDogInstance.doc(_currentUser!.uid).get().then((value) {
       //  _configuredRadius = value.data()['Geofence'].Circle.radius;
       setState(() {
-        _configuredRadius = value.data()['Geofence']['Circle']['radius'];
+        _configuredRadius = value.data()!['Geofence']['Circle']['radius'];
         print('Radius: ' + _configuredRadius.toString());
       });
     });
@@ -139,16 +139,16 @@ class _GeofenceWidgetState extends State<Geofence> {
       updateMarkerAndCircle(location, imageData);
 
       if (_locationSubscription != null) {
-        _locationSubscription.cancel();
+        _locationSubscription!.cancel();
       }
 
       _locationSubscription =
           _locationTracker.onLocationChanged.listen((newLocalData) {
         if (_controller != null) {
-          _controller.animateCamera(CameraUpdate.newCameraPosition(
+          _controller!.animateCamera(CameraUpdate.newCameraPosition(
               new CameraPosition(
                   bearing: 192.8334901395799,
-                  target: LatLng(newLocalData.latitude, newLocalData.longitude),
+                  target: LatLng(newLocalData.latitude!, newLocalData.longitude!),
                   tilt: 0,
                   zoom: 18.00)));
           updateMarkerAndCircle(newLocalData, imageData);
@@ -193,12 +193,12 @@ class _GeofenceWidgetState extends State<Geofence> {
 
   void updateMarkerAndCircle(
       localization.LocationData newLocalData, Uint8List imageData) {
-    LatLng latlng = LatLng(newLocalData.latitude, newLocalData.longitude);
+    LatLng latlng = LatLng(newLocalData.latitude!, newLocalData.longitude!);
     this.setState(() {
       marker = Marker(
           markerId: MarkerId("home"),
           position: latlng,
-          rotation: newLocalData.heading,
+          rotation: newLocalData.heading!,
           draggable: false,
           zIndex: 2,
           flat: true,
@@ -206,7 +206,7 @@ class _GeofenceWidgetState extends State<Geofence> {
           icon: BitmapDescriptor.fromBytes(imageData));
       circle = Circle(
           circleId: CircleId("pet"),
-          radius: _configuredRadius,
+          radius: _configuredRadius!,
           // radius: newLocalData.accuracy,
           zIndex: 1,
           strokeColor: Colors.blue,
@@ -236,7 +236,7 @@ class _GeofenceWidgetState extends State<Geofence> {
                           ': ' +
                           _configuredRadius.toString() +
                           ' ' +
-                          _units.tr,
+                          _units!.tr,
                       style: TextStyle(color: Colors.black.withOpacity(0.6))),
                 ]),
             SizedBox(width: 30),
@@ -249,9 +249,9 @@ class _GeofenceWidgetState extends State<Geofence> {
                         _configuredRadius +=
                             _incrementRadius; //Increase by 5 meters
                       });
-                      await DatabaseService(uid: _currentUser.uid)
+                      await DatabaseService(uid: _currentUser!.uid)
                           .updateCircleRadius(
-                              _configuredRadius, _initialPosition);
+                              _configuredRadius, _initialPosition!);
                     }),
                 SizedBox(width: 50),
                 IconButton(
@@ -261,9 +261,9 @@ class _GeofenceWidgetState extends State<Geofence> {
                         _configuredRadius -=
                             _incrementRadius; //Increase by 5 meters
                       });
-                      await DatabaseService(uid: _currentUser.uid)
+                      await DatabaseService(uid: _currentUser!.uid)
                           .updateCircleRadius(
-                              _configuredRadius, _initialPosition);
+                              _configuredRadius, _initialPosition!);
                     }),
                 // })
               ],
@@ -306,7 +306,7 @@ class _GeofenceWidgetState extends State<Geofence> {
   @override
   void dispose() {
     if (_locationSubscription != null) {
-      _locationSubscription.cancel();
+      _locationSubscription!.cancel();
     }
     super.dispose();
   }
@@ -383,7 +383,7 @@ class _GeofenceWidgetState extends State<Geofence> {
                                   child: GoogleMap(
                                     mapType: MapType.hybrid,
                                     initialCameraPosition: CameraPosition(
-                                      target: _initialPosition,
+                                      target: _initialPosition!,
                                       zoom: 11,
                                     ),
                                     zoomGesturesEnabled: true,
@@ -391,9 +391,9 @@ class _GeofenceWidgetState extends State<Geofence> {
                                     compassEnabled: true,
                                     myLocationButtonEnabled: false,
                                     markers: Set.of(
-                                        (marker != null) ? [marker] : []),
+                                        (marker != null) ? [marker!] : []),
                                     circles: Set.of(
-                                        (circle != null) ? [circle] : []),
+                                        (circle != null) ? [circle!] : []),
                                     polygons: _isPolygonFence
                                         ? _polygonsFence
                                         : _isDoNotEnterFence

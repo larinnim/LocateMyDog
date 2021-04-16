@@ -42,7 +42,7 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  Locale _currentLocale;
+  late Locale _currentLocale;
 
   @override
   void initState() {
@@ -81,7 +81,7 @@ class _MainPageState extends State<MainPage> {
     final _lang = _prefs.getString('lan');
     final _countryLang = _prefs.getString('countryLang');
     setState(() {
-      _currentLocale = Locale(_lang, _countryLang);
+      _currentLocale = Locale(_lang!, _countryLang);
       Get.updateLocale(_currentLocale);
     });
   }

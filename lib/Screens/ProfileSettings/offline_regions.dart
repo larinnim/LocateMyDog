@@ -53,26 +53,26 @@ places.GoogleMapsPlaces _places =
 // ];
 
 // final List<String> regionNames = ['Hawaii', 'Santiago', 'Auckland'];
-final List<String> regionNames = [];
+final List<String?> regionNames = [];
 
 class OfflineRegionListItem {
   OfflineRegionListItem({
-    @required this.offlineRegionDefinition,
-    @required this.downloadedId,
-    @required this.isDownloading,
-    @required this.name,
+    required this.offlineRegionDefinition,
+    required this.downloadedId,
+    required this.isDownloading,
+    required this.name,
     // @required this.estimatedTiles,
   });
 
   final OfflineRegionDefinition offlineRegionDefinition;
-  final int downloadedId;
+  final int? downloadedId;
   final bool isDownloading;
-  String name;
+  String? name;
   // final int estimatedTiles;
 
   OfflineRegionListItem copyWith({
-    int downloadedId,
-    bool isDownloading,
+    int? downloadedId,
+    bool? isDownloading,
   }) =>
       OfflineRegionListItem(
         offlineRegionDefinition: offlineRegionDefinition,
@@ -127,16 +127,16 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
     _updateListOfRegions();
   }
 
-  Future<Null> displayPrediction(places.Prediction p) async {
+  Future<Null> displayPrediction(places.Prediction? p) async {
     if (p != null) {
       places.PlacesDetailsResponse detail =
-          await _places.getDetailsByPlaceId(p.placeId);
+          await _places.getDetailsByPlaceId(p.placeId!);
 
       var placeId = p.placeId;
-      double lat = detail.result.geometry.location.lat;
-      double lng = detail.result.geometry.location.lng;
+      double lat = detail.result.geometry!.location.lat;
+      double lng = detail.result.geometry!.location.lng;
 
-      List<Location> locations = await locationFromAddress(p.description);
+      List<Location> locations = await locationFromAddress(p.description!);
 
       // var address = await Geocoder.local.findAddressesFromQuery(p.description);
 
@@ -159,7 +159,7 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
   }
 
   void onError(places.PlacesAutocompleteResponse response) {
-    Get.dialog(Text(response.errorMessage));
+    Get.dialog(Text(response.errorMessage!));
   }
 
   @override
@@ -180,15 +180,15 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
             padding: EdgeInsets.only(right: 10.0),
             child: GestureDetector(
               onTap: () async {
-                places.Prediction p = await PlacesAutocomplete.show(
+                places.Prediction? p = await PlacesAutocomplete.show(
                     context: context,
                     apiKey: kGoogleApiKey,
                     mode: Mode.fullscreen,
-                    language: Get.locale.languageCode,
+                    language: Get.locale!.languageCode,
                     onError: onError,
                     components: [
                       places.Component(places.Component.country,
-                          Get.deviceLocale.countryCode)
+                          Get.deviceLocale!.countryCode!)
                     ]);
                 displayPrediction(p);
               },
@@ -261,7 +261,7 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        updatedName ? newMapName : _items[index].name,
+                        updatedName ? newMapName : _items[index].name!,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
@@ -303,7 +303,7 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
 
   void updateMapName(
       OfflineRegionListItem item, String mapName, int index) async {
-    await updateOfflineRegionMetadata(item.downloadedId, {'name': mapName},
+    await updateOfflineRegionMetadata(item.downloadedId!, {'name': mapName},
         accessToken:
             "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w");
     setState(() {
@@ -413,7 +413,7 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
     });
 
     await deleteOfflineRegion(
-      item.downloadedId,
+      item.downloadedId!,
       accessToken:
           "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w",
     );

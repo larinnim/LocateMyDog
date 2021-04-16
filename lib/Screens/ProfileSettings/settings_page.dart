@@ -20,16 +20,16 @@ class _SettingsPageState extends State<SettingsPage> {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  String _units = "kilometer";
+  String? _units = "kilometer";
 
-  void _updateUnits(String unitsChoose) {
+  void _updateUnits(String? unitsChoose) {
     _db
         .collection('users')
-        .doc(_firebaseAuth.currentUser.uid)
+        .doc(_firebaseAuth.currentUser!.uid)
         .set({'units': _units}, SetOptions(merge: true));
   }
 
-  void getUnits(String unitsFromDB) {
+  void getUnits(String? unitsFromDB) {
     _units = unitsFromDB;
   }
 
@@ -38,11 +38,11 @@ class _SettingsPageState extends State<SettingsPage> {
     CollectionReference users = FirebaseFirestore.instance.collection('users');
 
     return FutureBuilder<DocumentSnapshot>(
-        future: users.doc(_firebaseAuth.currentUser.uid).get(),
+        future: users.doc(_firebaseAuth.currentUser!.uid).get(),
         builder:
             (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            Map<String, dynamic> data = snapshot.data.data();
+            Map<String, dynamic> data = snapshot.data!.data()!;
             getUnits(data['units']);
 
             return Scaffold(
@@ -127,7 +127,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 color: Colors.grey[600],
                               ),
                             ),
-                            Text(_units != null ? _units.tr : "kilometer".tr),
+                            Text(_units != null ? _units!.tr : "kilometer".tr),
                           ],
                         ),
                       ),
@@ -305,7 +305,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 color: Colors.grey[600],
               ),
             ),
-            Text(_units),
+            Text(_units!),
           ],
         ),
       ),

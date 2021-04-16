@@ -1,11 +1,11 @@
 class Device {
-  final String id;
-  final String name;
-  final int batteryLevel;
-  final String latitude;
-  final String longitude;
-  final String color;
-  final String senderNumber;
+  final String? id;
+  final String? name;
+  final int? batteryLevel;
+  final String? latitude;
+  final String? longitude;
+  final String? color;
+  final String? senderNumber;
 
   Device(
       {this.id,

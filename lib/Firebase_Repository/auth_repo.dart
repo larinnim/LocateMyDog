@@ -13,7 +13,7 @@ import 'dart:convert';
 class AuthRepo {
   // final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  bool _isFacebookLoggedIn;
+  bool? _isFacebookLoggedIn;
 
   AuthRepo();
 
@@ -50,7 +50,7 @@ class AuthRepo {
   //   }
   // }
 
-  Future<AppUser> signInWithFacebook() async {
+  Future<AppUser?> signInWithFacebook() async {
     // final facebookLogin = FacebookLogin();
     // final result = await facebookLogin.logIn([
     //   'email',
@@ -65,11 +65,12 @@ class AuthRepo {
       //     'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=$token');
       // print(graphResponse.body);
       if (result.status == LoginStatus.success) {
-        final facebookCredential = FacebookAuthProvider.credential(result.accessToken.toString());
+        final facebookCredential =
+            FacebookAuthProvider.credential(result.accessToken.toString());
         final UserCredential userCredential =
             await _auth.signInWithCredential(facebookCredential);
-        return AppUser(userCredential.user.uid,
-            displayName: userCredential.user.displayName);
+        return AppUser(userCredential.user!.uid,
+            displayName: userCredential.user!.displayName);
       } else {
         return null;
       }
@@ -79,18 +80,18 @@ class AuthRepo {
   }
 
   Future<bool> _checkIfIsLogged() async {
-  final AccessToken accessToken = await FacebookAuth.instance.accessToken;
-  if (accessToken != null) {
-    // now you can call to  FacebookAuth.instance.getUserData();
-    return true;
-    // final userData = await FacebookAuth.instance.getUserData(fields: "email,birthday,friends,gender,link");
-  }else{
-     return false;
+    final AccessToken? accessToken = await FacebookAuth.instance.accessToken;
+    if (accessToken != null) {
+      // now you can call to  FacebookAuth.instance.getUserData();
+      return true;
+      // final userData = await FacebookAuth.instance.getUserData(fields: "email,birthday,friends,gender,link");
+    } else {
+      return false;
+    }
   }
-}
 
-  Future<AppUser> signInWithEmailAndPassword(
-      {String email, String password}) async {
+  Future<AppUser?> signInWithEmailAndPassword(
+      {required String email, required String password}) async {
     String errorMessage;
     var authResult;
 
@@ -100,7 +101,7 @@ class AuthRepo {
       return AppUser(authResult.user.uid,
           displayName: authResult.user.displayName);
     } catch (error) {
-      switch (error.code) {
+      switch (error) {
         case "invalid-email":
           errorMessage = "Your email address appears to be malformed.";
           break;
@@ -138,6 +139,8 @@ class AuthRepo {
       return AppUser(firebaseUser.uid,
           displayName: firebaseUser.displayName,
           avatarUrl: firebaseUser.photoURL);
+    } else {
+      return AppUser("",displayName:"",avatarUrl:"");
     }
   }
 
