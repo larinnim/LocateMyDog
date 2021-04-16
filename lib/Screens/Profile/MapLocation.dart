@@ -203,20 +203,26 @@ class _MapLocationState extends State<MapLocation> {
                                         wifiProvider.timestampWiFi != null &&
                                         bleProvider.timestampBLE.isAfter(
                                             wifiProvider.timestampWiFi))
-                                    ? updateMarkerAndCircle(LatLng(
-                                        bleProvider.lat, bleProvider.lng), bleProvider.senderNumber)
+                                    ? updateMarkerAndCircle(
+                                        LatLng(
+                                            bleProvider.lat, bleProvider.lng),
+                                        bleProvider.senderNumber)
                                     : (bleProvider.timestampBLE == null &&
                                             wifiProvider.timestampWiFi != null)
-                                        ? updateMarkerAndCircle(LatLng(
-                                            wifiProvider.lat, wifiProvider.lng), wifiProvider.senderNumber)
+                                        ? updateMarkerAndCircle(
+                                            LatLng(wifiProvider.lat,
+                                                wifiProvider.lng),
+                                            wifiProvider.senderNumber)
                                         : (bleProvider != null &&
                                                 wifiProvider == null)
-                                            ? updateMarkerAndCircle(LatLng(
-                                                bleProvider.lat,
-                                                bleProvider.lng), bleProvider.senderNumber)
-                                            : updateMarkerAndCircle(LatLng(
-                                                wifiProvider.lat,
-                                                wifiProvider.lng), wifiProvider.senderNumber),
+                                            ? updateMarkerAndCircle(
+                                                LatLng(bleProvider.lat,
+                                                    bleProvider.lng),
+                                                bleProvider.senderNumber)
+                                            : updateMarkerAndCircle(
+                                                LatLng(wifiProvider.lat,
+                                                    wifiProvider.lng),
+                                                wifiProvider.senderNumber),
                                 initialData: Set.of(<Marker>[]),
                                 builder: (context, snapshotMarker) {
                                   return new Stack(

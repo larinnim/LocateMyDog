@@ -59,7 +59,7 @@ dependencies:
   geocoding: ^2.0.0
   flutter_google_places: ^0.3.0
   flutter_colorpicker: ^0.4.0
-  flutter_facebook_auth: ^3.0.0-nullsafety.1
+  flutter_facebook_auth: ^3.3.2+2
 
   mapbox_gl:
     git: 
