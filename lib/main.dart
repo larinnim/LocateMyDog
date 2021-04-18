@@ -80,9 +80,11 @@ class _MainPageState extends State<MainPage> {
     SharedPreferences _prefs = await SharedPreferences.getInstance();
     final _lang = _prefs.getString('lan');
     final _countryLang = _prefs.getString('countryLang');
-    setState(() {
-      _currentLocale = Locale(_lang!, _countryLang);
-      Get.updateLocale(_currentLocale);
-    });
+    if (_lang != null) {
+      setState(() {
+        _currentLocale = Locale(_lang, _countryLang);
+        Get.updateLocale(_currentLocale);
+      });
+    }
   }
 }

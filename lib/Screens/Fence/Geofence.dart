@@ -32,7 +32,7 @@ class _GeofenceWidgetState extends State<Geofence> {
   localization.Location _locationTracker = localization.Location();
   Circle? circle;
   Marker? marker;
-  Polygon? polygon;
+  late Polygon polygon;
   GoogleMapController? _controller;
   static LatLng? _initialPosition;
   double _configuredRadius = 0.0; //Radius is 30 meters
@@ -206,7 +206,7 @@ class _GeofenceWidgetState extends State<Geofence> {
           icon: BitmapDescriptor.fromBytes(imageData));
       circle = Circle(
           circleId: CircleId("pet"),
-          radius: _configuredRadius!,
+          radius: _configuredRadius,
           // radius: newLocalData.accuracy,
           zIndex: 1,
           strokeColor: Colors.blue,
@@ -380,7 +380,9 @@ class _GeofenceWidgetState extends State<Geofence> {
                           : new Stack(children: <Widget>[
                               new Container(
                                   height: 1000, // This line solved the issue
-                                  child: GoogleMap(
+                                  child:
+                                  _isPolygonFence ?
+                                  GoogleMap(
                                     mapType: MapType.hybrid,
                                     initialCameraPosition: CameraPosition(
                                       target: _initialPosition!,
@@ -394,11 +396,44 @@ class _GeofenceWidgetState extends State<Geofence> {
                                         (marker != null) ? [marker!] : []),
                                     circles: Set.of(
                                         (circle != null) ? [circle!] : []),
-                                    polygons: _isPolygonFence
-                                        ? _polygonsFence
-                                        : _isDoNotEnterFence
-                                            ? _doNotEnterFence
-                                            : null,
+                                 polygons: _polygonsFence,
+                                    //     : _isDoNotEnterFence
+                                    //         ? _doNotEnterFence
+                                    //         : null,
+                                    onTap: (point) {
+                                      if (_isPolygonFence) {
+                                        setState(() {
+                                          polygonFenceLatLngs.add(point);
+                                          _setPolygonFence();
+                                        });
+                                      }
+                                      if (_isDoNotEnterFence) {
+                                        setState(() {
+                                          dotNotEnterFenceLatLngs.add(point);
+                                          _setDoNotEnterFence();
+                                        });
+                                      }
+                                    },
+                                    onMapCreated:
+                                        (GoogleMapController controller) {
+                                      _controller = controller;
+                                    },
+                                  ):
+                                   GoogleMap(
+                                    mapType: MapType.hybrid,
+                                    initialCameraPosition: CameraPosition(
+                                      target: _initialPosition!,
+                                      zoom: 11,
+                                    ),
+                                    zoomGesturesEnabled: true,
+                                    myLocationEnabled: false,
+                                    compassEnabled: true,
+                                    myLocationButtonEnabled: false,
+                                    markers: Set.of(
+                                        (marker != null) ? [marker!] : []),
+                                    circles: Set.of(
+                                        (circle != null) ? [circle!] : []),
+                                    polygons: _doNotEnterFence,
                                     onTap: (point) {
                                       if (_isPolygonFence) {
                                         setState(() {

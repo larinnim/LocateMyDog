@@ -344,8 +344,9 @@ class _SettingsPageState extends State<SettingsPage> {
   GestureDetector buildOfflineMapSelection(BuildContext context, String title) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(MaterialPageRoute(
-            builder: (BuildContext context) => OfflineRegionBody()));
+        // TODO ENABLE WHEN MAPBOX NULLSAFETY IS AVAILABLE
+        // Navigator.of(context).push(MaterialPageRoute(
+        //     builder: (BuildContext context) => OfflineRegionBody()));
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),

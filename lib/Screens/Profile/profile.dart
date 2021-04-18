@@ -283,10 +283,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   // File image = await ImagePicker.pickImage(
                                   //     source: ImageSource.gallery);
 
-                                  await locator
+                                locator
                                       .get<UserController>()
                                       .uploadProfilePicture(_image);
-
                                   setState(() {});
                                 },
                               ),
@@ -320,14 +319,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           return MapLocation();
                                         }));
                                       } else {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  OfflineRegionBody()),
+                                        // TODO ENABLE WHEN MAPBOX NULLSAFETY IS AVAILABLE
+                                        // Navigator.push(
+                                        //   context,
+                                        //   MaterialPageRoute(
+                                        //       builder: (context) =>
+                                        //           OfflineRegionBody()),
 
-                                          // builder: (context) => Radar()),
-                                        );
+                                        //   // builder: (context) => Radar()),
+                                        // );
                                       }
                                     }
                                   },

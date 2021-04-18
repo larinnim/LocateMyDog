@@ -61,14 +61,14 @@ dependencies:
   flutter_colorpicker: ^0.4.0
   flutter_facebook_auth: ^3.3.2+2
 
-  mapbox_gl:
-    git: 
-      url: git://github.com/morvagergely/flutter-mapbox-gl.git
-      ref: master
+  # mapbox_gl:
+  #   git: 
+  #     url: git://github.com/morvagergely/flutter-mapbox-gl.git
+  #     ref: master
 
   flutter_barcode_scanner:
     git:
-      url: git://github.com/AmolGangadhare/flutter_barcode_scanner.git
+      url: git://github.com/larinnim/flutter_barcode_scanner-1.git
       ref: nullsafety
   flutter_ble_lib:
     git:

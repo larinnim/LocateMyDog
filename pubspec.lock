@@ -284,8 +284,8 @@ packages:
     description:
       path: "."
       ref: nullsafety
-      resolved-ref: "8da3fee1b99b979d3ba35ceafc778670be60286b"
-      url: "git://github.com/AmolGangadhare/flutter_barcode_scanner.git"
+      resolved-ref: "8ecb9d67a113e0894e94d580f86d84dfc2e281eb"
+      url: "git://github.com/larinnim/flutter_barcode_scanner-1.git"
     source: git
     version: "2.0.0-nullsafety.0"
   flutter_ble_lib:
@@ -629,40 +629,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.1"
-  mapbox_gl:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: master
-      resolved-ref: "8f69835feab55bfa7cd9b9a57aa383d3f89a9f19"
-      url: "git://github.com/morvagergely/flutter-mapbox-gl.git"
-    source: git
-    version: "0.12.0"
-  mapbox_gl_dart:
-    dependency: transitive
-    description:
-      name: mapbox_gl_dart
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.5"
-  mapbox_gl_platform_interface:
-    dependency: transitive
-    description:
-      path: mapbox_gl_platform_interface
-      ref: HEAD
-      resolved-ref: "3399fc4b5d357c813b7973ab36abb22136cb042f"
-      url: "https://github.com/tobrun/flutter-mapbox-gl.git"
-    source: git
-    version: "0.12.0"
-  mapbox_gl_web:
-    dependency: transitive
-    description:
-      path: mapbox_gl_web
-      ref: HEAD
-      resolved-ref: "3399fc4b5d357c813b7973ab36abb22136cb042f"
-      url: "https://github.com/tobrun/flutter-mapbox-gl.git"
-    source: git
-    version: "0.12.0"
   matcher:
     dependency: transitive
     description:

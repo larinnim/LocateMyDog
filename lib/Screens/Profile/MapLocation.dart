@@ -29,7 +29,7 @@ class _MapLocationState extends State<MapLocation> {
       FirebaseFirestore.instance.collection('locateDog');
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  List<Marker?> markers = <Marker?>[];
+  // List<Marker?> markers = <Marker?>[];
   List<Polyline> mapPolylines = <Polyline>[];
   late LatLng _currentPosition;
   Circle? circle;
@@ -41,13 +41,15 @@ class _MapLocationState extends State<MapLocation> {
   Geoflutterfire geo = Geoflutterfire();
   CollectionReference reference =
       FirebaseFirestore.instance.collection('locations');
-  List<LatLng> polyLinesLatLongs = List<LatLng>(); // our list of geopoints
+  List<LatLng> polyLinesLatLongs = []; // our list of geopoints
   var mapLocation;
   Uint8List? imageData;
   // BitmapDescriptor icon;
-  Marker? marker;
+  late Marker marker;
   int _markerId = 1;
   Timer? timer;
+  List<Marker> markers = [];
+
   // final List<Flushbar> flushBars = [];
 
   @override
@@ -96,7 +98,7 @@ class _MapLocationState extends State<MapLocation> {
     return false;
   }
 
-  Future<Set<Marker?>> updateMarkerAndCircle(
+  Future<Set<Marker>> updateMarkerAndCircle(
       LatLng latlong, String? sender) async {
     LatLng latlng = LatLng(latlong.latitude, latlong.longitude);
     late Uint8List imageData;
@@ -121,10 +123,10 @@ class _MapLocationState extends State<MapLocation> {
     _currentPosition = latlong;
 
     if (markers.length > 0) {
-      Marker? marker = markers[0];
+      marker = markers[0];
 
       setState(() {
-        markers[0] = marker!.copyWith(
+        markers[0] = marker.copyWith(
             positionParam: LatLng(latlong.latitude, latlong.longitude));
       });
     } else {
@@ -189,11 +191,12 @@ class _MapLocationState extends State<MapLocation> {
                                   CupertinoDialogAction(
                                     child: Text('OK'),
                                     onPressed: () {
-                                      Navigator.push(context,
-                                          MaterialPageRoute(builder: (context) {
-                                        // return Radar();
-                                        return OfflineRegionBody();
-                                      }));
+                                      // TODO ENABLE WHEN MAPBOX NULLSAFETY IS AVAILABLE
+                                      // Navigator.push(context,
+                                      //     MaterialPageRoute(builder: (context) {
+                                      //   // return Radar();
+                                      //   return OfflineRegionBody();
+                                      // }));
                                     },
                                   )
                                 ],
@@ -261,9 +264,12 @@ class _MapLocationState extends State<MapLocation> {
                                                       : CameraPosition(
                                                           target: LatLng(bleProvider.lat!, bleProvider.lng!),
                                                           zoom: 16.0),
-                                          markers: snapshotMarker.data,
-                                          circles: Set.of(
-                                              (circle != null) ? [circle!] : []),
+                                          // markers: snapshotMarker.data,
+                                          markers: markers.toSet(),
+
+                                          circles: Set.of((circle != null)
+                                              ? [circle!]
+                                              : []),
                                           // polylines: snapshotPolyline.data,
                                           myLocationButtonEnabled: false,
                                           zoomGesturesEnabled: true,
@@ -286,12 +292,13 @@ class _MapLocationState extends State<MapLocation> {
                                                 CupertinoDialogAction(
                                                   child: Text('OK'),
                                                   onPressed: () {
-                                                    Navigator.push(context,
-                                                        MaterialPageRoute(
-                                                            builder: (context) {
-                                                      // return Radar();
-                                                      return OfflineRegionBody();
-                                                    }));
+                                                    // TODO ENABLE WHEN MAPBOX NULLSAFETY IS AVAILABLE
+                                                    // Navigator.push(context,
+                                                    //     MaterialPageRoute(
+                                                    //         builder: (context) {
+                                                    //   // return Radar();
+                                                    //   return OfflineRegionBody();
+                                                    // }));
                                                   },
                                                 )
                                               ],
@@ -300,6 +307,15 @@ class _MapLocationState extends State<MapLocation> {
                                     ],
                                   );
                                 });
+                      } else {
+                        return Center(
+                          child: Text(
+                            'Whoops an error occurred...',
+                            style: TextStyle(
+                                fontFamily: 'Avenir-Medium',
+                                color: Colors.grey[400]),
+                          ),
+                        );
                       }
                     });
               })

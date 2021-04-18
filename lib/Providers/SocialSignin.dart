@@ -1,9 +1,9 @@
-import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
+import 'package:flutter_maps/Screens/Authenticate/sign_in.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -103,7 +103,7 @@ class SocialSignInProvider extends ChangeNotifier {
     try {
       // final token = result.accessToken.token;
       LoginResult result = await FacebookAuth.instance.login();
-      final userData = await FacebookAuth.instance.getUserData();
+      // final userData = await FacebookAuth.instance.getUserData();
 
       // final graphResponse = await http.get(
       //     'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=$token');
@@ -118,11 +118,13 @@ class SocialSignInProvider extends ChangeNotifier {
         isSigningIn = false;
         isSignedIn = true;
         socialSiginSingleton.isSocialLogin = true;
-      } else if (result.status == LoginStatus.cancelled) {
+      } else {
         isCancelledByUser = true;
-      } else if (result.status == LoginStatus.failed) {
-        isError = true;
-      }
+        Get.to(Authenticate());
+      } 
+      // else if (result.status == LoginStatus.failed) {
+      //   isError = true;
+      // }
     } catch (error) {
       return null;
     }
