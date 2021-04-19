@@ -246,8 +246,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                     .contains('facebook')
                     
                                                 ? _auth.currentUser!.photoURL
-                                                : _auth.currentUser!.photoURL! +
-                                                    "?height=500&access_token=" +
+                                                : 
+                                                _auth.currentUser!.photoURL! +
+                                                    "?height=500&access_token=" 
+                                                    +
                                                     box.read('token')
                                             : _currentUser?.avatarUrl != null
                                                 ? _currentUser?.avatarUrl

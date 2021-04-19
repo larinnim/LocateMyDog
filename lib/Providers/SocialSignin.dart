@@ -114,6 +114,7 @@ class SocialSignInProvider extends ChangeNotifier {
             FacebookAuthProvider.credential(result.accessToken!.token);
 
         await FirebaseAuth.instance.signInWithCredential(facebookCredential);
+        box.write("token", result.accessToken!.token);
 
         isSigningIn = false;
         isSignedIn = true;
