@@ -65,8 +65,8 @@ class _MapLocationState extends State<MapLocation> {
   }
 
   Future<void> moveCamera() async {
-    if (_currentPosition.latitude != null &&
-        _currentPosition.longitude != null) {
+    // if (_currentPosition.latitude != null &&
+    //     _currentPosition.longitude != null) {
       _controller.animateCamera(CameraUpdate.newCameraPosition(
           new CameraPosition(
               bearing: 192.8334901395799,
@@ -74,7 +74,7 @@ class _MapLocationState extends State<MapLocation> {
                   LatLng(_currentPosition.latitude, _currentPosition.longitude),
               tilt: 0,
               zoom: 18.00)));
-    }
+    // }
   }
 
   // void _onMapCreated(GoogleMapController controller) {
@@ -114,36 +114,61 @@ class _MapLocationState extends State<MapLocation> {
             ByteData byteData =
                 await DefaultAssetBundle.of(context).load(pathColor);
             imageData = byteData.buffer.asUint8List();
+            _currentPosition = latlong;
+
+            if (markers.length > 0) {
+              marker = markers[0];
+
+              setState(() {
+                markers[0] = marker.copyWith(
+                    positionParam: LatLng(latlong.latitude, latlong.longitude));
+              });
+            } else {
+              marker = Marker(
+                  markerId: MarkerId("home"),
+                  position: latlng,
+                  // rotation: BleSingleton.shared.heading,
+                  draggable: false,
+                  zIndex: 2,
+                  flat: true,
+                  anchor: Offset(0.5, 0.5),
+                  icon: BitmapDescriptor.fromBytes(imageData));
+              setState(() {
+                markers.add(marker);
+              });
+              // markers.add(marker);
+            }
           }
         });
       }
     });
 
     // Uint8List imageData = await getMarker();
-    _currentPosition = latlong;
+    //
+    // _currentPosition = latlong;
 
-    if (markers.length > 0) {
-      marker = markers[0];
+    // if (markers.length > 0) {
+    //   marker = markers[0];
 
-      setState(() {
-        markers[0] = marker.copyWith(
-            positionParam: LatLng(latlong.latitude, latlong.longitude));
-      });
-    } else {
-      setState(() {
-        marker = Marker(
-            markerId: MarkerId("home"),
-            position: latlng,
-            // rotation: BleSingleton.shared.heading,
-            draggable: false,
-            zIndex: 2,
-            flat: true,
-            anchor: Offset(0.5, 0.5),
-            icon: BitmapDescriptor.fromBytes(imageData));
-
-        markers.add(marker);
-      });
-    }
+    //   setState(() {
+    //     markers[0] = marker.copyWith(
+    //         positionParam: LatLng(latlong.latitude, latlong.longitude));
+    //   });
+    // } else {
+    //   marker = Marker(
+    //       markerId: MarkerId("home"),
+    //       position: latlng,
+    //       // rotation: BleSingleton.shared.heading,
+    //       draggable: false,
+    //       zIndex: 2,
+    //       flat: true,
+    //       anchor: Offset(0.5, 0.5),
+    //       icon: BitmapDescriptor.fromBytes(imageData));
+    //   setState(() {
+    //     markers.add(marker);
+    //   });
+    //   // markers.add(marker);
+    // }
     return markers.toSet();
   }
 
@@ -205,27 +230,34 @@ class _MapLocationState extends State<MapLocation> {
                                 future: (bleProvider.timestampBLE != null &&
                                         wifiProvider.timestampWiFi != null &&
                                         bleProvider.timestampBLE!.isAfter(
-                                            wifiProvider.timestampWiFi!))
-                                    ? updateMarkerAndCircle(
+                                            wifiProvider
+                                                .timestampWiFi!)) //its sending BLE
+                                    ? 
+                                    updateMarkerAndCircle(
                                         LatLng(
                                             bleProvider.lat!, bleProvider.lng!),
                                         bleProvider.senderNumber)
-                                    : (bleProvider.timestampBLE == null &&
-                                            wifiProvider.timestampWiFi != null)
-                                        ? updateMarkerAndCircle(
-                                            LatLng(wifiProvider.lat!,
-                                                wifiProvider.lng!),
-                                            wifiProvider.senderNumber)
-                                        : (bleProvider != null &&
-                                                wifiProvider == null)
-                                            ? updateMarkerAndCircle(
-                                                LatLng(bleProvider.lat!,
-                                                    bleProvider.lng!),
-                                                bleProvider.senderNumber)
-                                            : updateMarkerAndCircle(
-                                                LatLng(wifiProvider.lat!,
-                                                    wifiProvider.lng!),
-                                                wifiProvider.senderNumber),
+                                    : updateMarkerAndCircle(
+                                        LatLng(wifiProvider.lat!,
+                                            wifiProvider.lng!),
+                                        wifiProvider
+                                            .senderNumber), // its sending WIFI
+                                // (bleProvider.timestampBLE == null &&
+                                //         wifiProvider.timestampWiFi != null) //its sending WIFI
+                                //     ? updateMarkerAndCircle(
+                                //         LatLng(wifiProvider.lat!,
+                                //             wifiProvider.lng!),
+                                //         wifiProvider.senderNumber)
+                                // : (bleProvider != null &&
+                                //         wifiProvider == null)
+                                //     ? updateMarkerAndCircle(
+                                //         LatLng(bleProvider.lat!,
+                                //             bleProvider.lng!),
+                                //         bleProvider.senderNumber)
+                                //     : updateMarkerAndCircle(
+                                //         LatLng(wifiProvider.lat!,
+                                //             wifiProvider.lng!),
+                                //         wifiProvider.senderNumber),
                                 initialData: Set.of(<Marker>[]),
                                 builder: (context, snapshotMarker) {
                                   return new Stack(
@@ -235,35 +267,42 @@ class _MapLocationState extends State<MapLocation> {
                                             1000, // This line solved the issue
                                         child: GoogleMap(
                                           mapType: MapType.hybrid,
-                                          initialCameraPosition: (bleProvider.timestampBLE != null &&
+                                          initialCameraPosition: (bleProvider
+                                                          .timestampBLE !=
+                                                      null &&
                                                   wifiProvider.timestampWiFi !=
                                                       null &&
                                                   bleProvider.timestampBLE!
                                                       .isAfter(wifiProvider
-                                                          .timestampWiFi!))
+                                                          .timestampWiFi!)) // BLE is sending
                                               ? CameraPosition(
                                                   target: LatLng(
                                                       bleProvider.lat!,
                                                       bleProvider.lng!),
                                                   zoom: 16.0)
-                                              : (bleProvider.timestampBLE == null &&
-                                                      wifiProvider.timestampWiFi !=
-                                                          null)
-                                                  ? CameraPosition(
-                                                      target: LatLng(
-                                                          wifiProvider.lat!,
-                                                          wifiProvider.lng!),
-                                                      zoom: 16.0)
-                                                  : (bleProvider != null &&
-                                                          wifiProvider == null)
-                                                      ? CameraPosition(
-                                                          target: LatLng(
-                                                              bleProvider.lat!,
-                                                              bleProvider.lng!),
-                                                          zoom: 16.0)
-                                                      : CameraPosition(
-                                                          target: LatLng(bleProvider.lat!, bleProvider.lng!),
-                                                          zoom: 16.0),
+                                              : CameraPosition(
+                                                  target: LatLng(
+                                                      wifiProvider.lat!,
+                                                      wifiProvider.lng!),
+                                                  zoom: 16.0), //WIFI is sending
+                                          // (bleProvider.timestampBLE == null &&
+                                          //         wifiProvider.timestampWiFi !=
+                                          //             null)  // WIFI is sending
+                                          //     ? CameraPosition(
+                                          //         target: LatLng(
+                                          //             wifiProvider.lat!,
+                                          //             wifiProvider.lng!),
+                                          //         zoom: 16.0)
+                                          //     : (bleProvider != null &&
+                                          //             wifiProvider == null)
+                                          //         ? CameraPosition(
+                                          //             target: LatLng(
+                                          //                 bleProvider.lat!,
+                                          //                 bleProvider.lng!),
+                                          //             zoom: 16.0)
+                                          //         : CameraPosition(
+                                          //             target: LatLng(bleProvider.lat!, bleProvider.lng!),
+                                          //             zoom: 16.0),
                                           // markers: snapshotMarker.data,
                                           markers: markers.toSet(),
 
@@ -274,7 +313,7 @@ class _MapLocationState extends State<MapLocation> {
                                           myLocationButtonEnabled: false,
                                           zoomGesturesEnabled: true,
                                           mapToolbarEnabled: true,
-                                          myLocationEnabled: true,
+                                          myLocationEnabled: false,
                                           scrollGesturesEnabled: true,
                                           onMapCreated:
                                               (GoogleMapController controller) {
