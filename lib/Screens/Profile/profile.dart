@@ -237,32 +237,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               SizedBox(width: kSpacingUnit.w * 3),
-                              // Expanded(
-                              // child: Container(
-                              //   decoration: BoxDecoration(
-                              //       color: Theme.of(context).primaryColor,
-                              //       borderRadius: BorderRadius.circular(
-                              //           kSpacingUnit.w * 3)),
-                              // child: Column(
-                              //   mainAxisAlignment:
-                              //       MainAxisAlignment.spaceEvenly,
-                              // children: <Widget>[
                               Avatar(
                                 avatarUrl:
-                                    // _auth.currentUser != null ? _auth.currentUser?.photoURL + "?height=500&access_token=" + socialSiginSingleton.facebookToken : "",
                                     _auth.currentUser != null
                                         ? _auth.currentUser!.photoURL != null
                                             ?
-                                            // _auth.currentUser.photoURL.contains('facebook') == false
                                             !_auth.currentUser!.photoURL!
                                                     .contains('facebook')
-                                                //  ||
-                                                // socialSiginSingleton
-                                                //         .facebookToken ==
-                                                //     "" ||
-                                                // socialSiginSingleton
-                                                //         .isSocialLogin ==
-                                                //     false
+                    
                                                 ? _auth.currentUser!.photoURL
                                                 : _auth.currentUser!.photoURL! +
                                                     "?height=500&access_token=" +
@@ -271,29 +253,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                 ? _currentUser?.avatarUrl
                                                 : ""
                                         : "",
-
-                                // ? _auth.currentUser?.photoURL + "?height=500&access_token=" + socialLogin.facebookToken
-                                // : _currentUser?.avatarUrl,
-                                // avatarUrl:
-                                //     _currentUser?.avatarUrl == null
-                                //         ? _auth.currentUser?.photoURL
-                                //         : _currentUser?.avatarUrl,
                                 onTap: () async {
                                   getImage();
-                                  // File image = await ImagePicker.pickImage(
-                                  //     source: ImageSource.gallery);
-
                                 locator
                                       .get<UserController>()
                                       .uploadProfilePicture(_image);
                                   setState(() {});
                                 },
                               ),
-                              //   SizedBox(height: kSpacingUnit.w * 2),
-                              // ],
-                              // ),
-                              // ),
-                              // ),
                               SizedBox(width: kSpacingUnit.w * 3),
                             ],
                           ),

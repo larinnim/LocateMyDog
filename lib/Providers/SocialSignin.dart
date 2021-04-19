@@ -1,9 +1,9 @@
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
 import 'package:flutter_maps/Screens/Authenticate/sign_in.dart';
+import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -111,7 +111,7 @@ class SocialSignInProvider extends ChangeNotifier {
 
       if (result.status == LoginStatus.success) {
         final facebookCredential =
-            FacebookAuthProvider.credential(result.accessToken.toString());
+            FacebookAuthProvider.credential(result.accessToken!.token);
 
         await FirebaseAuth.instance.signInWithCredential(facebookCredential);
 
@@ -120,12 +120,15 @@ class SocialSignInProvider extends ChangeNotifier {
         socialSiginSingleton.isSocialLogin = true;
       } else {
         isCancelledByUser = true;
-        Get.to(Authenticate());
-      } 
+        isSigningIn = false;
+        Get.off(Wrapper());
+        // Get.to(Authenticate());
+      }
       // else if (result.status == LoginStatus.failed) {
       //   isError = true;
       // }
     } catch (error) {
+      Get.off(Wrapper());
       return null;
     }
 

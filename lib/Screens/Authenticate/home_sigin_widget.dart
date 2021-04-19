@@ -2,7 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Providers/SocialSignin.dart';
+import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
 import 'package:flutter_maps/Screens/Authenticate/background_painter.dart';
+import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Screens/loading.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
@@ -56,18 +58,23 @@ class HomeSignInWidget extends StatelessWidget {
             if (provider.isSigningIn!) {
               return Loading();
             } else if (provider.isCancelledByUser!) {
-              Get.dialog(SimpleDialog(
-                title: Text(
-                  "Error",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                shape: RoundedRectangleBorder(
-                    borderRadius: new BorderRadius.circular(10.0)),
-                children: [
-                  Text("     Operation Cancelled By User",
-                      style: TextStyle(fontSize: 20.0))
-                ],
-              ));
+              // Get.dialog(SimpleDialog(
+              //   title: Text(
+              //     "Error",
+              //     style: TextStyle(fontWeight: FontWeight.bold),
+              //   ),
+              //   shape: RoundedRectangleBorder(
+              //       borderRadius: new BorderRadius.circular(10.0)),
+              //   children: [
+              //     Text("     Operation Cancelled By User",
+              //         style: TextStyle(fontSize: 20.0))
+              //   ],
+              // ));
+               WidgetsBinding.instance!.addPostFrameCallback((_) =>
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) {
+                    return Material(child: Authenticate());
+                  })));
               return Container();
             } else if (provider.isError!) {
               Get.dialog(SimpleDialog(
@@ -82,6 +89,11 @@ class HomeSignInWidget extends StatelessWidget {
                       style: TextStyle(fontSize: 20.0))
                 ],
               ));
+             WidgetsBinding.instance!.addPostFrameCallback((_) =>
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) {
+                    return Material(child: Authenticate());
+                  })));
               return Container();
             } else if (snapshot.hasData) {
               WidgetsBinding.instance!.addPostFrameCallback((_) =>
