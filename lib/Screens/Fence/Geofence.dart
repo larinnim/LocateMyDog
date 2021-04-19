@@ -36,6 +36,9 @@ class _GeofenceWidgetState extends State<Geofence> {
   GoogleMapController? _controller;
   static LatLng? _initialPosition;
   double _configuredRadius = 0.0; //Radius is 30 meters
+  double _configuredRadiusToUnits = 0.0; //Radius is 30 meters
+  late Uint8List imageData;
+  late localization.LocationData location;
   AppUser? _currentUser = locator.get<UserController>().currentUser;
   CollectionReference locateDogInstance =
       FirebaseFirestore.instance.collection('locateDog');
@@ -52,7 +55,7 @@ class _GeofenceWidgetState extends State<Geofence> {
   List<LatLng> dotNotEnterFenceLatLngs = [];
   int _doNotEnterFenceIdCounter = 1;
   int _incrementRadius = 5;
-  String? _units = 'kilometer';
+  String? _units = 'meter';
   // List<Polygon> polygons = <Polygon>[
   //   new Polygon(
   // polygonId: PolygonId('area'),
@@ -96,9 +99,30 @@ class _GeofenceWidgetState extends State<Geofence> {
         if (_configuredRadius.isNegative) {
           _configuredRadius = 0.0;
         }
+        _updateCurrentRadius();
         print('Radius: ' + _configuredRadius.toString());
       });
     });
+  }
+
+  void _updateCurrentRadius() {
+    setState(() {
+      if (_configuredRadius != 0.0) {
+        if (_units == 'meter') {
+          _configuredRadiusToUnits = _configuredRadius;
+        } else if (_units == 'feet') {
+          _configuredRadiusToUnits = _configuredRadius * 3.28084;
+        }
+      } else {
+        _configuredRadius = 5; //minimum is 5 meters
+        if (_units == 'meter') {
+          _configuredRadiusToUnits = 5;
+        } else if (_units == 'feet') {
+          _configuredRadiusToUnits = _configuredRadius * 3.28084;
+        }
+      }
+    });
+    updateMarkerAndCircle(location, imageData);
   }
 
   void _onSettingsPressed() {
@@ -136,8 +160,13 @@ class _GeofenceWidgetState extends State<Geofence> {
           .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       _initialPosition = LatLng(position.latitude, position.longitude);
 
-      Uint8List imageData = await getMarker();
-      var location = await _locationTracker.getLocation();
+      // Uint8List imageData = await getMarker();
+      imageData = await getMarker();
+
+      // var location = await _locationTracker.getLocation();
+
+      location = await _locationTracker.getLocation();
+
       updateMarkerAndCircle(location, imageData);
 
       if (_locationSubscription != null) {
@@ -154,7 +183,7 @@ class _GeofenceWidgetState extends State<Geofence> {
                       LatLng(newLocalData.latitude!, newLocalData.longitude!),
                   tilt: 0,
                   zoom: 18.00)));
-          updateMarkerAndCircle(newLocalData, imageData);
+          // updateMarkerAndCircle(newLocalData, imageData);
         }
       });
     } on PlatformException catch (e) {
@@ -237,7 +266,8 @@ class _GeofenceWidgetState extends State<Geofence> {
                   Text(
                       'current'.tr +
                           ': ' +
-                          _configuredRadius.toString() +
+                          _configuredRadiusToUnits.toStringAsFixed(2) +
+                          // _configuredRadius.toString() +
                           ' ' +
                           _units!.tr,
                       style: TextStyle(color: Colors.black.withOpacity(0.6))),
@@ -252,6 +282,7 @@ class _GeofenceWidgetState extends State<Geofence> {
                         _configuredRadius +=
                             _incrementRadius; //Increase by 5 meters
                       });
+                      _updateCurrentRadius();
                       await DatabaseService(uid: _currentUser!.uid)
                           .updateCircleRadius(
                               _configuredRadius, _initialPosition!);
@@ -268,6 +299,7 @@ class _GeofenceWidgetState extends State<Geofence> {
                           _configuredRadius = 0.0;
                         }
                       });
+                      _updateCurrentRadius();
                       await DatabaseService(uid: _currentUser!.uid)
                           .updateCircleRadius(
                               _configuredRadius, _initialPosition!);
