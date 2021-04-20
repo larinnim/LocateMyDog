@@ -155,50 +155,120 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  Future<List<DocumentSnapshot>> getSendersID() async {
+    var data = await FirebaseFirestore.instance
+        .collection('locateDog')
+        .doc(_auth.currentUser?.uid)
+        .collection('gateway')
+        .get();
+    var senders = data.docs;
+    return senders;
+  }
+
   void readDatabase() {
     if (_auth.currentUser != null) {
-      FirebaseFirestore.instance
-          .collection('locateDog')
-          .doc(_auth.currentUser?.uid)
-          .snapshots()
-          .listen((DocumentSnapshot documentSnapshot) {
-        Map<String, dynamic> firestoreInfo = documentSnapshot.data()!;
-        firestoreInfo.forEach((key, value) {
-          print(key);
-          print(value);
-          if (key.contains('Sender')) {
-            context.read<WiFiModel>().addLat(
-                firestoreInfo[key]["Location"]["Latitude"] != ""
-                    ? double.parse(firestoreInfo[key]["Location"]["Latitude"])
-                    : 0,
-                key);
-            context.read<WiFiModel>().addLng(
-                firestoreInfo[key]["Location"]["Longitude"] != ""
-                    ? double.parse(firestoreInfo[key]["Location"]["Longitude"])
-                    : 0,
-                key);
-            context.read<WiFiModel>().addRSSI(firestoreInfo[key]["RSSI"], key);
-            context
-                .read<WiFiModel>()
-                .addSSID(firestoreInfo[key]["ConnectedWifiSSID"], key);
-            context.read<WiFiModel>().addTimeStamp(
-                firestoreInfo[key]["LocationTimestamp"] != "" &&
-                        firestoreInfo[key]["LocationTimestamp"] != null
-                    ? firestoreInfo[key]["LocationTimestamp"]
-                    : DateTime.now().toString(),
-                key);
+      var senders;
+      getSendersID().then((data) {
+        for (int i = 0; i < data.length; i++) {
+          senders = FirebaseFirestore.instance
+              .collection('locateDog')
+              .doc(_auth.currentUser?.uid)
+              .collection('gateway')
+              .doc(data[i].id)
+              .snapshots()
+              .listen((DocumentSnapshot documentSnapshot) {
+            Map<String, dynamic> firestoreInfo = documentSnapshot.data()!;
+            firestoreInfo.forEach((key, value) {
+              print(key);
+              print(value);
+              // if (data.contains('Sender')) {
+                context.read<WiFiModel>().addLat(
+                    firestoreInfo["Location"]["Latitude"] != ""
+                        ? double.parse(
+                            firestoreInfo["Location"]["Latitude"])
+                        : 0,
+                    data[i].id, firestoreInfo["color"]);
+                context.read<WiFiModel>().addLng(
+                    firestoreInfo["Location"]["Longitude"] != ""
+                        ? double.parse(
+                            firestoreInfo["Location"]["Longitude"])
+                        : 0,
+                    data[i].id, firestoreInfo["color"]);
+                context
+                    .read<WiFiModel>()
+                    .addRSSI(firestoreInfo["RSSI"], data[i].id, firestoreInfo["color"]);
+                context
+                    .read<WiFiModel>()
+                    .addSSID(firestoreInfo["ConnectedWifiSSID"], data[i].id, firestoreInfo["color"]);
+                context.read<WiFiModel>().addTimeStamp(
+                    firestoreInfo["LocationTimestamp"] != "" &&
+                            firestoreInfo["LocationTimestamp"] != null
+                        ? firestoreInfo["LocationTimestamp"]
+                        : DateTime.now().toString(),
+                    data[i].id, firestoreInfo["color"]);
 
-            context.read<WiFiModel>().connectionWiFiTimestamp(
-                firestoreInfo["WifiTimestamp"] != "" &&
-                        firestoreInfo[key]["WifiTimestamp"] != null
-                    ? firestoreInfo["WifiTimestamp"]
-                    : DateTime.now().toString(),
-                key);
-          }
-        });
+                context.read<WiFiModel>().connectionWiFiTimestamp(
+                    firestoreInfo["WifiTimestamp"] != "" &&
+                            firestoreInfo["WifiTimestamp"] != null
+                        ? firestoreInfo["WifiTimestamp"]
+                        : DateTime.now().toString(),
+                    data[i].id, firestoreInfo["color"]);
+              // }
+            });
+          });
+          // if (senders != null) {
+          //   senders.forEach((product) {
+          //     print(product.data.values);
+          //   });
+          // }
+        }
+      });
 
-        // .addTimeStamp(firestoreInfo["Sender1"]["LocationTimestamp"]);
-      }).onError((e) => print("ERROR reading snapshot" + e));
+      // FirebaseFirestore.instance
+      //     .collection('locateDog')
+      //     .doc(_auth.currentUser?.uid)
+      //     .collection('gateway')
+      //     .snapshots()
+      //     .listen((event) {})
+      //     .snapshots()
+      //     .listen((DocumentSnapshot documentSnapshot) {
+      //   Map<String, dynamic> firestoreInfo = documentSnapshot.data()!;
+      //   firestoreInfo.forEach((key, value) {
+      //     print(key);
+      //     print(value);
+      //     if (key.contains('Sender')) {
+      //       context.read<WiFiModel>().addLat(
+      //           firestoreInfo[key]["Location"]["Latitude"] != ""
+      //               ? double.parse(firestoreInfo[key]["Location"]["Latitude"])
+      //               : 0,
+      //           key);
+      //       context.read<WiFiModel>().addLng(
+      //           firestoreInfo[key]["Location"]["Longitude"] != ""
+      //               ? double.parse(firestoreInfo[key]["Location"]["Longitude"])
+      //               : 0,
+      //           key);
+      //       context.read<WiFiModel>().addRSSI(firestoreInfo[key]["RSSI"], key);
+      //       context
+      //           .read<WiFiModel>()
+      //           .addSSID(firestoreInfo[key]["ConnectedWifiSSID"], key);
+      //       context.read<WiFiModel>().addTimeStamp(
+      //           firestoreInfo[key]["LocationTimestamp"] != "" &&
+      //                   firestoreInfo[key]["LocationTimestamp"] != null
+      //               ? firestoreInfo[key]["LocationTimestamp"]
+      //               : DateTime.now().toString(),
+      //           key);
+
+      //       context.read<WiFiModel>().connectionWiFiTimestamp(
+      //           firestoreInfo["WifiTimestamp"] != "" &&
+      //                   firestoreInfo[key]["WifiTimestamp"] != null
+      //               ? firestoreInfo["WifiTimestamp"]
+      //               : DateTime.now().toString(),
+      //           key);
+      //     }
+      //   });
+
+      // .addTimeStamp(firestoreInfo["Sender1"]["LocationTimestamp"]);
+      // }).onError((e) => print("ERROR reading snapshot" + e));
     }
   }
 
@@ -238,26 +308,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: <Widget>[
                               SizedBox(width: kSpacingUnit.w * 3),
                               Avatar(
-                                avatarUrl:
-                                    _auth.currentUser != null
-                                        ? _auth.currentUser!.photoURL != null
-                                            ?
-                                            !_auth.currentUser!.photoURL!
-                                                    .contains('facebook')
-                    
-                                                ? _auth.currentUser!.photoURL
-                                                : 
-                                                _auth.currentUser!.photoURL! +
-                                                    "?height=500&access_token=" 
-                                                    +
-                                                    box.read('token')
-                                            : _currentUser?.avatarUrl != null
-                                                ? _currentUser?.avatarUrl
-                                                : ""
-                                        : "",
+                                avatarUrl: _auth.currentUser != null
+                                    ? _auth.currentUser!.photoURL != null
+                                        ? !_auth.currentUser!.photoURL!
+                                                .contains('facebook')
+                                            ? _auth.currentUser!.photoURL
+                                            : _auth.currentUser!.photoURL! +
+                                                "?height=500&access_token=" +
+                                                box.read('token')
+                                        : _currentUser?.avatarUrl != null
+                                            ? _currentUser?.avatarUrl
+                                            : ""
+                                    : "",
                                 onTap: () async {
                                   getImage();
-                                locator
+                                  locator
                                       .get<UserController>()
                                       .uploadProfilePicture(_image);
                                   setState(() {});

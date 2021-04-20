@@ -67,13 +67,11 @@ class _MapLocationState extends State<MapLocation> {
   Future<void> moveCamera() async {
     // if (_currentPosition.latitude != null &&
     //     _currentPosition.longitude != null) {
-      _controller.animateCamera(CameraUpdate.newCameraPosition(
-          new CameraPosition(
-              bearing: 192.8334901395799,
-              target:
-                  LatLng(_currentPosition.latitude, _currentPosition.longitude),
-              tilt: 0,
-              zoom: 18.00)));
+    _controller.animateCamera(CameraUpdate.newCameraPosition(new CameraPosition(
+        bearing: 192.8334901395799,
+        target: LatLng(_currentPosition.latitude, _currentPosition.longitude),
+        tilt: 0,
+        zoom: 18.00)));
     // }
   }
 
@@ -99,78 +97,98 @@ class _MapLocationState extends State<MapLocation> {
   }
 
   Future<Set<Marker>> updateMarkerAndCircle(
-      LatLng latlong, String? sender) async {
+      LatLng latlong, String? sender, String senderColor) async {
     LatLng latlng = LatLng(latlong.latitude, latlong.longitude);
     late Uint8List imageData;
-    locationDB
-        .doc(_firebaseAuth.currentUser!.uid)
-        .get()
-        .then((DocumentSnapshot documentSnapshot) {
-      if (documentSnapshot.exists) {
-        documentSnapshot.data()!.forEach((key, value) async {
-          if (key == sender) {
-            String pathColor =
-                'assets/images/' + 'dogpin_' + value['color'] + '.png';
-            ByteData byteData =
-                await DefaultAssetBundle.of(context).load(pathColor);
-            imageData = byteData.buffer.asUint8List();
-            _currentPosition = latlong;
-
-            if (markers.length > 0) {
-              marker = markers[0];
-
-              setState(() {
-                markers[0] = marker.copyWith(
-                    positionParam: LatLng(latlong.latitude, latlong.longitude));
-              });
-            } else {
-              marker = Marker(
-                  markerId: MarkerId("home"),
-                  position: latlng,
-                  // rotation: BleSingleton.shared.heading,
-                  draggable: false,
-                  zIndex: 2,
-                  flat: true,
-                  anchor: Offset(0.5, 0.5),
-                  icon: BitmapDescriptor.fromBytes(imageData));
-              setState(() {
-                markers.add(marker);
-              });
-              // markers.add(marker);
-            }
-          }
-        });
-      }
-    });
-
-    // Uint8List imageData = await getMarker();
-    //
-    // _currentPosition = latlong;
+    // locationDB
+    //     .doc(_firebaseAuth.currentUser!.uid)
+    //     .get()
+    //     .then((DocumentSnapshot documentSnapshot) {
+    //   if (documentSnapshot.exists) {
+    //     documentSnapshot.data()!.forEach((key, value) async {
+    //       if (key == sender) {
+    String pathColor = 'assets/images/' + 'dogpin_' + senderColor + '.png';
+    ByteData byteData = await DefaultAssetBundle.of(context).load(pathColor);
+    imageData = byteData.buffer.asUint8List();
+    _currentPosition = latlong;
 
     // if (markers.length > 0) {
     //   marker = markers[0];
 
-    //   setState(() {
-    //     markers[0] = marker.copyWith(
-    //         positionParam: LatLng(latlong.latitude, latlong.longitude));
-    //   });
+    // setState(() {
+    //   markers[0] = marker.copyWith(
+    //       positionParam: LatLng(latlong.latitude, latlong.longitude));
+    // });
     // } else {
-    //   marker = Marker(
-    //       markerId: MarkerId("home"),
-    //       position: latlng,
-    //       // rotation: BleSingleton.shared.heading,
-    //       draggable: false,
-    //       zIndex: 2,
-    //       flat: true,
-    //       anchor: Offset(0.5, 0.5),
-    //       icon: BitmapDescriptor.fromBytes(imageData));
-    //   setState(() {
-    //     markers.add(marker);
-    //   });
-    //   // markers.add(marker);
+    if (markers.length > 0) {
+      for (var i = 0; i < 4; i++) {
+        if (markers[i].markerId.value == sender) {
+          setState(() {
+            markers[i] = marker.copyWith(
+                positionParam: LatLng(latlong.latitude, latlong.longitude));
+          });
+        } else {
+          marker = Marker(
+              markerId: MarkerId(sender!),
+              position: latlng,
+              // rotation: BleSingleton.shared.heading,
+              draggable: false,
+              zIndex: 2,
+              flat: true,
+              anchor: Offset(0.5, 0.5),
+              icon: BitmapDescriptor.fromBytes(imageData));
+          setState(() {
+            markers.add(marker);
+          });
+        }
+      }
+    } else {
+      marker = Marker(
+          markerId: MarkerId(sender!),
+          position: latlng,
+          // rotation: BleSingleton.shared.heading,
+          draggable: false,
+          zIndex: 2,
+          flat: true,
+          anchor: Offset(0.5, 0.5),
+          icon: BitmapDescriptor.fromBytes(imageData));
+      setState(() {
+        markers.add(marker);
+      });
+    }
+
+    // markers.add(marker);
+    // }
     // }
     return markers.toSet();
   }
+
+  // Uint8List imageData = await getMarker();
+  //
+  // _currentPosition = latlong;
+
+  // if (markers.length > 0) {
+  //   marker = markers[0];
+
+  //   setState(() {
+  //     markers[0] = marker.copyWith(
+  //         positionParam: LatLng(latlong.latitude, latlong.longitude));
+  //   });
+  // } else {
+  //   marker = Marker(
+  //       markerId: MarkerId("home"),
+  //       position: latlng,
+  //       // rotation: BleSingleton.shared.heading,
+  //       draggable: false,
+  //       zIndex: 2,
+  //       flat: true,
+  //       anchor: Offset(0.5, 0.5),
+  //       icon: BitmapDescriptor.fromBytes(imageData));
+  //   setState(() {
+  //     markers.add(marker);
+  //   });
+  //   // markers.add(marker);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -232,16 +250,17 @@ class _MapLocationState extends State<MapLocation> {
                                         bleProvider.timestampBLE!.isAfter(
                                             wifiProvider
                                                 .timestampWiFi!)) //its sending BLE
-                                    ? 
-                                    updateMarkerAndCircle(
+                                    ? updateMarkerAndCircle(
                                         LatLng(
                                             bleProvider.lat!, bleProvider.lng!),
-                                        bleProvider.senderNumber)
+                                        bleProvider.senderNumber,
+                                        "green") //TODO create color logic for BLE
                                     : updateMarkerAndCircle(
                                         LatLng(wifiProvider.lat!,
                                             wifiProvider.lng!),
+                                        wifiProvider.senderNumber,
                                         wifiProvider
-                                            .senderNumber), // its sending WIFI
+                                            .senderColor!), // its sending WIFI
                                 // (bleProvider.timestampBLE == null &&
                                 //         wifiProvider.timestampWiFi != null) //its sending WIFI
                                 //     ? updateMarkerAndCircle(
