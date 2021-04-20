@@ -11,6 +11,7 @@ import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/offline_regions.dart';
+import 'package:flutter_maps/Screens/loading.dart';
 import 'package:flutter_maps/Services/Radar.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -48,13 +49,15 @@ class _MapLocationState extends State<MapLocation> {
   late Marker marker;
   int _markerId = 1;
   Timer? timer;
-  List<Marker> markers = [];
+  // List<Marker> markers = [];
+  Set<Marker> markers = Set();
 
   // final List<Flushbar> flushBars = [];
 
   @override
   void initState() {
     super.initState();
+    _initSenders();
     // timer = Timer.periodic(Duration(seconds: 3), (Timer t) => moveCamera());
   }
 
@@ -62,6 +65,89 @@ class _MapLocationState extends State<MapLocation> {
   void dispose() {
     timer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _initSenders() async {
+    await locationDB
+        .doc(_firebaseAuth.currentUser?.uid)
+        .collection('gateway')
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        var latlng = LatLng(double.parse(doc['Location']['Latitude']),
+            double.parse(doc['Location']['Longitude']));
+            setState(() {
+        updateMarkerAndCircle(latlng, doc.id, doc['color']);
+            });
+      });
+    });
+    readDatabase(); // set context read
+
+  }
+  Future<List<DocumentSnapshot>> getSendersID() async {
+    var data = await FirebaseFirestore.instance
+        .collection('locateDog')
+        .doc(_firebaseAuth.currentUser?.uid)
+        .collection('gateway')
+        .get();
+    var senders = data.docs;
+    return senders;
+  }
+  void readDatabase() {
+    if (_firebaseAuth.currentUser != null) {
+      var senders;
+      getSendersID().then((data) {
+        for (int i = 0; i < data.length; i++) {
+          senders = FirebaseFirestore.instance
+              .collection('locateDog')
+              .doc(_firebaseAuth.currentUser?.uid)
+              .collection('gateway')
+              .doc(data[i].id)
+              .snapshots()
+              .listen((DocumentSnapshot documentSnapshot) {
+            Map<String, dynamic> firestoreInfo = documentSnapshot.data()!;
+            firestoreInfo.forEach((key, value) {
+              print(key);
+              print(value);
+              // if (data.contains('Sender')) {
+              context.read<WiFiModel>().addLat(
+                  firestoreInfo["Location"]["Latitude"] != ""
+                      ? double.parse(firestoreInfo["Location"]["Latitude"])
+                      : 0,
+                  data[i].id,
+                  firestoreInfo["color"]);
+              context.read<WiFiModel>().addLng(
+                  firestoreInfo["Location"]["Longitude"] != ""
+                      ? double.parse(firestoreInfo["Location"]["Longitude"])
+                      : 0,
+                  data[i].id,
+                  firestoreInfo["color"]);
+              context.read<WiFiModel>().addRSSI(
+                  firestoreInfo["RSSI"], data[i].id, firestoreInfo["color"]);
+              context.read<WiFiModel>().addSSID(
+                  firestoreInfo["ConnectedWifiSSID"],
+                  data[i].id,
+                  firestoreInfo["color"]);
+              context.read<WiFiModel>().addTimeStamp(
+                  firestoreInfo["LocationTimestamp"] != "" &&
+                          firestoreInfo["LocationTimestamp"] != null
+                      ? firestoreInfo["LocationTimestamp"]
+                      : DateTime.now().toString(),
+                  data[i].id,
+                  firestoreInfo["color"]);
+
+              context.read<WiFiModel>().connectionWiFiTimestamp(
+                  firestoreInfo["WifiTimestamp"] != "" &&
+                          firestoreInfo["WifiTimestamp"] != null
+                      ? firestoreInfo["WifiTimestamp"]
+                      : DateTime.now().toString(),
+                  data[i].id,
+                  firestoreInfo["color"]);
+            });
+          });
+        }
+      });
+    }
   }
 
   Future<void> moveCamera() async {
@@ -121,41 +207,53 @@ class _MapLocationState extends State<MapLocation> {
     // });
     // } else {
     if (markers.length > 0) {
-      for (var i = 0; i < 4; i++) {
-        if (markers[i].markerId.value == sender) {
-          setState(() {
-            markers[i] = marker.copyWith(
-                positionParam: LatLng(latlong.latitude, latlong.longitude));
-          });
-        } else {
-          marker = Marker(
-              markerId: MarkerId(sender!),
-              position: latlng,
-              // rotation: BleSingleton.shared.heading,
-              draggable: false,
-              zIndex: 2,
-              flat: true,
-              anchor: Offset(0.5, 0.5),
-              icon: BitmapDescriptor.fromBytes(imageData));
-          setState(() {
-            markers.add(marker);
-          });
-        }
-      }
-    } else {
-      marker = Marker(
-          markerId: MarkerId(sender!),
-          position: latlng,
-          // rotation: BleSingleton.shared.heading,
-          draggable: false,
-          zIndex: 2,
-          flat: true,
-          anchor: Offset(0.5, 0.5),
-          icon: BitmapDescriptor.fromBytes(imageData));
-      setState(() {
-        markers.add(marker);
-      });
+      markers.removeWhere((marker) => marker.mapsId.value.toString() == sender);
     }
+    marker = Marker(
+        markerId: MarkerId(sender!),
+        position: latlng,
+        // rotation: BleSingleton.shared.heading,
+        draggable: false,
+        zIndex: 2,
+        flat: true,
+        anchor: Offset(0.5, 0.5),
+        icon: BitmapDescriptor.fromBytes(imageData));
+    markers.add(marker);
+    //   for (var i = 0; i < 4; i++) {
+    //     if (markers[i].markerId.value == sender) {
+    //       setState(() {
+    //         markers[i] = marker.copyWith(
+    //             positionParam: LatLng(latlong.latitude, latlong.longitude));
+    //       });
+    //     } else {
+    //       marker = Marker(
+    //           markerId: MarkerId(sender!),
+    //           position: latlng,
+    //           // rotation: BleSingleton.shared.heading,
+    //           draggable: false,
+    //           zIndex: 2,
+    //           flat: true,
+    //           anchor: Offset(0.5, 0.5),
+    //           icon: BitmapDescriptor.fromBytes(imageData));
+    //       setState(() {
+    //         markers.add(marker);
+    //       });
+    //     }
+    //   }
+    // } else {
+    //   marker = Marker(
+    //       markerId: MarkerId(sender!),
+    //       position: latlng,
+    //       // rotation: BleSingleton.shared.heading,
+    //       draggable: false,
+    //       zIndex: 2,
+    //       flat: true,
+    //       anchor: Offset(0.5, 0.5),
+    //       icon: BitmapDescriptor.fromBytes(imageData));
+    //   setState(() {
+    //     markers.add(marker);
+    //   });
+    // }
 
     // markers.add(marker);
     // }
@@ -211,11 +309,13 @@ class _MapLocationState extends State<MapLocation> {
                   // off the stack.
                   Navigator.pushNamed(context, '/profile');
                 })),
-        body: (currentPositionBle.lat != null &&
-                    currentPositionBle.lng != null ||
-                currentPositionWiFi.lat != null &&
-                    currentPositionWiFi.lng != null)
-            ? Consumer3<BleModel, WiFiModel, ConnectionStatusModel>(builder:
+        body: 
+        // (currentPositionBle.lat != null &&
+        //             currentPositionBle.lng != null ||
+        //         currentPositionWiFi.lat != null &&
+        //             currentPositionWiFi.lng != null)
+        //     ?
+             Consumer3<BleModel, WiFiModel, ConnectionStatusModel>(builder:
                 (_, bleProvider, wifiProvider, connectionProvider, child) {
                 return FutureBuilder(
                     future: mounted
@@ -244,7 +344,9 @@ class _MapLocationState extends State<MapLocation> {
                                   )
                                 ],
                               )
-                            : FutureBuilder(
+                            : 
+                            bleProvider.lat != null && bleProvider.lng != null || wifiProvider.lat != null  && wifiProvider.lng != null ?
+                            FutureBuilder(
                                 future: (bleProvider.timestampBLE != null &&
                                         wifiProvider.timestampWiFi != null &&
                                         bleProvider.timestampBLE!.isAfter(
@@ -364,39 +466,36 @@ class _MapLocationState extends State<MapLocation> {
                                           : new Container()
                                     ],
                                   );
-                                });
+                                }) : Loading();
                       } else {
-                        return Center(
-                          child: Text(
-                            'Whoops an error occurred...',
-                            style: TextStyle(
-                                fontFamily: 'Avenir-Medium',
-                                color: Colors.grey[400]),
-                          ),
-                        );
+                        return Loading();
+                        
                       }
                     });
               })
-            : Center(
-                child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Icon(FontAwesomeIcons.exclamationTriangle),
-                  Padding(
-                    padding: EdgeInsets.only(top: 30.0),
-                  ),
-                  Text(
-                    'Whoops',
-                    style:
-                        TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(top: 15.0),
-                  ),
-                  Text(
-                      'You are offline. Please connect the gateway to WiFi or Bluetooth to continue'),
-                ],
-              )));
+            // :
+            // Loading()
+            //  Center(
+            //     child: Column(
+            //     mainAxisAlignment: MainAxisAlignment.center,
+            //     crossAxisAlignment: CrossAxisAlignment.center,
+            //     children: <Widget>[
+            //       Icon(FontAwesomeIcons.exclamationTriangle),
+            //       Padding(
+            //         padding: EdgeInsets.only(top: 30.0),
+            //       ),
+            //       Text(
+            //         'Whoops',
+            //         style:
+            //             TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),
+            //       ),
+            //       Padding(
+            //         padding: EdgeInsets.only(top: 15.0),
+            //       ),
+            //       Text(
+            //           'You are offline. Please connect the gateway to WiFi or Bluetooth to continue'),
+            //     ],
+            //   ))
+              );
   }
 }

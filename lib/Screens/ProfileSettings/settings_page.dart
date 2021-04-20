@@ -127,7 +127,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 color: Colors.grey[600],
                               ),
                             ),
-                            Text(_units != null ? _units!.tr : "meter".tr),
+                            Text(_units != null ? _units!.tr.toUpperCase() : "meter".tr.toUpperCase()),
                           ],
                         ),
                       ),
