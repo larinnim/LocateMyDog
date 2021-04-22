@@ -15,7 +15,7 @@ version: 1.0.0+1
 
 environment:
   # sdk: ">=2.1.0 <3.0.0"
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
   google_maps_flutter: ^2.0.3
@@ -27,7 +27,7 @@ dependencies:
   location: ^4.1.1
   # flutter_facebook_login: ^3.0.0
   local_auth: ^1.1.4
-  flutter_secure_storage: ^4.1.0  
+  flutter_secure_storage: ^4.1.0
   http: ^0.13.1
   flutter_screenutil: ^5.0.0
   animated_theme_switcher: ^2.0.1-nullsafety.0
@@ -60,9 +60,10 @@ dependencies:
   flutter_google_places: ^0.3.0
   flutter_colorpicker: ^0.4.0
   flutter_facebook_auth: ^3.3.2+2
+  esptouch_smartconfig: ^0.0.5+1
 
   # mapbox_gl:
-  #   git: 
+  #   git:
   #     url: git://github.com/morvagergely/flutter-mapbox-gl.git
   #     ref: master
 
@@ -87,17 +88,16 @@ dev_dependencies:
     sdk: flutter
 
 flutter_icons:
-    android: true
-    ios: true
-    image_path_android: "assets/icon/icon.png"
-    image_path_ios: "assets/icon/icon.png"
+  android: true
+  ios: true
+  image_path_android: "assets/icon/icon.png"
+  image_path_ios: "assets/icon/icon.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -124,6 +124,8 @@ flutter:
     - assets/images/dogpin_red.png
     - assets/images/dogpin_purple.png
     - assets/images/help.png
+    - assets/images/Wifi-On.png
+    - assets/images/Wifi-Off.png
     - assets/lottie/devs.jpg
     - assets/lottie/powered_by.png
     - assets/icon/icon.png
@@ -156,6 +158,5 @@ flutter:
     #     - asset: fonts/TrajanPro.ttf
     #     - asset: fonts/TrajanPro_Bold.ttf
     #       weight: 700
-  
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

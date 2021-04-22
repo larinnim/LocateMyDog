@@ -9,6 +9,8 @@ import 'package:flutter_maps/Screens/ProfileSettings/reset_password.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 
+import 'WiFiSettings/wifi_settings.dart';
+
 class SettingsPage extends StatefulWidget {
   @override
   _SettingsPageState createState() => _SettingsPageState();
@@ -96,6 +98,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                     buildChangeEmail(context, "change_email"),
                     buildResetPassword(context, "reset_password"),
+                    buildChangeWifiSettings(context, "wifi_settings"),
+
                     // Divider(
                     //   height: 15,
                     //   thickness: 1,
@@ -127,7 +131,9 @@ class _SettingsPageState extends State<SettingsPage> {
                                 color: Colors.grey[600],
                               ),
                             ),
-                            Text(_units != null ? _units!.tr.toUpperCase() : "meter".tr.toUpperCase()),
+                            Text(_units != null
+                                ? _units!.tr.toUpperCase()
+                                : "meter".tr.toUpperCase()),
                           ],
                         ),
                       ),
@@ -223,7 +229,33 @@ class _SettingsPageState extends State<SettingsPage> {
       ],
     );
   }
-
+GestureDetector buildChangeWifiSettings(BuildContext context, String title) {
+    return GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (BuildContext context) => ConnectivityPage()));
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title.tr,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[600],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: Colors.grey,
+              ),
+            ],
+          ),
+        ));
+  }
   GestureDetector buildChangeEmail(BuildContext context, String title) {
     return GestureDetector(
         onTap: () {

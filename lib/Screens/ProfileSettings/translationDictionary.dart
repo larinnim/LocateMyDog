@@ -54,7 +54,9 @@ class Messages extends Translations {
           'howtouse': 'Don\'t know how to use? Need support?\n',
           'sendusemail': 'Send us an email: ',
           'scanning': 'Scanning',
-          'scan': 'Scan'
+          'scan': 'Scan',
+          'wifi_settings': 'WiFi Configuration',
+          'waiting_connection': 'Waiting For Connection'
         },
         'pt_BR': {
           'entry_message':
@@ -107,7 +109,9 @@ class Messages extends Translations {
           'howtouse': 'Não sabe como utilizar? Precisa de ajuda?',
           'sendusemail': 'Nos mande um email: ',
           'scanning': 'Escaneando',
-          'scan': 'Escanear'
+          'scan': 'Escanear',
+          'wifi_settings': 'Configurar WiFi',
+          'waiting_connection': 'Esperando por Conexão'
         }
       };
 }
