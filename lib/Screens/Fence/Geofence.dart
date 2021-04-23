@@ -28,15 +28,18 @@ class Geofence extends StatefulWidget {
 }
 
 class _GeofenceWidgetState extends State<Geofence> {
-  StreamSubscription _locationSubscription;
+  StreamSubscription? _locationSubscription;
   localization.Location _locationTracker = localization.Location();
-  Circle circle;
-  Marker marker;
-  Polygon polygon;
-  GoogleMapController _controller;
-  static LatLng _initialPosition;
-  var _configuredRadius = 0.0; //Radius is 30 meters
-  AppUser _currentUser = locator.get<UserController>().currentUser;
+  Circle? circle;
+  Marker? marker;
+  late Polygon polygon;
+  GoogleMapController? _controller;
+  static LatLng? _initialPosition;
+  double _configuredRadius = 0.0; //Radius is 30 meters
+  double _configuredRadiusToUnits = 0.0; //Radius is 30 meters
+  late Uint8List imageData;
+  late localization.LocationData location;
+  AppUser? _currentUser = locator.get<UserController>().currentUser;
   CollectionReference locateDogInstance =
       FirebaseFirestore.instance.collection('locateDog');
   CollectionReference userInstance =
@@ -52,7 +55,7 @@ class _GeofenceWidgetState extends State<Geofence> {
   List<LatLng> dotNotEnterFenceLatLngs = [];
   int _doNotEnterFenceIdCounter = 1;
   int _incrementRadius = 5;
-  String _units = 'kilometer';
+  String? _units = 'meter';
   // List<Polygon> polygons = <Polygon>[
   //   new Polygon(
   // polygonId: PolygonId('area'),
@@ -78,25 +81,48 @@ class _GeofenceWidgetState extends State<Geofence> {
 
   Future<void> _getRadiusAndUnits() async {
     await userInstance
-     .doc(_currentUser.uid)
-    .get()
-    .then((DocumentSnapshot documentSnapshot) {
-     setState(() {
-          _units = documentSnapshot['units'];
-          if (_units == 'miles') {
-            _incrementRadius = (_incrementRadius * 0.621371).round();
-          }
-        });
+        .doc(_currentUser!.uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      setState(() {
+        _units = documentSnapshot['units'];
+        if (_units == 'miles') {
+          _incrementRadius = (_incrementRadius * 0.621371).round();
+        }
+      });
     });
-   
 
-    await locateDogInstance.doc(_currentUser.uid).get().then((value) {
+    await locateDogInstance.doc(_currentUser!.uid).get().then((value) {
       //  _configuredRadius = value.data()['Geofence'].Circle.radius;
       setState(() {
-        _configuredRadius = value.data()['Geofence']['Circle']['radius'];
+        _configuredRadius = value.data()!['Geofence']['Circle']['radius'];
+        if (_configuredRadius.isNegative) {
+          _configuredRadius = 0.0;
+        }
+        _updateCurrentRadius();
         print('Radius: ' + _configuredRadius.toString());
       });
     });
+  }
+
+  void _updateCurrentRadius() {
+    setState(() {
+      if (_configuredRadius != 0.0) {
+        if (_units == 'meter') {
+          _configuredRadiusToUnits = _configuredRadius;
+        } else if (_units == 'feet') {
+          _configuredRadiusToUnits = _configuredRadius * 3.28084;
+        }
+      } else {
+        _configuredRadius = 5; //minimum is 5 meters
+        if (_units == 'meter') {
+          _configuredRadiusToUnits = 5;
+        } else if (_units == 'feet') {
+          _configuredRadiusToUnits = _configuredRadius * 3.28084;
+        }
+      }
+    });
+    updateMarkerAndCircle(location, imageData);
   }
 
   void _onSettingsPressed() {
@@ -131,27 +157,33 @@ class _GeofenceWidgetState extends State<Geofence> {
   void _getCurrentLocation() async {
     try {
       Position position = await GeolocatorPlatform.instance
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    _initialPosition = LatLng(position.latitude, position.longitude);
+          .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      _initialPosition = LatLng(position.latitude, position.longitude);
 
-      Uint8List imageData = await getMarker();
-      var location = await _locationTracker.getLocation();
+      // Uint8List imageData = await getMarker();
+      imageData = await getMarker();
+
+      // var location = await _locationTracker.getLocation();
+
+      location = await _locationTracker.getLocation();
+
       updateMarkerAndCircle(location, imageData);
 
       if (_locationSubscription != null) {
-        _locationSubscription.cancel();
+        _locationSubscription!.cancel();
       }
 
       _locationSubscription =
-          _locationTracker.onLocationChanged().listen((newLocalData) {
+          _locationTracker.onLocationChanged.listen((newLocalData) {
         if (_controller != null) {
-          _controller.animateCamera(CameraUpdate.newCameraPosition(
+          _controller!.animateCamera(CameraUpdate.newCameraPosition(
               new CameraPosition(
                   bearing: 192.8334901395799,
-                  target: LatLng(newLocalData.latitude, newLocalData.longitude),
+                  target:
+                      LatLng(newLocalData.latitude!, newLocalData.longitude!),
                   tilt: 0,
                   zoom: 18.00)));
-          updateMarkerAndCircle(newLocalData, imageData);
+          // updateMarkerAndCircle(newLocalData, imageData);
         }
       });
     } on PlatformException catch (e) {
@@ -193,12 +225,12 @@ class _GeofenceWidgetState extends State<Geofence> {
 
   void updateMarkerAndCircle(
       localization.LocationData newLocalData, Uint8List imageData) {
-    LatLng latlng = LatLng(newLocalData.latitude, newLocalData.longitude);
+    LatLng latlng = LatLng(newLocalData.latitude!, newLocalData.longitude!);
     this.setState(() {
       marker = Marker(
           markerId: MarkerId("home"),
           position: latlng,
-          rotation: newLocalData.heading,
+          rotation: newLocalData.heading!,
           draggable: false,
           zIndex: 2,
           flat: true,
@@ -234,9 +266,10 @@ class _GeofenceWidgetState extends State<Geofence> {
                   Text(
                       'current'.tr +
                           ': ' +
-                          _configuredRadius.toString() +
+                          _configuredRadiusToUnits.toStringAsFixed(2) +
+                          // _configuredRadius.toString() +
                           ' ' +
-                          _units.tr,
+                          _units!.tr,
                       style: TextStyle(color: Colors.black.withOpacity(0.6))),
                 ]),
             SizedBox(width: 30),
@@ -249,21 +282,27 @@ class _GeofenceWidgetState extends State<Geofence> {
                         _configuredRadius +=
                             _incrementRadius; //Increase by 5 meters
                       });
-                      await DatabaseService(uid: _currentUser.uid)
+                      _updateCurrentRadius();
+                      await DatabaseService(uid: _currentUser!.uid)
                           .updateCircleRadius(
-                              _configuredRadius, _initialPosition);
+                              _configuredRadius, _initialPosition!);
                     }),
                 SizedBox(width: 50),
                 IconButton(
                     icon: Icon(FontAwesomeIcons.minus, size: 20),
                     onPressed: () async {
                       mystate(() {
-                        _configuredRadius -=
-                            _incrementRadius; //Increase by 5 meters
+                        if (_configuredRadius > 0.0) {
+                          _configuredRadius -=
+                              _incrementRadius; //Increase by 5 meters
+                        } else {
+                          _configuredRadius = 0.0;
+                        }
                       });
-                      await DatabaseService(uid: _currentUser.uid)
+                      _updateCurrentRadius();
+                      await DatabaseService(uid: _currentUser!.uid)
                           .updateCircleRadius(
-                              _configuredRadius, _initialPosition);
+                              _configuredRadius, _initialPosition!);
                     }),
                 // })
               ],
@@ -306,7 +345,7 @@ class _GeofenceWidgetState extends State<Geofence> {
   @override
   void dispose() {
     if (_locationSubscription != null) {
-      _locationSubscription.cancel();
+      _locationSubscription!.cancel();
     }
     super.dispose();
   }
@@ -380,44 +419,84 @@ class _GeofenceWidgetState extends State<Geofence> {
                           : new Stack(children: <Widget>[
                               new Container(
                                   height: 1000, // This line solved the issue
-                                  child: GoogleMap(
-                                    mapType: MapType.hybrid,
-                                    initialCameraPosition: CameraPosition(
-                                      target: _initialPosition,
-                                      zoom: 11,
-                                    ),
-                                    zoomGesturesEnabled: true,
-                                    myLocationEnabled: false,
-                                    compassEnabled: true,
-                                    myLocationButtonEnabled: false,
-                                    markers: Set.of(
-                                        (marker != null) ? [marker] : []),
-                                    circles: Set.of(
-                                        (circle != null) ? [circle] : []),
-                                    polygons: _isPolygonFence
-                                        ? _polygonsFence
-                                        : _isDoNotEnterFence
-                                            ? _doNotEnterFence
-                                            : null,
-                                    onTap: (point) {
-                                      if (_isPolygonFence) {
-                                        setState(() {
-                                          polygonFenceLatLngs.add(point);
-                                          _setPolygonFence();
-                                        });
-                                      }
-                                      if (_isDoNotEnterFence) {
-                                        setState(() {
-                                          dotNotEnterFenceLatLngs.add(point);
-                                          _setDoNotEnterFence();
-                                        });
-                                      }
-                                    },
-                                    onMapCreated:
-                                        (GoogleMapController controller) {
-                                      _controller = controller;
-                                    },
-                                  )),
+                                  child: _isPolygonFence
+                                      ? GoogleMap(
+                                          mapType: MapType.hybrid,
+                                          initialCameraPosition: CameraPosition(
+                                            target: _initialPosition!,
+                                            zoom: 11,
+                                          ),
+                                          zoomGesturesEnabled: true,
+                                          myLocationEnabled: false,
+                                          compassEnabled: true,
+                                          myLocationButtonEnabled: false,
+                                          markers: Set.of((marker != null)
+                                              ? [marker!]
+                                              : []),
+                                          circles: Set.of((circle != null)
+                                              ? [circle!]
+                                              : []),
+                                          polygons: _polygonsFence,
+                                          //     : _isDoNotEnterFence
+                                          //         ? _doNotEnterFence
+                                          //         : null,
+                                          onTap: (point) {
+                                            if (_isPolygonFence) {
+                                              setState(() {
+                                                polygonFenceLatLngs.add(point);
+                                                _setPolygonFence();
+                                              });
+                                            }
+                                            if (_isDoNotEnterFence) {
+                                              setState(() {
+                                                dotNotEnterFenceLatLngs
+                                                    .add(point);
+                                                _setDoNotEnterFence();
+                                              });
+                                            }
+                                          },
+                                          onMapCreated:
+                                              (GoogleMapController controller) {
+                                            _controller = controller;
+                                          },
+                                        )
+                                      : GoogleMap(
+                                          mapType: MapType.hybrid,
+                                          initialCameraPosition: CameraPosition(
+                                            target: _initialPosition!,
+                                            zoom: 11,
+                                          ),
+                                          zoomGesturesEnabled: true,
+                                          myLocationEnabled: false,
+                                          compassEnabled: true,
+                                          myLocationButtonEnabled: false,
+                                          markers: Set.of((marker != null)
+                                              ? [marker!]
+                                              : []),
+                                          circles: Set.of((circle != null)
+                                              ? [circle!]
+                                              : []),
+                                          polygons: _doNotEnterFence,
+                                          onTap: (point) {
+                                            if (_isPolygonFence) {
+                                              setState(() {
+                                                polygonFenceLatLngs.add(point);
+                                                _setPolygonFence();
+                                              });
+                                            }
+                                            if (_isDoNotEnterFence) {
+                                              setState(() {
+                                                dotNotEnterFenceLatLngs
+                                                    .add(point);
+                                                _setDoNotEnterFence();
+                                              });
+                                            }
+                                          },
+                                          onMapCreated:
+                                              (GoogleMapController controller) {
+                                            _controller = controller;
+                                          },
+                                        )),
                               // connectionProvider.connectionStatus == NetworkStatus.Offline
                               //     ? CupertinoAlertDialog(
                               //         title: Text(

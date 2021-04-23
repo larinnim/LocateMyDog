@@ -7,7 +7,7 @@ admin.initializeApp();
 const db = admin.firestore();
 const fcm = admin.messaging();
 
-var unit = 'kilometer';
+var unit = 'meter';
 var radiusKM = 0;
 
 exports.updateLocation = functions.firestore

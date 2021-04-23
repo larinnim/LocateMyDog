@@ -12,8 +12,8 @@ class VideoState extends State<SplashView> with SingleTickerProviderStateMixin{
 
   var _visible = true;
 
-  AnimationController animationController;
-  Animation<double> animation;
+  late AnimationController animationController;
+  late Animation<double> animation;
 
   startTime() async {
     var _duration = new Duration(seconds: 2);

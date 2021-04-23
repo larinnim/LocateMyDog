@@ -19,7 +19,7 @@ class Step4 extends StatefulWidget {
 }
 
 class _Step4State extends State<Step4> {
-  String _endDevice = 'Unknown';
+  String? _endDevice = 'Unknown';
 
   @override
   initState() {
@@ -81,7 +81,7 @@ class _Step4State extends State<Step4> {
                     padding:
                         EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     child: Text(
-                      _endDevice,
+                      _endDevice!,
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -93,7 +93,7 @@ class _Step4State extends State<Step4> {
   }
 
   Future<void> scanQR() async {
-    String barcodeScanRes;
+    String? barcodeScanRes;
     // Platform messages may fail, so we use a try/catch PlatformException.
     // try {
     //   barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
@@ -119,14 +119,14 @@ class _Step4State extends State<Step4> {
   void createRecord() async {
     await FirebaseFirestore.instance
         .collection("locateDog")
-        .doc(FirebaseAuth.instance.currentUser.uid)
+        .doc(FirebaseAuth.instance.currentUser!.uid)
         .collection("gateway")
         .doc(FirestoreSetUp.instance.gateway).set({
           "timestamp": ""
         },  SetOptions(merge: true)).then((value) async => {
   await FirebaseFirestore.instance
     .collection("locateDog")
-    .doc(FirebaseAuth.instance.currentUser.uid)
+    .doc(FirebaseAuth.instance.currentUser!.uid)
     .collection("endDevice")
     .doc(FirestoreSetUp.instance.endDevice).set({
       'latitude': 0.0,

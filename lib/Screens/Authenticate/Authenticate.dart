@@ -18,8 +18,8 @@ class _AuthenticateState extends State<Authenticate> {
                   end: Alignment.bottomCenter,
                   colors: [
             // Color.fromRGBO(255, 123, 67, 1.0),
-            Colors.red[300],
-            Colors.lightGreen[300]
+            Colors.red[300]!,
+            Colors.lightGreen[300]!
             // Color.fromRGBO(245, 50, 111, 1.0)
           ])),
       child: SignIn(),

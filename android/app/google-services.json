@@ -8,17 +8,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:687212317780:android:1dddf8f2209f34795cb1c1",
+        "mobilesdk_app_id": "1:687212317780:android:0d6b9c621484c1985cb1c1",
         "android_client_info": {
-          "package_name": "com.retroportalstudio.www.flutter_maps"
+          "package_name": "com.majeltechnologies.iat"
         }
       },
       "oauth_client": [
         {
-          "client_id": "687212317780-iv0jps5umaaa2pluirnn86hac3i314fc.apps.googleusercontent.com",
+          "client_id": "687212317780-ljj14fonadgegln0latdpd57gag7qgmc.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.retroportalstudio.www.flutter_maps",
+            "package_name": "com.majeltechnologies.iat",
             "certificate_hash": "220de3dbbaf12c1c77a26d2616ebe3b187965cc1"
           }
         },
@@ -40,10 +40,10 @@
               "client_type": 3
             },
             {
-              "client_id": "687212317780-d0m6lniofc24nu6g0mqmss74g1u450cc.apps.googleusercontent.com",
+              "client_id": "687212317780-ahrebfc0ob7e6r51h6j7cp40051bhu6v.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.retroportalstudio.www.flutterMaps"
+                "bundle_id": "com.majeltechnologies.iat"
               }
             }
           ]

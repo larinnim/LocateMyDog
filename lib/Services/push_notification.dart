@@ -12,18 +12,29 @@ class PushNotificationsManager {
   static final PushNotificationsManager _instance =
       PushNotificationsManager._();
 
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   bool _initialized = false;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   Future<void> init() async {
     if (!_initialized) {
       // For iOS request permission first.
-      _firebaseMessaging.requestNotificationPermissions();
-      _firebaseMessaging.configure();
+      // _firebaseMessaging.requestNotificationPermissions();
+
+
+  NotificationSettings settings = await _firebaseMessaging.requestPermission(
+    alert: true,
+    announcement: false,
+    badge: true,
+    carPlay: false,
+    criticalAlert: false,
+    provisional: false,
+    sound: true,
+  );
+      // _firebaseMessaging.configure();
 
       // For testing purposes print the Firebase Messaging token
-      String token = await _firebaseMessaging.getToken();
+      String? token = await _firebaseMessaging.getToken();
       print("FirebaseMessaging token: $token");
 
       // Save it to Firestore
@@ -31,7 +42,7 @@ class PushNotificationsManager {
       if (token != null) {
             _db
             .collection('users')
-            .doc(FirebaseAuth.instance.currentUser.uid)
+            .doc(FirebaseAuth.instance.currentUser!.uid)
             .set({
               'token': token,
               'createdAt': FieldValue.serverTimestamp(), // optional

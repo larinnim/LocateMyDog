@@ -15,7 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Screens/Profile/profile.dart';
 import 'Screens/ProfileSettings/translationDictionary.dart';
-import 'Services/SetWiFiConf.dart';
+// import 'Services/SetWiFiConf.dart';
 import 'locator.dart';
 import 'Services/bluetooth_conect.dart';
 // void main() => runApp(MyApp());
@@ -42,7 +42,7 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  Locale _currentLocale;
+  late Locale _currentLocale;
 
   @override
   void initState() {
@@ -62,7 +62,7 @@ class _MainPageState extends State<MainPage> {
           '/profile': (context) => ProfileScreen(),
           '/trackwalk': (context) => BluetoothConnection(),
           '/blueMap': (context) => MapLocation(),
-          '/wifiConf': (context) => SetWiFiConf(),
+          // '/wifiConf': (context) => SetWiFiConf(),
           '/authenticate': (context) => Authenticate(),
           '/helpSupport': (context) => HelpSupport(),
         },
@@ -80,9 +80,11 @@ class _MainPageState extends State<MainPage> {
     SharedPreferences _prefs = await SharedPreferences.getInstance();
     final _lang = _prefs.getString('lan');
     final _countryLang = _prefs.getString('countryLang');
-    setState(() {
-      _currentLocale = Locale(_lang, _countryLang);
-      Get.updateLocale(_currentLocale);
-    });
+    if (_lang != null) {
+      setState(() {
+        _currentLocale = Locale(_lang, _countryLang);
+        Get.updateLocale(_currentLocale);
+      });
+    }
   }
 }

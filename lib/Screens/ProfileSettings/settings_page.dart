@@ -9,6 +9,8 @@ import 'package:flutter_maps/Screens/ProfileSettings/reset_password.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 
+import 'WiFiSettings/wifi_settings.dart';
+
 class SettingsPage extends StatefulWidget {
   @override
   _SettingsPageState createState() => _SettingsPageState();
@@ -20,16 +22,16 @@ class _SettingsPageState extends State<SettingsPage> {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  String _units = "kilometer";
+  String? _units = "meter";
 
-  void _updateUnits(String unitsChoose) {
+  void _updateUnits(String? unitsChoose) {
     _db
         .collection('users')
-        .doc(_firebaseAuth.currentUser.uid)
+        .doc(_firebaseAuth.currentUser!.uid)
         .set({'units': _units}, SetOptions(merge: true));
   }
 
-  void getUnits(String unitsFromDB) {
+  void getUnits(String? unitsFromDB) {
     _units = unitsFromDB;
   }
 
@@ -38,11 +40,11 @@ class _SettingsPageState extends State<SettingsPage> {
     CollectionReference users = FirebaseFirestore.instance.collection('users');
 
     return FutureBuilder<DocumentSnapshot>(
-        future: users.doc(_firebaseAuth.currentUser.uid).get(),
+        future: users.doc(_firebaseAuth.currentUser!.uid).get(),
         builder:
             (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            Map<String, dynamic> data = snapshot.data.data();
+            Map<String, dynamic> data = snapshot.data!.data()!;
             getUnits(data['units']);
 
             return Scaffold(
@@ -96,6 +98,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                     buildChangeEmail(context, "change_email"),
                     buildResetPassword(context, "reset_password"),
+                    buildChangeWifiSettings(context, "wifi_settings"),
+
                     // Divider(
                     //   height: 15,
                     //   thickness: 1,
@@ -106,10 +110,10 @@ class _SettingsPageState extends State<SettingsPage> {
                     InkWell(
                       onTap: () {
                         setState(() {
-                          if (_units == "miles") {
-                            _units = "kilometer";
+                          if (_units == "feet") {
+                            _units = "meter";
                           } else {
-                            _units = "miles";
+                            _units = "feet";
                           }
                         });
                         _updateUnits(_units);
@@ -127,7 +131,9 @@ class _SettingsPageState extends State<SettingsPage> {
                                 color: Colors.grey[600],
                               ),
                             ),
-                            Text(_units != null ? _units.tr : "kilometer".tr),
+                            Text(_units != null
+                                ? _units!.tr.toUpperCase()
+                                : "meter".tr.toUpperCase()),
                           ],
                         ),
                       ),
@@ -223,7 +229,33 @@ class _SettingsPageState extends State<SettingsPage> {
       ],
     );
   }
-
+GestureDetector buildChangeWifiSettings(BuildContext context, String title) {
+    return GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (BuildContext context) => ConnectivityPage()));
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title.tr,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[600],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: Colors.grey,
+              ),
+            ],
+          ),
+        ));
+  }
   GestureDetector buildChangeEmail(BuildContext context, String title) {
     return GestureDetector(
         onTap: () {
@@ -305,7 +337,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 color: Colors.grey[600],
               ),
             ),
-            Text(_units),
+            Text(_units!),
           ],
         ),
       ),
@@ -344,8 +376,9 @@ class _SettingsPageState extends State<SettingsPage> {
   GestureDetector buildOfflineMapSelection(BuildContext context, String title) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(MaterialPageRoute(
-            builder: (BuildContext context) => OfflineRegionBody()));
+        // TODO ENABLE WHEN MAPBOX NULLSAFETY IS AVAILABLE
+        // Navigator.of(context).push(MaterialPageRoute(
+        //     builder: (BuildContext context) => OfflineRegionBody()));
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),

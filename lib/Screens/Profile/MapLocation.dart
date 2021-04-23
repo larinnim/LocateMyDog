@@ -4,13 +4,14 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flushbar/flushbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
+import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/offline_regions.dart';
+import 'package:flutter_maps/Screens/loading.dart';
 import 'package:flutter_maps/Services/Radar.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -25,11 +26,15 @@ class MapLocation extends StatefulWidget {
 }
 
 class _MapLocationState extends State<MapLocation> {
-  List<Marker> markers = <Marker>[];
+  CollectionReference locationDB =
+      FirebaseFirestore.instance.collection('locateDog');
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
+  // List<Marker?> markers = <Marker?>[];
   List<Polyline> mapPolylines = <Polyline>[];
-  LatLng _currentPosition;
-  Circle circle;
-  GoogleMapController _controller;
+  late LatLng _currentPosition;
+  Circle? circle;
+  late GoogleMapController _controller;
   // Map<PolylineId, Polyline> _mapPolylines = {};
   int _polylineIdCounter = 1;
   final List<LatLng> points = <LatLng>[];
@@ -37,18 +42,22 @@ class _MapLocationState extends State<MapLocation> {
   Geoflutterfire geo = Geoflutterfire();
   CollectionReference reference =
       FirebaseFirestore.instance.collection('locations');
-  List<LatLng> polyLinesLatLongs = List<LatLng>(); // our list of geopoints
+  List<LatLng> polyLinesLatLongs = []; // our list of geopoints
   var mapLocation;
-  Uint8List imageData;
+  Uint8List? imageData;
   // BitmapDescriptor icon;
-  Marker marker;
+  late Marker marker;
   int _markerId = 1;
-  Timer timer;
-  final List<Flushbar> flushBars = [];
+  Timer? timer;
+  // List<Marker> markers = [];
+  Set<Marker> markers = Set();
+
+  // final List<Flushbar> flushBars = [];
 
   @override
   void initState() {
     super.initState();
+    _initSenders();
     // timer = Timer.periodic(Duration(seconds: 3), (Timer t) => moveCamera());
   }
 
@@ -58,17 +67,98 @@ class _MapLocationState extends State<MapLocation> {
     super.dispose();
   }
 
-  Future<void> moveCamera() async {
-    if (_currentPosition.latitude != null &&
-        _currentPosition.longitude != null) {
-      _controller.animateCamera(CameraUpdate.newCameraPosition(
-          new CameraPosition(
-              bearing: 192.8334901395799,
-              target:
-                  LatLng(_currentPosition.latitude, _currentPosition.longitude),
-              tilt: 0,
-              zoom: 18.00)));
+  Future<void> _initSenders() async {
+    await locationDB
+        .doc(_firebaseAuth.currentUser?.uid)
+        .collection('gateway')
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        var latlng = LatLng(double.parse(doc['Location']['Latitude']),
+            double.parse(doc['Location']['Longitude']));
+            setState(() {
+        updateMarkerAndCircle(latlng, doc.id, doc['color']);
+            });
+      });
+    });
+    readDatabase(); // set context read
+
+  }
+  Future<List<DocumentSnapshot>> getSendersID() async {
+    var data = await FirebaseFirestore.instance
+        .collection('locateDog')
+        .doc(_firebaseAuth.currentUser?.uid)
+        .collection('gateway')
+        .get();
+    var senders = data.docs;
+    return senders;
+  }
+  void readDatabase() {
+    if (_firebaseAuth.currentUser != null) {
+      var senders;
+      getSendersID().then((data) {
+        for (int i = 0; i < data.length; i++) {
+          senders = FirebaseFirestore.instance
+              .collection('locateDog')
+              .doc(_firebaseAuth.currentUser?.uid)
+              .collection('gateway')
+              .doc(data[i].id)
+              .snapshots()
+              .listen((DocumentSnapshot documentSnapshot) {
+            Map<String, dynamic> firestoreInfo = documentSnapshot.data()!;
+            firestoreInfo.forEach((key, value) {
+              print(key);
+              print(value);
+              // if (data.contains('Sender')) {
+              context.read<WiFiModel>().addLat(
+                  firestoreInfo["Location"]["Latitude"] != ""
+                      ? double.parse(firestoreInfo["Location"]["Latitude"])
+                      : 0,
+                  data[i].id,
+                  firestoreInfo["color"]);
+              context.read<WiFiModel>().addLng(
+                  firestoreInfo["Location"]["Longitude"] != ""
+                      ? double.parse(firestoreInfo["Location"]["Longitude"])
+                      : 0,
+                  data[i].id,
+                  firestoreInfo["color"]);
+              context.read<WiFiModel>().addRSSI(
+                  firestoreInfo["RSSI"], data[i].id, firestoreInfo["color"]);
+              context.read<WiFiModel>().addSSID(
+                  firestoreInfo["ConnectedWifiSSID"],
+                  data[i].id,
+                  firestoreInfo["color"]);
+              context.read<WiFiModel>().addTimeStamp(
+                  firestoreInfo["LocationTimestamp"] != "" &&
+                          firestoreInfo["LocationTimestamp"] != null
+                      ? firestoreInfo["LocationTimestamp"]
+                      : DateTime.now().toString(),
+                  data[i].id,
+                  firestoreInfo["color"]);
+
+              context.read<WiFiModel>().connectionWiFiTimestamp(
+                  firestoreInfo["WifiTimestamp"] != "" &&
+                          firestoreInfo["WifiTimestamp"] != null
+                      ? firestoreInfo["WifiTimestamp"]
+                      : DateTime.now().toString(),
+                  data[i].id,
+                  firestoreInfo["color"]);
+            });
+          });
+        }
+      });
     }
+  }
+
+  Future<void> moveCamera() async {
+    // if (_currentPosition.latitude != null &&
+    //     _currentPosition.longitude != null) {
+    _controller.animateCamera(CameraUpdate.newCameraPosition(new CameraPosition(
+        bearing: 192.8334901395799,
+        target: LatLng(_currentPosition.latitude, _currentPosition.longitude),
+        tilt: 0,
+        zoom: 18.00)));
+    // }
   }
 
   // void _onMapCreated(GoogleMapController controller) {
@@ -92,35 +182,111 @@ class _MapLocationState extends State<MapLocation> {
     return false;
   }
 
-  Future<Set<Marker>> updateMarkerAndCircle(LatLng latlong) async {
+  Future<Set<Marker>> updateMarkerAndCircle(
+      LatLng latlong, String? sender, String senderColor) async {
     LatLng latlng = LatLng(latlong.latitude, latlong.longitude);
-    Uint8List imageData = await getMarker();
+    late Uint8List imageData;
+    // locationDB
+    //     .doc(_firebaseAuth.currentUser!.uid)
+    //     .get()
+    //     .then((DocumentSnapshot documentSnapshot) {
+    //   if (documentSnapshot.exists) {
+    //     documentSnapshot.data()!.forEach((key, value) async {
+    //       if (key == sender) {
+    String pathColor = 'assets/images/' + 'dogpin_' + senderColor + '.png';
+    ByteData byteData = await DefaultAssetBundle.of(context).load(pathColor);
+    imageData = byteData.buffer.asUint8List();
     _currentPosition = latlong;
 
+    // if (markers.length > 0) {
+    //   marker = markers[0];
+
+    // setState(() {
+    //   markers[0] = marker.copyWith(
+    //       positionParam: LatLng(latlong.latitude, latlong.longitude));
+    // });
+    // } else {
     if (markers.length > 0) {
-      Marker marker = markers[0];
-
-      setState(() {
-        markers[0] = marker.copyWith(
-            positionParam: LatLng(latlong.latitude, latlong.longitude));
-      });
-    } else {
-      setState(() {
-        marker = Marker(
-            markerId: MarkerId("home"),
-            position: latlng,
-            rotation: BleSingleton.shared.heading,
-            draggable: false,
-            zIndex: 2,
-            flat: true,
-            anchor: Offset(0.5, 0.5),
-            icon: BitmapDescriptor.fromBytes(imageData));
-
-        markers.add(marker);
-      });
+      markers.removeWhere((marker) => marker.mapsId.value.toString() == sender);
     }
+    marker = Marker(
+        markerId: MarkerId(sender!),
+        position: latlng,
+        // rotation: BleSingleton.shared.heading,
+        draggable: false,
+        zIndex: 2,
+        flat: true,
+        anchor: Offset(0.5, 0.5),
+        icon: BitmapDescriptor.fromBytes(imageData));
+    markers.add(marker);
+    //   for (var i = 0; i < 4; i++) {
+    //     if (markers[i].markerId.value == sender) {
+    //       setState(() {
+    //         markers[i] = marker.copyWith(
+    //             positionParam: LatLng(latlong.latitude, latlong.longitude));
+    //       });
+    //     } else {
+    //       marker = Marker(
+    //           markerId: MarkerId(sender!),
+    //           position: latlng,
+    //           // rotation: BleSingleton.shared.heading,
+    //           draggable: false,
+    //           zIndex: 2,
+    //           flat: true,
+    //           anchor: Offset(0.5, 0.5),
+    //           icon: BitmapDescriptor.fromBytes(imageData));
+    //       setState(() {
+    //         markers.add(marker);
+    //       });
+    //     }
+    //   }
+    // } else {
+    //   marker = Marker(
+    //       markerId: MarkerId(sender!),
+    //       position: latlng,
+    //       // rotation: BleSingleton.shared.heading,
+    //       draggable: false,
+    //       zIndex: 2,
+    //       flat: true,
+    //       anchor: Offset(0.5, 0.5),
+    //       icon: BitmapDescriptor.fromBytes(imageData));
+    //   setState(() {
+    //     markers.add(marker);
+    //   });
+    // }
+
+    // markers.add(marker);
+    // }
+    // }
     return markers.toSet();
   }
+
+  // Uint8List imageData = await getMarker();
+  //
+  // _currentPosition = latlong;
+
+  // if (markers.length > 0) {
+  //   marker = markers[0];
+
+  //   setState(() {
+  //     markers[0] = marker.copyWith(
+  //         positionParam: LatLng(latlong.latitude, latlong.longitude));
+  //   });
+  // } else {
+  //   marker = Marker(
+  //       markerId: MarkerId("home"),
+  //       position: latlng,
+  //       // rotation: BleSingleton.shared.heading,
+  //       draggable: false,
+  //       zIndex: 2,
+  //       flat: true,
+  //       anchor: Offset(0.5, 0.5),
+  //       icon: BitmapDescriptor.fromBytes(imageData));
+  //   setState(() {
+  //     markers.add(marker);
+  //   });
+  //   // markers.add(marker);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -143,11 +309,13 @@ class _MapLocationState extends State<MapLocation> {
                   // off the stack.
                   Navigator.pushNamed(context, '/profile');
                 })),
-        body: (currentPositionBle.lat != null &&
-                    currentPositionBle.lng != null ||
-                currentPositionWiFi.lat != null &&
-                    currentPositionWiFi.lng != null)
-            ? Consumer3<BleModel, WiFiModel, ConnectionStatusModel>(builder:
+        body: 
+        // (currentPositionBle.lat != null &&
+        //             currentPositionBle.lng != null ||
+        //         currentPositionWiFi.lat != null &&
+        //             currentPositionWiFi.lng != null)
+        //     ?
+             Consumer3<BleModel, WiFiModel, ConnectionStatusModel>(builder:
                 (_, bleProvider, wifiProvider, connectionProvider, child) {
                 return FutureBuilder(
                     future: mounted
@@ -166,34 +334,51 @@ class _MapLocationState extends State<MapLocation> {
                                   CupertinoDialogAction(
                                     child: Text('OK'),
                                     onPressed: () {
-                                      Navigator.push(context,
-                                          MaterialPageRoute(builder: (context) {
-                                        // return Radar();
-                                        return OfflineRegionBody();
-                                      }));
+                                      // TODO ENABLE WHEN MAPBOX NULLSAFETY IS AVAILABLE
+                                      // Navigator.push(context,
+                                      //     MaterialPageRoute(builder: (context) {
+                                      //   // return Radar();
+                                      //   return OfflineRegionBody();
+                                      // }));
                                     },
                                   )
                                 ],
                               )
-                            : FutureBuilder(
+                            : 
+                            bleProvider.lat != null && bleProvider.lng != null || wifiProvider.lat != null  && wifiProvider.lng != null ?
+                            FutureBuilder(
                                 future: (bleProvider.timestampBLE != null &&
                                         wifiProvider.timestampWiFi != null &&
-                                        bleProvider.timestampBLE.isAfter(
-                                            wifiProvider.timestampWiFi))
-                                    ? updateMarkerAndCircle(LatLng(
-                                        bleProvider.lat, bleProvider.lng))
-                                    : (bleProvider.timestampBLE == null &&
-                                            wifiProvider.timestampWiFi != null)
-                                        ? updateMarkerAndCircle(LatLng(
-                                            wifiProvider.lat, wifiProvider.lng))
-                                        : (bleProvider != null &&
-                                                wifiProvider == null)
-                                            ? updateMarkerAndCircle(LatLng(
-                                                bleProvider.lat,
-                                                bleProvider.lng))
-                                            : updateMarkerAndCircle(LatLng(
-                                                wifiProvider.lat,
-                                                wifiProvider.lng)),
+                                        bleProvider.timestampBLE!.isAfter(
+                                            wifiProvider
+                                                .timestampWiFi!)) //its sending BLE
+                                    ? updateMarkerAndCircle(
+                                        LatLng(
+                                            bleProvider.lat!, bleProvider.lng!),
+                                        bleProvider.senderNumber,
+                                        "green") //TODO create color logic for BLE
+                                    : updateMarkerAndCircle(
+                                        LatLng(wifiProvider.lat!,
+                                            wifiProvider.lng!),
+                                        wifiProvider.senderNumber,
+                                        wifiProvider
+                                            .senderColor!), // its sending WIFI
+                                // (bleProvider.timestampBLE == null &&
+                                //         wifiProvider.timestampWiFi != null) //its sending WIFI
+                                //     ? updateMarkerAndCircle(
+                                //         LatLng(wifiProvider.lat!,
+                                //             wifiProvider.lng!),
+                                //         wifiProvider.senderNumber)
+                                // : (bleProvider != null &&
+                                //         wifiProvider == null)
+                                //     ? updateMarkerAndCircle(
+                                //         LatLng(bleProvider.lat!,
+                                //             bleProvider.lng!),
+                                //         bleProvider.senderNumber)
+                                //     : updateMarkerAndCircle(
+                                //         LatLng(wifiProvider.lat!,
+                                //             wifiProvider.lng!),
+                                //         wifiProvider.senderNumber),
                                 initialData: Set.of(<Marker>[]),
                                 builder: (context, snapshotMarker) {
                                   return new Stack(
@@ -203,43 +388,53 @@ class _MapLocationState extends State<MapLocation> {
                                             1000, // This line solved the issue
                                         child: GoogleMap(
                                           mapType: MapType.hybrid,
-                                          initialCameraPosition: (bleProvider.timestampBLE != null &&
+                                          initialCameraPosition: (bleProvider
+                                                          .timestampBLE !=
+                                                      null &&
                                                   wifiProvider.timestampWiFi !=
                                                       null &&
-                                                  bleProvider.timestampBLE
+                                                  bleProvider.timestampBLE!
                                                       .isAfter(wifiProvider
-                                                          .timestampWiFi))
+                                                          .timestampWiFi!)) // BLE is sending
                                               ? CameraPosition(
                                                   target: LatLng(
-                                                      bleProvider.lat,
-                                                      bleProvider.lng),
+                                                      bleProvider.lat!,
+                                                      bleProvider.lng!),
                                                   zoom: 16.0)
-                                              : (bleProvider.timestampBLE == null &&
-                                                      wifiProvider.timestampWiFi !=
-                                                          null)
-                                                  ? CameraPosition(
-                                                      target: LatLng(
-                                                          wifiProvider.lat,
-                                                          wifiProvider.lng),
-                                                      zoom: 16.0)
-                                                  : (bleProvider != null &&
-                                                          wifiProvider == null)
-                                                      ? CameraPosition(
-                                                          target: LatLng(
-                                                              bleProvider.lat,
-                                                              bleProvider.lng),
-                                                          zoom: 16.0)
-                                                      : CameraPosition(
-                                                          target: LatLng(bleProvider.lat, bleProvider.lng),
-                                                          zoom: 16.0),
-                                          markers: snapshotMarker.data,
-                                          circles: Set.of(
-                                              (circle != null) ? [circle] : []),
+                                              : CameraPosition(
+                                                  target: LatLng(
+                                                      wifiProvider.lat!,
+                                                      wifiProvider.lng!),
+                                                  zoom: 16.0), //WIFI is sending
+                                          // (bleProvider.timestampBLE == null &&
+                                          //         wifiProvider.timestampWiFi !=
+                                          //             null)  // WIFI is sending
+                                          //     ? CameraPosition(
+                                          //         target: LatLng(
+                                          //             wifiProvider.lat!,
+                                          //             wifiProvider.lng!),
+                                          //         zoom: 16.0)
+                                          //     : (bleProvider != null &&
+                                          //             wifiProvider == null)
+                                          //         ? CameraPosition(
+                                          //             target: LatLng(
+                                          //                 bleProvider.lat!,
+                                          //                 bleProvider.lng!),
+                                          //             zoom: 16.0)
+                                          //         : CameraPosition(
+                                          //             target: LatLng(bleProvider.lat!, bleProvider.lng!),
+                                          //             zoom: 16.0),
+                                          // markers: snapshotMarker.data,
+                                          markers: markers.toSet(),
+
+                                          circles: Set.of((circle != null)
+                                              ? [circle!]
+                                              : []),
                                           // polylines: snapshotPolyline.data,
                                           myLocationButtonEnabled: false,
                                           zoomGesturesEnabled: true,
                                           mapToolbarEnabled: true,
-                                          myLocationEnabled: true,
+                                          myLocationEnabled: false,
                                           scrollGesturesEnabled: true,
                                           onMapCreated:
                                               (GoogleMapController controller) {
@@ -257,12 +452,13 @@ class _MapLocationState extends State<MapLocation> {
                                                 CupertinoDialogAction(
                                                   child: Text('OK'),
                                                   onPressed: () {
-                                                    Navigator.push(context,
-                                                        MaterialPageRoute(
-                                                            builder: (context) {
-                                                      // return Radar();
-                                                      return OfflineRegionBody();
-                                                    }));
+                                                    // TODO ENABLE WHEN MAPBOX NULLSAFETY IS AVAILABLE
+                                                    // Navigator.push(context,
+                                                    //     MaterialPageRoute(
+                                                    //         builder: (context) {
+                                                    //   // return Radar();
+                                                    //   return OfflineRegionBody();
+                                                    // }));
                                                   },
                                                 )
                                               ],
@@ -270,30 +466,36 @@ class _MapLocationState extends State<MapLocation> {
                                           : new Container()
                                     ],
                                   );
-                                });
+                                }) : Loading();
+                      } else {
+                        return Loading();
+                        
                       }
                     });
               })
-            : Center(
-                child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Icon(FontAwesomeIcons.exclamationTriangle),
-                  Padding(
-                    padding: EdgeInsets.only(top: 30.0),
-                  ),
-                  Text(
-                    'Whoops',
-                    style:
-                        TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(top: 15.0),
-                  ),
-                  Text(
-                      'You are offline. Please connect the gateway to WiFi or Bluetooth to continue'),
-                ],
-              )));
+            // :
+            // Loading()
+            //  Center(
+            //     child: Column(
+            //     mainAxisAlignment: MainAxisAlignment.center,
+            //     crossAxisAlignment: CrossAxisAlignment.center,
+            //     children: <Widget>[
+            //       Icon(FontAwesomeIcons.exclamationTriangle),
+            //       Padding(
+            //         padding: EdgeInsets.only(top: 30.0),
+            //       ),
+            //       Text(
+            //         'Whoops',
+            //         style:
+            //             TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),
+            //       ),
+            //       Padding(
+            //         padding: EdgeInsets.only(top: 15.0),
+            //       ),
+            //       Text(
+            //           'You are offline. Please connect the gateway to WiFi or Bluetooth to continue'),
+            //     ],
+            //   ))
+              );
   }
 }

@@ -1,9 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:flutter_maps/Providers/SocialSignin.dart';
+import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
 import 'package:flutter_maps/Screens/Authenticate/background_painter.dart';
+import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Screens/loading.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
@@ -17,8 +18,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 
 class HomeSignInWidget extends StatelessWidget {
-  final Function gotoSignUp;
-  final Function gotoSignIn;
+  final Function? gotoSignUp;
+  final Function? gotoSignIn;
   HomeSignInWidget({this.gotoSignUp, this.gotoSignIn});
 
   // GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -54,23 +55,28 @@ class HomeSignInWidget extends StatelessWidget {
           builder: (context, snapshot) {
             final provider = Provider.of<SocialSignInProvider>(context);
 
-            if (provider.isSigningIn) {
+            if (provider.isSigningIn!) {
               return Loading();
-            } else if (provider.isCancelledByUser) {
-              Get.dialog(SimpleDialog(
-                title: Text(
-                  "Error",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                shape: RoundedRectangleBorder(
-                    borderRadius: new BorderRadius.circular(10.0)),
-                children: [
-                  Text("     Operation Cancelled By User",
-                      style: TextStyle(fontSize: 20.0))
-                ],
-              ));
+            } else if (provider.isCancelledByUser!) {
+              // Get.dialog(SimpleDialog(
+              //   title: Text(
+              //     "Error",
+              //     style: TextStyle(fontWeight: FontWeight.bold),
+              //   ),
+              //   shape: RoundedRectangleBorder(
+              //       borderRadius: new BorderRadius.circular(10.0)),
+              //   children: [
+              //     Text("     Operation Cancelled By User",
+              //         style: TextStyle(fontSize: 20.0))
+              //   ],
+              // ));
+               WidgetsBinding.instance!.addPostFrameCallback((_) =>
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) {
+                    return Material(child: Authenticate());
+                  })));
               return Container();
-            } else if (provider.isError) {
+            } else if (provider.isError!) {
               Get.dialog(SimpleDialog(
                 title: Text(
                   "Error",
@@ -83,9 +89,14 @@ class HomeSignInWidget extends StatelessWidget {
                       style: TextStyle(fontSize: 20.0))
                 ],
               ));
+             WidgetsBinding.instance!.addPostFrameCallback((_) =>
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) {
+                    return Material(child: Authenticate());
+                  })));
               return Container();
             } else if (snapshot.hasData) {
-              WidgetsBinding.instance.addPostFrameCallback((_) =>
+              WidgetsBinding.instance!.addPostFrameCallback((_) =>
                   Navigator.pushReplacement(context,
                       MaterialPageRoute(builder: (context) {
                     return Material(child: ProfileScreen());
@@ -162,7 +173,7 @@ class HomeSignInWidget extends StatelessWidget {
                   ),
                   InkWell(
                     onTap: () {
-                      gotoSignUp();
+                      gotoSignUp!();
                     },
                     child: Container(
                         padding: EdgeInsets.symmetric(
@@ -190,7 +201,7 @@ class HomeSignInWidget extends StatelessWidget {
                   ),
                   InkWell(
                     onTap: () {
-                      gotoSignIn();
+                      gotoSignIn!();
                     },
                     child: Text(
                       'already_registered'.tr,

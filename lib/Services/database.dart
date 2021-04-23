@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class DatabaseService {
-  final String uid;
+  final String? uid;
   DatabaseService({this.uid});
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
@@ -13,20 +13,22 @@ class DatabaseService {
       FirebaseFirestore.instance.collection('locateDog');
 
   Future<void> updateUserData(
-      String dogname, String ownername, String breed) async {
-         _db
-            .collection('users')
-            .doc(uid)
-            .set({
-              'dogname': dogname,
-              'ownername': ownername,
-              'breed': breed
-            }, SetOptions(merge: true));
-        
-        // SetOptions(merge: true);
+      String? dogname, String? ownername, String? breed) async {
+    _db.collection('users').doc(uid).set(
+        {'dogname': dogname, 'ownername': ownername, 'breed': breed},
+        SetOptions(merge: true));
+
+    // SetOptions(merge: true);
   }
 
-  Future<void> updateCircleRadius(double radius, LatLng initialLocation) async {
+  Future<void> updateDeviceColor(
+      String deviceColor, String senderNumber) async {
+    await locateCollection.doc(uid).set({
+      senderNumber: {"color": deviceColor},
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> updateCircleRadius(double? radius, LatLng initialLocation) async {
     return await locateCollection.doc(uid).set({
       'Geofence': {
         "Circle": {
@@ -35,6 +37,18 @@ class DatabaseService {
           "initialLng": initialLocation.longitude,
         }
       },
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> updateGatewayName(String name) async {
+    await locateCollection.doc(uid).set({
+      'gateway': {"name": name},
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> updateDeviceName(String name, String? senderNumber) async {
+    await locateCollection.doc(uid).set({
+      senderNumber!: {"name": name},
     }, SetOptions(merge: true));
   }
 
@@ -47,7 +61,7 @@ class DatabaseService {
 
 class FirestoreSetUp {
   String gateway = "";
-  String endDevice = "";
+  String? endDevice = "";
 
   FirestoreSetUp._privateConstructor();
 

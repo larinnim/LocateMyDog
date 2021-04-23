@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 enum NetworkStatus { Online, Offline }
 
 class ConnectionStatusModel extends ChangeNotifier {
-  NetworkStatus connectionStatus;
+  NetworkStatus? connectionStatus;
   // StreamController<NetworkStatus> networkStatusController =
   //     StreamController<NetworkStatus>();
   final Connectivity _connectivity = Connectivity();
@@ -22,7 +22,7 @@ class ConnectionStatusModel extends ChangeNotifier {
 
  // Platform messages are asynchronous, so we initialize in an async method.
   Future<NetworkStatus> getCurrentStatus() async {
-    ConnectivityResult result;
+    ConnectivityResult? result;
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       result = await _connectivity.checkConnectivity();
@@ -40,7 +40,7 @@ class ConnectionStatusModel extends ChangeNotifier {
     return _getNetworkStatus(result);
   }
 
-  NetworkStatus _getNetworkStatus(ConnectivityResult status) {
+  NetworkStatus _getNetworkStatus(ConnectivityResult? status) {
     return status == ConnectivityResult.mobile ||
             status == ConnectivityResult.wifi
         ? NetworkStatus.Online

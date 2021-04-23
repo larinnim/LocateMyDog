@@ -5,7 +5,7 @@ import 'package:flutter_maps/Screens/Home/wrapper.dart';
 
 class ForgotPassword extends StatefulWidget {
   // final Function gotoSignUp;
-  final Function gotoSignIn;
+  final Function? gotoSignIn;
 
   ForgotPassword({this.gotoSignIn});
 
@@ -16,10 +16,10 @@ class ForgotPassword extends StatefulWidget {
 class _ForgotPasswordState extends State<ForgotPassword> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final formKey = GlobalKey<FormState>();
-  String email;
+  late String email;
   PageController pageController = PageController();
 
-  Future forgotPassword({String email}) async {
+  Future forgotPassword({required String email}) async {
     return _auth.sendPasswordResetEmail(email: email).then((value) {
       // Navigator.pop(context);
       showCupertinoDialog(
@@ -66,7 +66,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                 });
               },
               validator: (emailValue) {
-                if (emailValue.isEmpty) {
+                if (emailValue!.isEmpty) {
                   return 'This field is mandatory';
                 }
 
@@ -101,7 +101,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
               InkWell(
                 onTap: () {
-                  widget.gotoSignIn();
+                  widget.gotoSignIn!();
                 },
                 child: Text(
                   'CANCEL',

@@ -7,12 +7,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Providers/SocialSignin.dart';
 import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
 import 'package:flutter_maps/Screens/Authenticate/home_sigin_widget.dart';
+import 'package:flutter_maps/Screens/Devices/device_list.dart';
+import 'package:flutter_maps/Screens/Devices/gateway_detail.dart';
 import 'package:flutter_maps/Screens/Fence/Geofence.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/offline_regions.dart';
@@ -24,7 +26,6 @@ import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:flutter_maps/Services/constants.dart';
 import 'package:flutter_maps/Services/push_notification.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
-import 'package:flutter_screenutil/screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -41,8 +42,8 @@ import 'MapLocation.dart';
 import 'avatar.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final bool wantsTouchId;
-  final String password;
+  final bool? wantsTouchId;
+  final String? password;
 
   ProfileScreen({this.wantsTouchId, this.password});
 
@@ -51,9 +52,11 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  AppUser _currentUser = locator.get<UserController>().currentUser;
+  AppUser? _currentUser = locator.get<UserController>().currentUser;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final LocalAuthentication localauth = LocalAuthentication();
+  final picker = ImagePicker();
+  late File _image;
 
   SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
   final box = GetStorage();
@@ -62,7 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    readDatabase(); //Read current WIFI info from firebase
+    // readDatabase(); //Read current WIFI info from firebase
     PushNotificationsManager().init();
     if (widget.wantsTouchId != null && widget.password != null) {
       checkAuthentication();
@@ -72,6 +75,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     super.dispose();
+  }
+
+  Future getImage() async {
+    final pickedFile = await picker.getImage(source: ImageSource.camera);
+
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+      } else {
+        print('No image selected.');
+      }
+    });
+  }
+
+  Future<bool> _checkIfIsLogged() async {
+    final AccessToken? accessToken = await FacebookAuth.instance.accessToken;
+    if (accessToken != null) {
+      // now you can call to  FacebookAuth.instance.getUserData();
+      return true;
+      // final userData = await FacebookAuth.instance.getUserData(fields: "email,birthday,friends,gender,link");
+    } else {
+      return false;
+    }
   }
 
   void checkAuthentication() async {
@@ -85,7 +111,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     //     if (availableBiometrics.contains(BiometricType.face) ||
     //         availableBiometrics.contains(BiometricType.fingerprint)) {
     if (_currentUser != null) {
-      storage.write(key: 'email', value: _auth.currentUser.email);
+      storage.write(key: 'email', value: _auth.currentUser!.email);
       storage.write(key: 'password', value: widget.password);
       storage.write(key: 'usingBiometric', value: 'true');
     }
@@ -113,11 +139,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // FirebaseAuth.instance.signOut();
 
     bool isGoogleSignedIn = await GoogleSignIn().isSignedIn();
-    bool isFacebookSignedIn = await FacebookLogin().isLoggedIn;
+    bool isFacebookSignedIn = await _checkIfIsLogged();
     if (isGoogleSignedIn == true) {
       GoogleSignIn().disconnect();
     } else if (isFacebookSignedIn == true) {
-      FacebookLogin().logOut();
+      FacebookAuth.instance.logOut();
     }
     FirebaseAuth.instance.signOut().then((value) {
       Get.offAll(Authenticate());
@@ -129,39 +155,81 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  void readDatabase() {
-    if (_auth.currentUser != null) {
-      FirebaseFirestore.instance
-          .collection('locateDog')
-          .doc(_auth.currentUser?.uid)
-          .snapshots()
-          .listen((DocumentSnapshot documentSnapshot) {
-        Map<String, dynamic> firestoreInfo = documentSnapshot.data();
+  // Future<List<DocumentSnapshot>> getSendersID() async {
+  //   var data = await FirebaseFirestore.instance
+  //       .collection('locateDog')
+  //       .doc(_auth.currentUser?.uid)
+  //       .collection('gateway')
+  //       .get();
+  //   var senders = data.docs;
+  //   return senders;
+  // }
 
-        context.read<WiFiModel>().addLat(
-            double.parse(firestoreInfo["Sender1"]["Location"]["Latitude"]));
-        context.read<WiFiModel>().addLng(
-            double.parse(firestoreInfo["Sender1"]["Location"]["Longitude"]));
-        context.read<WiFiModel>().addRSSI(firestoreInfo["Sender1"]["RSSI"]);
-        context
-            .read<WiFiModel>()
-            .addSSID(firestoreInfo["Sender1"]["ConnectedWifiSSID"]);
-        context
-            .read<WiFiModel>()
-            .addTimeStamp(firestoreInfo["Sender1"]["LocationTimestamp"]);
+  // void readDatabase() {
+  //   if (_auth.currentUser != null) {
+  //     var senders;
+  //     getSendersID().then((data) {
+  //       for (int i = 0; i < data.length; i++) {
+  //         senders = FirebaseFirestore.instance
+  //             .collection('locateDog')
+  //             .doc(_auth.currentUser?.uid)
+  //             .collection('gateway')
+  //             .doc(data[i].id)
+  //             .snapshots()
+  //             .listen((DocumentSnapshot documentSnapshot) {
+  //           Map<String, dynamic> firestoreInfo = documentSnapshot.data()!;
+  //           firestoreInfo.forEach((key, value) {
+  //             print(key);
+  //             print(value);
+  //             // if (data.contains('Sender')) {
+  //               context.read<WiFiModel>().addLat(
+  //                   firestoreInfo["Location"]["Latitude"] != ""
+  //                       ? double.parse(
+  //                           firestoreInfo["Location"]["Latitude"])
+  //                       : 0,
+  //                   data[i].id, firestoreInfo["color"]);
+  //               context.read<WiFiModel>().addLng(
+  //                   firestoreInfo["Location"]["Longitude"] != ""
+  //                       ? double.parse(
+  //                           firestoreInfo["Location"]["Longitude"])
+  //                       : 0,
+  //                   data[i].id, firestoreInfo["color"]);
+  //               context
+  //                   .read<WiFiModel>()
+  //                   .addRSSI(firestoreInfo["RSSI"], data[i].id, firestoreInfo["color"]);
+  //               context
+  //                   .read<WiFiModel>()
+  //                   .addSSID(firestoreInfo["ConnectedWifiSSID"], data[i].id, firestoreInfo["color"]);
+  //               context.read<WiFiModel>().addTimeStamp(
+  //                   firestoreInfo["LocationTimestamp"] != "" &&
+  //                           firestoreInfo["LocationTimestamp"] != null
+  //                       ? firestoreInfo["LocationTimestamp"]
+  //                       : DateTime.now().toString(),
+  //                   data[i].id, firestoreInfo["color"]);
 
-        context
-            .read<WiFiModel>()
-            .connectionWiFiTimestamp(firestoreInfo["WifiTimestamp"]);
-        // .addTimeStamp(firestoreInfo["Sender1"]["LocationTimestamp"]);
-      }).onError((e) => print("ERROR reading snapshot" + e));
-    }
-  }
+  //               context.read<WiFiModel>().connectionWiFiTimestamp(
+  //                   firestoreInfo["WifiTimestamp"] != "" &&
+  //                           firestoreInfo["WifiTimestamp"] != null
+  //                       ? firestoreInfo["WifiTimestamp"]
+  //                       : DateTime.now().toString(),
+  //                   data[i].id, firestoreInfo["color"]);
+  //           });
+  //         });
+  //       }
+  //     });
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
-    ScreenUtil.init(context,
-        designSize: Size(750, 1334), allowFontScaling: true);
+    // ScreenUtil.init(context,
+    //     designSize: Size(750, 1334), allowFontScaling: true);
+    ScreenUtil.init(
+        BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width,
+            maxHeight: MediaQuery.of(context).size.height),
+        designSize: Size(750, 1334),
+        orientation: Orientation.portrait);
     final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
     final currentConnectionStatus = Provider.of<ConnectionStatusModel>(context);
     currentConnectionStatus.initConnectionListen();
@@ -187,73 +255,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               SizedBox(width: kSpacingUnit.w * 3),
-                              Expanded(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                      color: Theme.of(context).primaryColor,
-                                      borderRadius: BorderRadius.circular(
-                                          kSpacingUnit.w * 3)),
-                                  child: Column(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: <Widget>[
-                                      Avatar(
-                                        avatarUrl:
-                                            // _auth.currentUser != null ? _auth.currentUser?.photoURL + "?height=500&access_token=" + socialSiginSingleton.facebookToken : "",
-                                            _auth.currentUser != null
-                                                ? _auth.currentUser.photoURL !=
-                                                        null
-                                                    ?
-                                                    // _auth.currentUser.photoURL.contains('facebook') == false
-                                                    !_auth.currentUser.photoURL
-                                                            .contains(
-                                                                'facebook')
-                                                        //  ||
-                                                        // socialSiginSingleton
-                                                        //         .facebookToken ==
-                                                        //     "" ||
-                                                        // socialSiginSingleton
-                                                        //         .isSocialLogin ==
-                                                        //     false
-                                                        ? _auth.currentUser
-                                                            .photoURL
-                                                        : _auth.currentUser
-                                                                .photoURL +
-                                                            "?height=500&access_token=" +
-                                                            box.read('token')
-                                                    : _currentUser?.avatarUrl !=
-                                                            null
-                                                        ? _currentUser
-                                                            ?.avatarUrl
-                                                        : ""
-                                                : "",
-
-                                        // ? _auth.currentUser?.photoURL + "?height=500&access_token=" + socialLogin.facebookToken
-                                        // : _currentUser?.avatarUrl,
-                                        // avatarUrl:
-                                        //     _currentUser?.avatarUrl == null
-                                        //         ? _auth.currentUser?.photoURL
-                                        //         : _currentUser?.avatarUrl,
-                                        onTap: () async {
-                                          File image =
-                                              await ImagePicker.pickImage(
-                                                  source: ImageSource.gallery);
-
-                                          await locator
-                                              .get<UserController>()
-                                              .uploadProfilePicture(image);
-
-                                          setState(() {});
-                                        },
-                                      ),
-                                      SizedBox(height: kSpacingUnit.w * 2),
-                                    ],
-                                  ),
-                                ),
+                              Avatar(
+                                avatarUrl: _auth.currentUser != null
+                                    ? _auth.currentUser!.photoURL != null
+                                        ? !_auth.currentUser!.photoURL!
+                                                .contains('facebook')
+                                            ? _auth.currentUser!.photoURL
+                                            : _auth.currentUser!.photoURL! +
+                                                "?height=500&access_token=" +
+                                                box.read('token')
+                                        : _currentUser?.avatarUrl != null
+                                            ? _currentUser?.avatarUrl
+                                            : ""
+                                    : "",
+                                onTap: () async {
+                                  getImage();
+                                  locator
+                                      .get<UserController>()
+                                      .uploadProfilePicture(_image);
+                                  setState(() {});
+                                },
                               ),
                               SizedBox(width: kSpacingUnit.w * 3),
                             ],
                           ),
+                          SizedBox(height: kSpacingUnit.w * 3),
                           Expanded(
                             child: ListView(
                               children: <Widget>[
@@ -275,14 +301,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           return MapLocation();
                                         }));
                                       } else {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  OfflineRegionBody()),
+                                        // TODO ENABLE WHEN MAPBOX NULLSAFETY IS AVAILABLE
+                                        // Navigator.push(
+                                        //   context,
+                                        //   MaterialPageRoute(
+                                        //       builder: (context) =>
+                                        //           OfflineRegionBody()),
 
-                                          // builder: (context) => Radar()),
-                                        );
+                                        //   // builder: (context) => Radar()),
+                                        // );
                                       }
                                     }
                                   },
@@ -291,22 +318,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     text: 'map'.tr,
                                   ),
                                 ),
+                                // InkWell(
+                                //   onTap: () {
+                                //     Navigator.push(
+                                //         context,
+                                //         new MaterialPageRoute(
+                                //             builder: (context) =>
+                                //                 new BluetoothConnection()));
+                                //     // Navigator.pushNamed(context, '/trackWalk');
+                                //     // Navigator.pushReplacement(context,
+                                //     //     MaterialPageRoute(builder: (context) {
+                                //     //   return BluetoothConnection();
+                                //     // }));
+                                //   },
+                                //   child: ProfileListItem(
+                                //     icon: LineAwesomeIcons.wired_network,
+                                //     text: 'connect'.tr,
+                                //   ),
+                                // ),
                                 InkWell(
                                   onTap: () {
                                     Navigator.push(
                                         context,
                                         new MaterialPageRoute(
                                             builder: (context) =>
-                                                new BluetoothConnection()));
-                                    // Navigator.pushNamed(context, '/trackWalk');
-                                    // Navigator.pushReplacement(context,
-                                    //     MaterialPageRoute(builder: (context) {
-                                    //   return BluetoothConnection();
-                                    // }));
+                                                new DeviceList()));
                                   },
                                   child: ProfileListItem(
-                                    icon: LineAwesomeIcons.wired_network,
-                                    text: 'connect'.tr,
+                                    icon: LineAwesomeIcons.mobile_phone,
+                                    text: 'Devices',
                                   ),
                                 ),
                                 InkWell(
@@ -449,12 +489,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 }
 
 class ProfileListItem extends StatelessWidget {
-  final IconData icon;
-  final String text;
+  final IconData? icon;
+  final String? text;
   final bool hasNavigation;
 
   const ProfileListItem({
-    Key key,
+    Key? key,
     this.icon,
     this.text,
     this.hasNavigation = true,
@@ -486,7 +526,7 @@ class ProfileListItem extends StatelessWidget {
           ),
           SizedBox(width: kSpacingUnit.w * 1.5),
           Text(
-            this.text,
+            this.text!,
             style: kTitleTextStyle.copyWith(
                 fontWeight: FontWeight.w500,
                 color: Theme.of(context).primaryColor),

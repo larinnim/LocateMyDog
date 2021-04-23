@@ -11,7 +11,7 @@ import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/push_notification.dart';
 
 class Register extends StatefulWidget {
-  final Function cancelBackToHome;
+  final Function? cancelBackToHome;
 
   Register({this.cancelBackToHome});
 
@@ -20,22 +20,22 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
-  bool _termsAgreed = false;
+  bool? _termsAgreed = false;
   // bool saveAttempted = false;
-  String email, password, passwordConfirm, dogname, ownername, dogbreed;
+  String? email, password, passwordConfirm, dogname, ownername, dogbreed;
   final formKey = GlobalKey<FormState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  void _createUser({String email, String pw}) {
+  void _createUser({required String email, required String pw}) {
     _auth
         .createUserWithEmailAndPassword(email: email, password: pw)
         .then((authResult) async {
-      authResult.user.updateProfile(displayName: dogname);
+      authResult.user!.updateProfile(displayName: dogname);
       if (authResult.user != null) {
-        AppUser(authResult.user.uid, displayName: authResult.user.displayName);
+        AppUser(authResult.user!.uid, displayName: authResult.user!.displayName);
       }
       // create a new document for the user with the uid
-      await DatabaseService(uid: authResult.user.uid)
+      await DatabaseService(uid: authResult.user!.uid)
           .updateUserData(dogname, ownername, dogbreed);
       print('yay! ${authResult.user}');
 
@@ -92,7 +92,7 @@ class _RegisterState extends State<Register> {
                   });
                 },
                 validator: (dogNameVal) {
-                  if (dogNameVal.isEmpty) {
+                  if (dogNameVal!.isEmpty) {
                     return 'This field is mandatory';
                   }
                   return null;
@@ -117,7 +117,7 @@ class _RegisterState extends State<Register> {
                   });
                 },
                 validator: (dogOwnerVal) {
-                  if (dogOwnerVal.isEmpty) {
+                  if (dogOwnerVal!.isEmpty) {
                     return 'This field is mandatory';
                   }
                   return null;
@@ -142,7 +142,7 @@ class _RegisterState extends State<Register> {
                   });
                 },
                 validator: (dogBreedVal) {
-                  if (dogBreedVal.isEmpty) {
+                  if (dogBreedVal!.isEmpty) {
                     return 'This field is mandatory';
                   }
                   return null;
@@ -167,7 +167,7 @@ class _RegisterState extends State<Register> {
                   });
                 },
                 validator: (emailValue) {
-                  if (emailValue.isEmpty) {
+                  if (emailValue!.isEmpty) {
                     return 'This field is mandatory';
                   }
 
@@ -202,7 +202,7 @@ class _RegisterState extends State<Register> {
                   });
                 },
                 validator: (pwValue) {
-                  if (pwValue.isEmpty) {
+                  if (pwValue!.isEmpty) {
                     return 'This field is mandatory';
                   }
                   if (pwValue.length < 8) {
@@ -231,7 +231,7 @@ class _RegisterState extends State<Register> {
                   });
                 },
                 validator: (pwConfirmValue) {
-                  if (pwConfirmValue.isEmpty) {
+                  if (pwConfirmValue!.isEmpty) {
                     return 'This field is mandatory';
                   }
                   if (pwConfirmValue != password) {
@@ -272,7 +272,7 @@ class _RegisterState extends State<Register> {
                   children: <Widget>[
                     InkWell(
                       onTap: () {
-                        widget.cancelBackToHome();
+                        widget.cancelBackToHome!();
                       },
                       child: Container(
                         padding: EdgeInsets.symmetric(
@@ -295,9 +295,9 @@ class _RegisterState extends State<Register> {
                         // setState(() {
                         //   saveAttempted = true;
                         // });
-                        if (formKey.currentState.validate()) {
-                          formKey.currentState.save();
-                          _createUser(email: email, pw: password);
+                        if (formKey.currentState!.validate()) {
+                          formKey.currentState!.save();
+                          _createUser(email: email!, pw: password!);
                         }
                       },
                       child: Container(

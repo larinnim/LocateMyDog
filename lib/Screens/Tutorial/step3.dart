@@ -39,7 +39,7 @@ class Step3 extends StatefulWidget {
 }
 
 class _Step3State extends State<Step3> {
-  String _endDevice = 'Unknown';
+  String? _endDevice = 'Unknown';
   // String _endDevice = 'Unknown';
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -102,7 +102,7 @@ class _Step3State extends State<Step3> {
                     padding:
                         EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     child: Text(
-                      _endDevice,
+                      _endDevice!,
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -114,7 +114,7 @@ class _Step3State extends State<Step3> {
   }
 
   Future<void> scanQR() async {
-    String barcodeScanRes;
+    String? barcodeScanRes;
     // Platform messages may fail, so we use a try/catch PlatformException.
     // try {
     //   barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
