@@ -2,9 +2,8 @@ import 'dart:async';
 import 'package:esptouch_smartconfig/esp_touch_result.dart';
 import 'package:esptouch_smartconfig/esptouch_smartconfig.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/wifi_page.dart';
 import 'package:get/get.dart';
-
-import '../../loading.dart';
 
 class TaskRoute extends StatefulWidget {
   TaskRoute(
@@ -41,10 +40,12 @@ class TaskRouteState extends State<TaskRoute> {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Loading(),
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation(Colors.red),
+          ),
           SizedBox(height: 16),
           Text(
-            'waiting_connection'.tr,
+            'trying_to_connect'.tr,
             style: TextStyle(fontSize: 24),
           ),
         ],
@@ -52,97 +53,85 @@ class TaskRouteState extends State<TaskRoute> {
     );
   }
 
-  Widget error(BuildContext context, String s) {
+  Widget error(BuildContext context) {
     return Center(
-      child: Text(
-        s,
-        style: TextStyle(color: Colors.red),
+      child: Column(
+        children: [
+          Text(
+            "wifi_credentials_not_work".tr,
+            style: TextStyle(color: Colors.red),
+          ),
+          SizedBox(
+            width: 150.0,
+            height: 50.0,
+            child: ElevatedButton(
+                onPressed: () async {
+                  Navigator.of(context).pop(MaterialPageRoute(
+                      builder: (context) =>
+                          WifiPage(widget.ssid, widget.bssid)));
+                },
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.red[300],
+                  shape: new RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(30.0),
+                  ),
+                ),
+                child: Text("OK")),
+          ),
+        ],
       ),
     );
   }
 
-  Widget noneState(BuildContext context) {
+  Widget success(BuildContext context, String espIP) {
     return Center(
-        child: Text(
-      'None',
-      style: TextStyle(fontSize: 24),
-    ));
-  }
-
-  Widget resultList(BuildContext context, ConnectionState state) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: ListView.builder(
-            itemCount: _results.length,
-            itemBuilder: (_, index) {
-              final result = _results.toList(growable: false)[index];
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        Text('BSSID: '),
-                        Text(result.bssid),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Text('IP: '),
-                        Text(result.ip),
-                      ],
-                    )
-                  ],
-                ),
-              );
-            },
+      child: Column(
+        children: [
+          Text(
+            "wifi_connected".tr,
+            style: TextStyle(color: Colors.red),
           ),
-        ),
-        if (state == ConnectionState.active)
-          Loading()
-          // CircularProgressIndicator(
-          //   valueColor: AlwaysStoppedAnimation(Colors.red),
-          // ),
-      ],
+          SizedBox(
+            width: 150.0,
+            height: 50.0,
+            child: ElevatedButton(
+                onPressed: () async {
+                 Navigator.of(context).pop(MaterialPageRoute(
+                  builder: (context) =>
+                      WifiPage(widget.ssid, widget.bssid, espIP)));
+                },
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.red[300],
+                  shape: new RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(30.0),
+                  ),
+                ),
+                child: Text("continue".tr)),
+          ),
+        ],
+      ),
     );
   }
-
-  final Set<ESPTouchResult> _results = Set();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.of(context).pop(_results);
-            }),
-      ),
       body: Container(
         child: StreamBuilder<ESPTouchResult>(
           stream: _stream,
           builder: (context, AsyncSnapshot<ESPTouchResult> snapshot) {
             if (snapshot.hasError) {
-              return error(context, 'Error in StreamBuilder');
+              return error(context);
             }
-            switch (snapshot.connectionState) {
-              case ConnectionState.active:
-                _results.add(snapshot.data!);
-                return resultList(context, ConnectionState.active);
-              case ConnectionState.none:
-                return noneState(context);
-              case ConnectionState.done:
-                if (snapshot.hasData) {
-                  _results.add(snapshot.data!);
-                  return resultList(context, ConnectionState.done);
-                } else
-                  return noneState(context);
-              case ConnectionState.waiting:
-                return waitingState(context);
+            if (snapshot.connectionState == ConnectionState.active ||
+                snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+             
+              return success(context, snapshot.data!.ip);
+            }
+             else if (snapshot.connectionState == ConnectionState.waiting) {
+              return waitingState(context);
+            } else {
+              return error(context);
             }
           },
         ),

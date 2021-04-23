@@ -72,8 +72,8 @@ class _ConnectivityPageState extends State<ConnectivityPage> {
                       color: Colors.red,
                     ),
                     Text(
-                      "No Wifi !!",
-                      style: TextStyle(fontSize: 40, color: Colors.red),
+                      "wifi_not_connected".tr,
+                      style: TextStyle(fontSize: 20, color: Colors.grey),
                     )
                   ],
                 ),

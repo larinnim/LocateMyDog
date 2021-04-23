@@ -13,6 +13,7 @@ class Messages extends Translations {
           'register': 'Sign Up',
           'map': 'Map',
           'disconnect': 'Disconnect',
+          'disconnected': 'Disconnected',
           'connect': 'Connect',
           'geofence': 'Geofence',
           'help_support': 'Help & Support',
@@ -56,7 +57,17 @@ class Messages extends Translations {
           'scanning': 'Scanning',
           'scan': 'Scan',
           'wifi_settings': 'WiFi Configuration',
-          'waiting_connection': 'Waiting For Connection'
+          'trying_to_connect': 'Trying to connect',
+          'wifi_credentials_not_work':
+              'Your WiFi credentials didn\'t work. Please try again.',
+          'continue': 'Continue',
+          'wifi_connected': 'Success! Your gateway is connected to the WiFi',
+          'confirm': 'Confirm',
+          'connected': 'Connected',
+          'ip_address': 'IP address',
+          'ssid': 'SSID',
+          'wifi_not_connected':
+              'Please Connect to WiFi to Continue this Setting',
         },
         'pt_BR': {
           'entry_message':
@@ -111,7 +122,17 @@ class Messages extends Translations {
           'scanning': 'Escaneando',
           'scan': 'Escanear',
           'wifi_settings': 'Configurar WiFi',
-          'waiting_connection': 'Esperando por Conexão'
+          'trying_to_connect': 'Tentando Connectar',
+          'wifi_credentials_not_work':
+              'Suas credenciais de WiFi não funcionaram. Por favor, tente novamente.',
+          'continue': 'Continuar',
+          'wifi_connected': 'Sucesso! O seu gateway está conectado no wifi',
+          'confirm': 'Confirmar',
+          'disconnected': 'Desconectado',
+          'connected': 'Connectado',
+          'ip_address': 'Endereço IP',
+          'ssid': 'Nome da rede',
+          'wifi_not_connected': 'Por Favor, conecte-se em uma rede WiFi para continuar essa configuração'
         }
       };
 }
