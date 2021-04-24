@@ -3,11 +3,10 @@ import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/task_route.dar
 import 'package:get/get.dart';
 
 class WifiPage extends StatefulWidget {
-  WifiPage(this.ssid, this.bssid, [this.espIP = ""]);
+  WifiPage(this.ssid, this.bssid);
 
   final String ssid;
   final String bssid;
-  final String espIP;
 
   @override
   _WifiPageState createState() => _WifiPageState();
@@ -18,6 +17,22 @@ class _WifiPageState extends State<WifiPage> {
   TextEditingController password = TextEditingController();
   TextEditingController deviceCount = TextEditingController(text: "1");
   bool _obscureText = false;
+  String _espIP = "";
+
+  void espIPReceived(String receivedIP) {
+    setState(() => _espIP = receivedIP);
+  }
+
+  void goToTaskRoute() async {
+    await Navigator.of(context)
+        .push(MaterialPageRoute(
+            builder: (context) => TaskRoute(widget.ssid, widget.bssid,
+                password.text, deviceCount.text, isBroad)))
+        .then((value) {
+      password.clear();
+      espIPReceived(value);
+    });
+  }
 
   Widget normalState(BuildContext context) {
     return Column(
@@ -26,19 +41,19 @@ class _WifiPageState extends State<WifiPage> {
         SizedBox(
           height: 50.0,
         ),
-        widget.espIP != ""
+        _espIP != ""
             ? Image.asset(
-                'assets/images/Wifi-On.png',
-                fit: BoxFit.cover,
+                'assets/images/wifi_connected.png',
+                // fit: BoxFit.fill,
               )
             : Image.asset(
-                'assets/images/Wifi-Off.png',
+                'assets/images/wifi_disconnected.png',
                 fit: BoxFit.cover,
               ),
         SizedBox(
-          height: 50.0,
+          height: 30.0,
         ),
-        widget.espIP != ""
+        _espIP != ""
             ? Text(
                 'connected'.tr,
                 style: TextStyle(
@@ -49,16 +64,19 @@ class _WifiPageState extends State<WifiPage> {
             : Text(
                 'disconnected'.tr,
                 style: TextStyle(
-                    fontSize: 72.0,
+                    fontSize: 40.0,
                     fontWeight: FontWeight.bold,
-                    color: Colors.red),
+                    color: Colors.red[300]),
               ),
+        SizedBox(
+          height: 30.0,
+        ),
         Text.rich(TextSpan(children: [
           TextSpan(
               text: "ssid".tr + " : \t ",
               style: TextStyle(
                   fontSize: 14,
-                  color: Colors.pink,
+                  color: Colors.grey[700],
                   fontWeight: FontWeight.bold)),
           TextSpan(
               text: widget.ssid,
@@ -72,20 +90,17 @@ class _WifiPageState extends State<WifiPage> {
               text: "ip_address".tr + ' : \t',
               style: TextStyle(
                   fontSize: 14,
-                  color: Colors.pink,
+                  color: Colors.grey[700],
                   fontWeight: FontWeight.bold)),
           TextSpan(
-              text: widget.espIP,
+              text: _espIP,
               style: TextStyle(
                   fontSize: 18,
                   color: Colors.grey,
                   fontWeight: FontWeight.bold)),
         ])),
         SizedBox(
-          height: 6,
-        ),
-        SizedBox(
-          height: 30,
+          height: 60,
         ),
         TextField(
           obscureText: _obscureText,
@@ -115,7 +130,7 @@ class _WifiPageState extends State<WifiPage> {
               )),
         ),
         SizedBox(
-          height: 30,
+          height: 60,
         ),
         SizedBox(
           width: 150.0,
@@ -124,9 +139,10 @@ class _WifiPageState extends State<WifiPage> {
               onPressed: () async {
                 print(password.text);
                 print(deviceCount.text);
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => TaskRoute(widget.ssid, widget.bssid,
-                        password.text, deviceCount.text, isBroad)));
+                goToTaskRoute();
+                // Navigator.of(context).push(MaterialPageRoute(
+                //     builder: (context) => TaskRoute(widget.ssid, widget.bssid,
+                //         password.text, deviceCount.text, isBroad)));
                 // _stream = EsptouchSmartconfig.run(widget.ssid, widget.bssid,
                 //     password.text, deviceCount.text, isBroad);
               },

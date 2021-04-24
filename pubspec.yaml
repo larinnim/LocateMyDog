@@ -124,8 +124,10 @@ flutter:
     - assets/images/dogpin_red.png
     - assets/images/dogpin_purple.png
     - assets/images/help.png
-    - assets/images/Wifi-On.png
-    - assets/images/Wifi-Off.png
+    - assets/images/wifi_connected.png
+    - assets/images/wifi_disconnected.png
+    - assets/images/cloud_disconnected.png
+    - assets/images/cloud_connected.png
     - assets/lottie/devs.jpg
     - assets/lottie/powered_by.png
     - assets/icon/icon.png
