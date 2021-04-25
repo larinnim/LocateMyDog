@@ -70,7 +70,7 @@ class HomeSignInWidget extends StatelessWidget {
               //         style: TextStyle(fontSize: 20.0))
               //   ],
               // ));
-               WidgetsBinding.instance!.addPostFrameCallback((_) =>
+              WidgetsBinding.instance!.addPostFrameCallback((_) =>
                   Navigator.pushReplacement(context,
                       MaterialPageRoute(builder: (context) {
                     return Material(child: Authenticate());
@@ -89,7 +89,7 @@ class HomeSignInWidget extends StatelessWidget {
                       style: TextStyle(fontSize: 20.0))
                 ],
               ));
-             WidgetsBinding.instance!.addPostFrameCallback((_) =>
+              WidgetsBinding.instance!.addPostFrameCallback((_) =>
                   Navigator.pushReplacement(context,
                       MaterialPageRoute(builder: (context) {
                     return Material(child: Authenticate());
@@ -99,7 +99,9 @@ class HomeSignInWidget extends StatelessWidget {
               WidgetsBinding.instance!.addPostFrameCallback((_) =>
                   Navigator.pushReplacement(context,
                       MaterialPageRoute(builder: (context) {
-                    return Material(child: ProfileScreen());
+                    return Material(child: Wrapper());
+
+                    // return Material(child: ProfileScreen());
                   })));
               return Container();
               // Navigator.pushReplacement(context,

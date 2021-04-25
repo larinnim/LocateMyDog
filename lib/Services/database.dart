@@ -46,6 +46,12 @@ class DatabaseService {
     }, SetOptions(merge: true));
   }
 
+  Future<void> completedSetup(bool completed) async {
+    await locateCollection.doc(uid).set({
+      'hasCompletedSetup': completed,
+    }, SetOptions(merge: true));
+  }
+
   Future<void> updateGatewayID(String id) async {
     await locateCollection.doc(uid).set({
       'gateway': {"id": id},

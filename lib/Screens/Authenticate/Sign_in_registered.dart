@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Providers/SocialSignin.dart';
 import 'package:flutter_maps/Screens/Authenticate/signed.dart';
+import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Screens/Tutorial/step1.dart';
 import 'package:flutter_maps/Screens/Tutorial/step3.dart';
@@ -314,7 +315,10 @@ class _SignInRegisteredState extends State<SignInRegistered> {
                 WidgetsBinding.instance!.addPostFrameCallback((_) =>
                     Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (context) {
-                      return Material(child: ProfileScreen());
+                                                return Material(child: Wrapper()
+
+                      // return Material(child: ProfileScreen()
+                      );
                     })));
                 return Container();
                 // Navigator.pushReplacement(context,

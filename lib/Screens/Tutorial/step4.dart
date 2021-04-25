@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Fence/Geofence.dart';
+import 'package:flutter_maps/Screens/Tutorial/step5.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -17,6 +18,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:get/get.dart';
 import 'package:flutter_maps/locator.dart';
 import 'package:location/location.dart' as localization;
+
+import '../loading.dart';
 
 class Step4 extends StatefulWidget {
   @override
@@ -328,149 +331,149 @@ class _Step4State extends State<Step4> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-        type: MaterialType.transparency,
-        child: new Container(
-          decoration: BoxDecoration(color: Colors.white),
-          child: SafeArea(
-              child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 28.0, vertical: 40.0),
-            child: Column(children: <Widget>[
-              Row(
-                children: [
-                  Text(
-                    'Step 4 of 5',
-                    style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 20.0,
-                        fontFamily: 'RobotoMono'),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: 20.0,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Configure the Geofence',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 30.0,
-                        fontFamily: 'RobotoMono'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => _onSettingsPressed(),
-                    child: Row(
-                      // mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[Icon(Icons.settings)],
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 20.0,
-              ),
-              _initialPosition == null
-                  ? CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation(Colors.red),
+    return SingleChildScrollView(
+          child: Material(
+          type: MaterialType.transparency,
+          child: new Container(
+            decoration: BoxDecoration(color: Colors.white),
+            child: SafeArea(
+                child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 28.0, vertical: 40.0),
+              child: Column(children: <Widget>[
+                Row(
+                  children: [
+                    Text(
+                      'Step 4 of 5',
+                      style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 20.0,
+                          fontFamily: 'RobotoMono'),
                     )
-                  : SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.65,
-                      width: MediaQuery.of(context).size.width,
-                      child: _isPolygonFence
-                          ? GoogleMap(
-                              mapType: MapType.hybrid,
-                              initialCameraPosition: CameraPosition(
-                                target: _initialPosition!,
-                                zoom: 11,
-                              ),
-                              zoomGesturesEnabled: true,
-                              myLocationEnabled: false,
-                              compassEnabled: true,
-                              myLocationButtonEnabled: false,
-                              markers:
-                                  Set.of((marker != null) ? [marker!] : []),
-                              circles:
-                                  Set.of((circle != null) ? [circle!] : []),
-                              polygons: _polygonsFence,
-                              onTap: (point) {
-                                if (_isPolygonFence) {
-                                  setState(() {
-                                    polygonFenceLatLngs.add(point);
-                                    _setPolygonFence();
-                                  });
-                                }
-                                if (_isDoNotEnterFence) {
-                                  setState(() {
-                                    dotNotEnterFenceLatLngs.add(point);
-                                    _setDoNotEnterFence();
-                                  });
-                                }
-                              },
-                              onMapCreated: (GoogleMapController controller) {
-                                // _controller = _controller;
-                                _controller.complete(controller);
-                              },
-                            )
-                          : GoogleMap(
-                              mapType: MapType.hybrid,
-                              initialCameraPosition: CameraPosition(
-                                target: _initialPosition!,
-                                zoom: 11,
-                              ),
-                              zoomGesturesEnabled: true,
-                              myLocationEnabled: false,
-                              compassEnabled: true,
-                              myLocationButtonEnabled: false,
-                              markers:
-                                  Set.of((marker != null) ? [marker!] : []),
-                              circles:
-                                  Set.of((circle != null) ? [circle!] : []),
-                              polygons: _doNotEnterFence,
-                              onTap: (point) {
-                                if (_isPolygonFence) {
-                                  setState(() {
-                                    polygonFenceLatLngs.add(point);
-                                    _setPolygonFence();
-                                  });
-                                }
-                                if (_isDoNotEnterFence) {
-                                  setState(() {
-                                    dotNotEnterFenceLatLngs.add(point);
-                                    _setDoNotEnterFence();
-                                  });
-                                }
-                              },
-                              onMapCreated: (GoogleMapController controller) {
-                                _controller.complete(controller);
-                                // _controller = _controller;
-                              },
-                            )),
-              SizedBox(
-                height: 20.0,
-              ),
-              ElevatedButton(
-                style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(Colors.black),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18.0),
-                    ))),
-                child: Text(
-                  'Continue',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
+                  ],
                 ),
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      new MaterialPageRoute(
-                          builder: (context) => new Geofence()));
-                },
-              ),
-            ]),
+                SizedBox(
+                  height: 20.0,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Configure the Geofence',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 30.0,
+                          fontFamily: 'RobotoMono'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => _onSettingsPressed(),
+                      child: Row(
+                        // mainAxisAlignment: MainAxisAlignment.end,
+                        children: <Widget>[Icon(Icons.settings)],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 20.0,
+                ),
+                _initialPosition == null
+                    ? Loading()
+                    : SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.65,
+                        width: MediaQuery.of(context).size.width,
+                        child: _isPolygonFence
+                            ? GoogleMap(
+                                mapType: MapType.hybrid,
+                                initialCameraPosition: CameraPosition(
+                                  target: _initialPosition!,
+                                  zoom: 11,
+                                ),
+                                zoomGesturesEnabled: true,
+                                myLocationEnabled: false,
+                                compassEnabled: true,
+                                myLocationButtonEnabled: false,
+                                markers:
+                                    Set.of((marker != null) ? [marker!] : []),
+                                circles:
+                                    Set.of((circle != null) ? [circle!] : []),
+                                polygons: _polygonsFence,
+                                onTap: (point) {
+                                  if (_isPolygonFence) {
+                                    setState(() {
+                                      polygonFenceLatLngs.add(point);
+                                      _setPolygonFence();
+                                    });
+                                  }
+                                  if (_isDoNotEnterFence) {
+                                    setState(() {
+                                      dotNotEnterFenceLatLngs.add(point);
+                                      _setDoNotEnterFence();
+                                    });
+                                  }
+                                },
+                                onMapCreated: (GoogleMapController controller) {
+                                  // _controller = _controller;
+                                  _controller.complete(controller);
+                                },
+                              )
+                            : GoogleMap(
+                                mapType: MapType.hybrid,
+                                initialCameraPosition: CameraPosition(
+                                  target: _initialPosition!,
+                                  zoom: 11,
+                                ),
+                                zoomGesturesEnabled: true,
+                                myLocationEnabled: false,
+                                compassEnabled: true,
+                                myLocationButtonEnabled: false,
+                                markers:
+                                    Set.of((marker != null) ? [marker!] : []),
+                                circles:
+                                    Set.of((circle != null) ? [circle!] : []),
+                                polygons: _doNotEnterFence,
+                                onTap: (point) {
+                                  if (_isPolygonFence) {
+                                    setState(() {
+                                      polygonFenceLatLngs.add(point);
+                                      _setPolygonFence();
+                                    });
+                                  }
+                                  if (_isDoNotEnterFence) {
+                                    setState(() {
+                                      dotNotEnterFenceLatLngs.add(point);
+                                      _setDoNotEnterFence();
+                                    });
+                                  }
+                                },
+                                onMapCreated: (GoogleMapController controller) {
+                                  _controller.complete(controller);
+                                  // _controller = _controller;
+                                },
+                              )),
+                SizedBox(
+                  height: 20.0,
+                ),
+                ElevatedButton(
+                  style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Colors.black),
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18.0),
+                      ))),
+                  child: Text(
+                    'Continue',
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        new MaterialPageRoute(
+                            builder: (context) => new Step5()));
+                  },
+                ),
+              ]),
+            )),
           )),
-        ));
+    );
   }
 }

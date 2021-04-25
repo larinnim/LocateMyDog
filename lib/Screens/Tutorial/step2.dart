@@ -102,7 +102,7 @@ class _Step2State extends State<Step2> {
                             borderRadius: BorderRadius.circular(8.0),
                           ))),
                       child: Text(
-                        'Scan End Deivce',
+                        'Scan Gateway Device',
                         style: TextStyle(fontSize: 16, color: Colors.white),
                       ),
                       onPressed: () {
