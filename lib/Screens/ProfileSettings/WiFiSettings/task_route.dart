@@ -38,8 +38,11 @@ class TaskRouteState extends State<TaskRoute> {
     return Center(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.5,
+          ),
           CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation(Colors.red),
           ),
@@ -146,23 +149,25 @@ class TaskRouteState extends State<TaskRoute> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        child: StreamBuilder<ESPTouchResult>(
-          stream: _stream,
-          builder: (context, AsyncSnapshot<ESPTouchResult> snapshot) {
-            if (snapshot.hasError) {
-              return error(context);
-            }
-            if (snapshot.connectionState == ConnectionState.active ||
-                snapshot.connectionState == ConnectionState.done &&
-                    snapshot.hasData) {
-              return success(context, snapshot.data!.ip);
-            } else if (snapshot.connectionState == ConnectionState.waiting) {
-              return waitingState(context);
-            } else {
-              return error(context);
-            }
-          },
+      body: SingleChildScrollView(
+        child: Container(
+          child: StreamBuilder<ESPTouchResult>(
+            stream: _stream,
+            builder: (context, AsyncSnapshot<ESPTouchResult> snapshot) {
+              if (snapshot.hasError) {
+                return error(context);
+              }
+              if (snapshot.connectionState == ConnectionState.active ||
+                  snapshot.connectionState == ConnectionState.done &&
+                      snapshot.hasData) {
+                return success(context, snapshot.data!.ip);
+              } else if (snapshot.connectionState == ConnectionState.waiting) {
+                return waitingState(context);
+              } else {
+                return error(context);
+              }
+            },
+          ),
         ),
       ),
     );

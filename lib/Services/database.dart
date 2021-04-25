@@ -46,6 +46,12 @@ class DatabaseService {
     }, SetOptions(merge: true));
   }
 
+  Future<void> updateGatewayID(String id) async {
+    await locateCollection.doc(uid).set({
+      'gateway': {"id": id},
+    }, SetOptions(merge: true));
+  }
+
   Future<void> updateDeviceName(String name, String? senderNumber) async {
     await locateCollection.doc(uid).set({
       senderNumber!: {"name": name},

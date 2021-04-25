@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
+import 'package:flutter_maps/Screens/Tutorial/step1.dart';
 import 'package:flutter_maps/Services/database.dart';
 
 class Wrapper extends StatelessWidget {
@@ -31,8 +32,8 @@ class Wrapper extends StatelessWidget {
       //     .collection('locateDog')
       //     .where(FirestoreSetUp.instance.gateway, "array-contains",
       //         {userId: "xyz", userName: "abc"});
-
-      return ProfileScreen();
+      return Step1();
+      // return ProfileScreen();
     }
   }
 }

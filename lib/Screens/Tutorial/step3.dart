@@ -1,156 +1,297 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
+import 'package:connectivity/connectivity.dart';
+import 'package:esptouch_smartconfig/esptouch_smartconfig.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-// import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
-import 'package:flutter_maps/Screens/Home/wrapper.dart';
-import 'package:flutter_maps/Screens/Tutorial/step4.dart';
-import 'package:flutter_maps/Services/database.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
-import '../../Services/bluetooth_conect.dart';
-
-// class FirestoreSetUp {
-//   static final FirestoreSetUp _singleton = FirestoreSetUp._internal();
-
-//   factory FirestoreSetUp() {
-//     return _singleton;
-//   }
-
-//   FirestoreSetUp._internal();
-// }
-
-// class FirestoreSetUp {
-//   String gateway = "";
-//   String endDevice = "";
-
-//   FirestoreSetUp._privateConstructor();
-
-//   static final FirestoreSetUp _instance = FirestoreSetUp._privateConstructor();
-
-//   static FirestoreSetUp get instance => _instance;
-// }
+import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/task_route.dart';
+import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/wifi_settings.dart';
+import 'package:flutter_maps/Screens/Tutorial/step3.dart';
+import 'package:get/get.dart';
 
 class Step3 extends StatefulWidget {
   @override
-  _Step3State createState() => new _Step3State();
+  _Step3State createState() => _Step3State();
 }
 
 class _Step3State extends State<Step3> {
-  String? _endDevice = 'Unknown';
-  // String _endDevice = 'Unknown';
+  late Connectivity _connectivity;
+  late Stream<ConnectivityResult> _connectivityStream;
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  ConnectivityResult? result;
+  bool isBroad = true;
+  TextEditingController password = TextEditingController();
+  TextEditingController deviceCount = TextEditingController(text: "1");
+  bool _obscureText = false;
+  String _espIP = "";
+  bool _isDisconnected = true;
 
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  void espIPReceived(String receivedIP) {
+    setState(() {
+      _espIP = receivedIP;
+      _isDisconnected = false;
+    });
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => Step3()));
+  }
 
   @override
-  initState() {
+  void initState() {
+    // TODO: implement initState
     super.initState();
+    _connectivity = Connectivity();
+    _connectivityStream = _connectivity.onConnectivityChanged;
+    _connectivitySubscription = _connectivityStream.listen((e) {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _connectivitySubscription.cancel();
+    super.dispose();
+  }
+
+  void goToTaskRoute(String ssid, String bssid) async {
+    await Navigator.of(context)
+        .push(MaterialPageRoute(
+            builder: (context) => TaskRoute(
+                ssid, bssid, password.text, deviceCount.text, isBroad)))
+        .then((value) {
+      password.clear();
+      espIPReceived(value);
+    });
+  }
+
+  Widget normalState(BuildContext context, String ssidName, String bssidName) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 50.0,
+        ),
+        Visibility(
+            visible: _isDisconnected,
+            child: Image.asset(
+              'assets/images/wifi_disconnected.png',
+              fit: BoxFit.cover,
+            ),
+            replacement: Image.asset(
+              'assets/images/wifi_connected.png',
+              // fit: BoxFit.fill,
+            )),
+        SizedBox(
+          height: 30.0,
+        ),
+        Visibility(
+            visible: _isDisconnected,
+            child: Text(
+              'disconnected'.tr,
+              style: TextStyle(
+                  fontSize: 40.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red[300]),
+            ),
+            replacement: Text(
+              'connected'.tr,
+              style: TextStyle(
+                  fontSize: 72.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.lightGreen),
+            )),
+        SizedBox(
+          height: 30.0,
+        ),
+        Text.rich(TextSpan(children: [
+          TextSpan(
+              text: "ssid".tr + " : \t ",
+              style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.bold)),
+          TextSpan(
+              text: ssidName,
+              style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold)),
+        ])),
+        Text.rich(TextSpan(children: [
+          TextSpan(
+              text: "ip_address".tr + ' : \t',
+              style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.bold)),
+          TextSpan(
+              text: _espIP,
+              style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold)),
+        ])),
+        SizedBox(
+          height: 60,
+        ),
+        Visibility(
+          visible: _isDisconnected,
+          child: disconnectedPasswordRequest(context, ssidName, bssidName),
+          replacement: ElevatedButton(
+            style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Colors.black),
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0),
+                ))),
+            child: Text(
+              'Continue',
+              style: TextStyle(fontSize: 16, color: Colors.white),
+            ),
+            onPressed: () {},
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget disconnectedPasswordRequest(
+      BuildContext context, String ssidName, String bssidName) {
+    return Column(
+      children: [
+        SizedBox(
+          width: MediaQuery.of(context).size.width * 0.9,
+          child: TextField(
+            obscureText: _obscureText,
+            controller: password,
+            cursorColor: Colors.black,
+            decoration: InputDecoration(
+                labelText: "password".tr + ' :',
+                suffixIcon: IconButton(
+                  icon: _obscureText
+                      ? Icon(Icons.visibility, color: Colors.grey)
+                      : Icon(Icons.visibility_off, color: Colors.grey),
+                  onPressed: () {
+                    // Update the state i.e. toogle the state of passwordVisible variable
+                    setState(() {
+                      _obscureText = !_obscureText;
+                    });
+                  },
+                ),
+                labelStyle: TextStyle(color: Colors.grey),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(color: Colors.red),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(color: Colors.black),
+                )),
+          ),
+        ),
+        SizedBox(
+          height: 60,
+        ),
+        SizedBox(
+          width: 150.0,
+          height: 50.0,
+          child: ElevatedButton(
+              onPressed: () async {
+                print(password.text);
+                print(deviceCount.text);
+                goToTaskRoute(ssidName, bssidName);
+              },
+              style: ElevatedButton.styleFrom(
+                primary: Colors.red[300],
+                shape: new RoundedRectangleBorder(
+                  borderRadius: new BorderRadius.circular(30.0),
+                ),
+              ),
+              child: Text("confirm".tr)),
+        )
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-        type: MaterialType.transparency,
-        child: new Container(
-          decoration: BoxDecoration(color: Colors.white),
-          child: SafeArea(
-              child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 28.0, vertical: 40.0),
-            child: Column(children: <Widget>[
-              Row(
-                children: [
-                  Text(
-                    'Step 3 of 3',
-                    style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 20.0,
-                        fontFamily: 'RobotoMono'),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: 20.0,
-              ),
-              Row(
-                children: [
-                  Text(
-                    'Scan QR Code',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 30.0,
-                        fontFamily: 'RobotoMono'),
-                  )
-                ],
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: RaisedButton(
-                        color: Colors.blue,
-                        textColor: Colors.white,
-                        splashColor: Colors.blueGrey,
-                        onPressed: scanQR,
-                        child: const Text('Scan End Deivce')),
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: FutureBuilder(
+            future: _connectivity.checkConnectivity(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData)
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              else if (snapshot.data == ConnectivityResult.wifi) {
+                return FutureBuilder<Map<String, String>?>(
+                    future: EsptouchSmartconfig.wifiData(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        return Center(
+                            child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: 50.0,
+                            ),
+                            Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(30.0),
+                                  child: Text(
+                                    'Step 3 of 3',
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 20.0,
+                                        fontFamily: 'RobotoMono'),
+                                  ),
+                                )
+                              ],
+                            ),
+                            SizedBox(
+                              height: 20.0,
+                            ),
+                            // SizedBox(
+                            //   height: 50.0,
+                            // ),
+                            Text(
+                              "Now, Let's connect the Gateway to WiFi.",
+                              style: TextStyle(
+                                // fontWeight: FontWeight.bold,
+                                fontSize: 20.0,
+                              ),
+                            ),
+                            normalState(context, snapshot.data!['wifiName']!,
+                                snapshot.data!['bssid']!),
+                          ],
+                        ));
+
+                        // return WifiPage(snapshot.data!['wifiName']!,
+                        //     snapshot.data!['bssid']!);
+                      } else
+                        return Container();
+                    });
+              } else {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.wifi_off_sharp,
+                        size: 200,
+                        color: Colors.red,
+                      ),
+                      Text(
+                        "wifi_not_connected".tr,
+                        style: TextStyle(fontSize: 20, color: Colors.grey),
+                      )
+                    ],
                   ),
-                  Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Text(
-                      _endDevice!,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
-            ]),
-          )),
-        ));
-  }
-
-  Future<void> scanQR() async {
-    String? barcodeScanRes;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // try {
-    //   barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-    //       "#ff6666", "Cancel", true, ScanMode.QR);
-    //   print(barcodeScanRes);
-
-    //   writeData(barcodeScanRes);
-      
-    // } on PlatformException {
-    //   barcodeScanRes = 'Failed to get platform version.';
-    // }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _endDevice = barcodeScanRes;
-      FirestoreSetUp.instance.endDevice = _endDevice;
-    });
-  }
-
-  Future<void> writeData(String data) async {
-    if (context.read<BleModel>().characteristics.elementAt(3) == null)
-      return; //End Device Characteristic
-
-    List<int> bytes = utf8.encode(data);
-    await context
-        .read<BleModel>()
-        .characteristics
-        .elementAt(3)
-        .write(bytes); //Write End Device to ESP32
-
-    Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => Wrapper(),
-      ));
+                );
+              }
+            }),
+      ),
+    );
   }
 }
