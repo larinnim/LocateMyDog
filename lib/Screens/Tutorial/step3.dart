@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/task_route.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/wifi_settings.dart';
 import 'package:flutter_maps/Screens/Tutorial/step3.dart';
+import 'package:flutter_maps/Screens/Tutorial/step4.dart';
 import 'package:get/get.dart';
 
 class Step3 extends StatefulWidget {
@@ -31,7 +32,7 @@ class _Step3State extends State<Step3> {
       _isDisconnected = false;
     });
     Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => Step3()));
+        .push(MaterialPageRoute(builder: (context) => Step4()));
   }
 
   @override
@@ -198,7 +199,9 @@ class _Step3State extends State<Step3> {
               onPressed: () async {
                 print(password.text);
                 print(deviceCount.text);
-                goToTaskRoute(ssidName, bssidName);
+                // goToTaskRoute(ssidName, bssidName); //TODO enable when arina finishes the ESP32
+                 Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => Step4()));
               },
               style: ElevatedButton.styleFrom(
                 primary: Colors.red[300],
@@ -240,7 +243,7 @@ class _Step3State extends State<Step3> {
                                 Padding(
                                   padding: const EdgeInsets.all(30.0),
                                   child: Text(
-                                    'Step 3 of 3',
+                                    'Step 3 of 5',
                                     style: TextStyle(
                                         color: Colors.grey,
                                         fontSize: 20.0,

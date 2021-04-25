@@ -63,7 +63,7 @@ class _Step2State extends State<Step2> {
               Row(
                 children: [
                   Text(
-                    'Step 2 of 3',
+                    'Step 2 of 5',
                     style: TextStyle(
                         color: Colors.grey,
                         fontSize: 20.0,

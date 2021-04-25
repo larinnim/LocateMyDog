@@ -24,7 +24,7 @@ class _Step1State extends State<Step1> {
               Padding(
                 padding: const EdgeInsets.all(30.0),
                 child: Text(
-                  'Step 1 of 3',
+                  'Step 1 of 5',
                   style: TextStyle(
                       color: Colors.grey,
                       fontSize: 20.0,
