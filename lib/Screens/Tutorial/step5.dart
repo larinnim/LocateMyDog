@@ -17,10 +17,10 @@ import 'package:get/get.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../loading.dart';
+import 'addNewDevice.dart';
 import 'step3.dart';
 import '../../locator.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart'
-    as barcode;
+
 import 'package:flutter_maps/Services/database.dart';
 
 class Step5 extends StatefulWidget {
@@ -29,18 +29,15 @@ class Step5 extends StatefulWidget {
 }
 
 class _Step5State extends State<Step5> {
-  String? _endDevice = 'Unknown';
-  List<Device> _devices = [];
-  List<Color> _availableColors = [
+  CollectionReference locationDB =
+      FirebaseFirestore.instance.collection('locateDog');
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final List<Color> _availableColors = [
     Colors.green,
     Colors.orange,
     Colors.purple,
     Colors.red
   ];
-  CollectionReference locationDB =
-      FirebaseFirestore.instance.collection('locateDog');
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-
   @override
   initState() {
     super.initState();
@@ -50,6 +47,16 @@ class _Step5State extends State<Step5> {
     await DatabaseService(uid: _firebaseAuth.currentUser!.uid)
         .completedSetup(completed)
         .then((value) => Get.off(Wrapper()));
+  }
+
+  void goToAddNewDevice(int senderID, String color) async {
+    await Navigator.of(context)
+        .push(MaterialPageRoute(
+            builder: (context) => AddNewDevice(senderID, color)))
+        .then((value) {
+      _availableColors.removeAt(0);
+      print(value.toString());
+    });
   }
 
   @override
@@ -96,13 +103,38 @@ class _Step5State extends State<Step5> {
                     Visibility(
                       visible: snapshot.data!.docs.length < 4,
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment
+                            .center, //Center Row contents horizontally,
                         children: [
-                          Text(
-                            'Scan QR Code',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 30.0,
-                                fontFamily: 'RobotoMono'),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.7,
+                            height: 50,
+                            child: ElevatedButton.icon(
+                              icon: Icon(
+                                Icons.add_circle_outline,
+                                color: Colors.white,
+                                size: 24.0,
+                              ),
+                              style: ButtonStyle(
+                                  backgroundColor: MaterialStateProperty.all(
+                                      Colors.red[300]),
+                                  shape: MaterialStateProperty.all<
+                                          RoundedRectangleBorder>(
+                                      RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ))),
+                              label: Text(
+                                'Add New Device',
+                                style: TextStyle(
+                                    fontSize: 20, color: Colors.white),
+                              ),
+                              onPressed: () {
+                                goToAddNewDevice(
+                                    snapshot.data!.docs.length + 1,
+                                    AuxFunc().colorNamefromColor(
+                                        _availableColors[0]));
+                              },
+                            ),
                           ),
                         ],
                       ),
@@ -118,43 +150,38 @@ class _Step5State extends State<Step5> {
                         ],
                       ),
                     ),
+                    SizedBox(height: 30.0),
+                    Expanded(
+                      child: new ListView.separated(
+                          itemCount: snapshot.data!.docs.length,
+                          separatorBuilder: (BuildContext context, int index) =>
+                              Divider(height: 1),
+                          itemBuilder: (BuildContext context, int index) {
+                            return ClipRRect(
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  bottomLeft: Radius.circular(10),
+                                ),
+                                child: ListTile(
+                                    tileColor: AuxFunc().getColor(snapshot.data!.docs[index]['color']),
+                                    leading: Icon(
+                                      LineAwesomeIcons.mobile_phone,
+                                      color: Colors.white,
+                                    ),
+                                    title: Text(
+                                      snapshot.data!.docs[index]['name'],
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 20),
+                                    )));
+                            // title: Text("List item $index"));
+                          }),
+                    ),
                     Visibility(
-                      visible: snapshot.data!.docs.length < 4,
+                      visible: snapshot.data!.docs.length < 1,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 16.0, vertical: 8.0),
-                            child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all(Colors.blue),
-                                  shape: MaterialStateProperty.all<
-                                          RoundedRectangleBorder>(
-                                      RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ))),
-                              child: Text(
-                                'Scan End Device',
-                                style: TextStyle(
-                                    fontSize: 16, color: Colors.white),
-                              ),
-                              onPressed: () {
-                                scanQR();
-                              },
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 16.0, vertical: 8.0),
-                            child: Text(
-                              _endDevice!,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
+                        children: <Widget>[],
                       ),
                       replacement: Column(
                         children: [
@@ -182,62 +209,9 @@ class _Step5State extends State<Step5> {
                         ],
                       ),
                     ),
-                    Expanded(
-                      child: new ListView.builder(
-                          itemCount: snapshot.data!.docs.length,
-                          scrollDirection: Axis.horizontal,
-                          itemBuilder: (BuildContext context, int index) {
-                            return Text(snapshot.data!.docs[index]['name']);
-                          }),
-                    )
                   ]),
                 )),
               ));
         });
-  }
-
-  Future<void> scanQR() async {
-    String barcodeScanRes;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    try {
-      barcodeScanRes = await barcode.FlutterBarcodeScanner.scanBarcode(
-          "#ff6666", "Cancel", true, barcode.ScanMode.QR);
-      String newSender = "Sender" + (_devices.length + 1).toString();
-
-      locationDB
-          .doc(_firebaseAuth.currentUser!.uid)
-          .collection('gateway')
-          .doc(newSender)
-          .set({
-        'Location': {'Latitude': '', 'Longitude': ''},
-        'color': AuxFunc().colorNamefromColor(_availableColors[0]),
-        'name': newSender
-      }, SetOptions(merge: true)).then((value) {
-        setState(() {
-          _devices.add(Device(
-            id: barcodeScanRes,
-            name: newSender,
-            batteryLevel: null,
-            latitude: null,
-            longitude: null,
-            color: AuxFunc().colorNamefromColor(_availableColors[0]),
-            senderNumber: "Sender" + (_devices.length + 1).toString(),
-          ));
-          _availableColors.removeAt(0);
-        });
-      }).catchError((error) => print("Failed to add user: $error"));
-      print(barcodeScanRes);
-    } on PlatformException {
-      barcodeScanRes = 'Failed to get platform version.';
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _endDevice = barcodeScanRes;
-    });
   }
 }

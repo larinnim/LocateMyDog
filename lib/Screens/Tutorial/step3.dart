@@ -279,7 +279,9 @@ class _Step3State extends State<Step3> {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.3),
                       Icon(
                         Icons.wifi_off_sharp,
                         size: 200,
