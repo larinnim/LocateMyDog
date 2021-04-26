@@ -277,29 +277,49 @@ class _GatewayDetailsState extends State<GatewayDetails> {
   void _getDevices() async {
     locationDB
         .doc(_firebaseAuth.currentUser!.uid)
+        .collection('gateway')
         .get()
-        .then((DocumentSnapshot documentSnapshot) {
-      if (documentSnapshot.exists) {
-        documentSnapshot.data()!.forEach((key, value) {
-          if (key.startsWith('Sender')) {
-            Color devColor = AuxFunc().getColor(value['color']);
-            _availableColors
-                .removeWhere((colorAvailable) => devColor == colorAvailable);
-            setState(() {
-              _devices.add(Device(
-                id: value['ID'],
-                name: value['name'],
-                batteryLevel: value['battery'],
-                latitude: value['Location']["Latitude"],
-                longitude: value['Location']["Longitude"],
-                color: value['color'],
-                senderNumber: key,
-              ));
-            });
-          }
-        });
-        print('Document exists on the database');
-      }
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        if (doc.id.contains('Sender')) {
+          Color devColor = AuxFunc().getColor(doc['color']);
+          _availableColors
+              .removeWhere((colorAvailable) => devColor == colorAvailable);
+          setState(() {
+            _devices.add(Device(
+              id: doc['id'],
+              name: doc['name'],
+              batteryLevel: doc['batteryLevel'],
+              latitude: doc['Location']["Latitude"],
+              longitude: doc['Location']["Longitude"],
+              color: doc['color'],
+              senderNumber: doc.id,
+            ));
+          });
+        }
+      });
+
+      // if (querySnapshot.exists) {
+      //   documentSnapshot.data()!.forEach((key, value) {
+      //     if (key.startsWith('Sender')) {
+      //       Color devColor = AuxFunc().getColor(value['color']);
+      //       _availableColors
+      //           .removeWhere((colorAvailable) => devColor == colorAvailable);
+      //       setState(() {
+      //         _devices.add(Device(
+      //           id: value['ID'],
+      //           name: value['name'],
+      //           batteryLevel: value['battery'],
+      //           latitude: value['Location']["Latitude"],
+      //           longitude: value['Location']["Longitude"],
+      //           color: value['color'],
+      //           senderNumber: key,
+      //         ));
+      //       });
+      //     }
+      //   });
+      //   print('Document exists on the database');
+      // }
     });
   }
 

@@ -33,7 +33,9 @@ class AddNewDevice extends StatelessWidget {
           .set({
         'Location': {'Latitude': '', 'Longitude': ''},
         'color': colorString,
-        'name': newSender
+        'name': newSender,
+        'batteryLevel' : 0,
+        'id' : barcodeScanRes,
       }, SetOptions(merge: true)).then((value) {
         Get.back();
         // setState(() {
