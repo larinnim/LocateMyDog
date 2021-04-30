@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class DatabaseService {
@@ -11,6 +12,14 @@ class DatabaseService {
   // collection reference
   final CollectionReference locateCollection =
       FirebaseFirestore.instance.collection('locateDog');
+
+  final CollectionReference senderCollection =
+      FirebaseFirestore.instance.collection('sender');
+
+  final CollectionReference gatewayCollection =
+      FirebaseFirestore.instance.collection('sender');
+
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   Future<void> updateUserData(
       String? dogname, String? ownername, String? breed) async {
@@ -25,10 +34,9 @@ class DatabaseService {
     // SetOptions(merge: true);
   }
 
-  Future<void> updateDeviceColor(
-      String deviceColor, String senderNumber) async {
-    await locateCollection.doc(uid).set({
-      senderNumber: {"color": deviceColor},
+  Future<void> updateDeviceColor(String deviceColor) async {
+    await senderCollection.doc(uid).set({
+      'color': deviceColor,
     }, SetOptions(merge: true));
   }
 
@@ -57,15 +65,18 @@ class DatabaseService {
     }, SetOptions(merge: true));
   }
 
-  Future<void> updateGatewayID(String id) async {
-    await locateCollection.doc(uid).set({
-      'gateway': {"id": id, "name": "Gateway - IAT - " + id},
+  Future<void> createGateway(String gatewayMAC) async {
+    await gatewayCollection.doc('GW-' + gatewayMAC).set({
+      'name': "Gateway - IAT - " + gatewayMAC,
+      'userID': _firebaseAuth.currentUser!.uid,
+      'version': '1.0',
+      'gatewayMAC': gatewayMAC
     }, SetOptions(merge: true));
   }
 
-  Future<void> updateDeviceName(String name, String? senderNumber) async {
-    await locateCollection.doc(uid).set({
-      senderNumber!: {"name": name},
+  Future<void> updateDeviceName(String name) async {
+    await senderCollection.doc(uid).set({
+      'name': name,
     }, SetOptions(merge: true));
   }
 

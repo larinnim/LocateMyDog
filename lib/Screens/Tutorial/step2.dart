@@ -13,35 +13,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import '../../Services/bluetooth_conect.dart';
 
-// class FirestoreSetUp {
-//   static final FirestoreSetUp _singleton = FirestoreSetUp._internal();
-
-//   factory FirestoreSetUp() {
-//     return _singleton;
-//   }
-
-//   FirestoreSetUp._internal();
-// }
-
-// class FirestoreSetUp {
-//   String gateway = "";
-//   String endDevice = "";
-
-//   FirestoreSetUp._privateConstructor();
-
-//   static final FirestoreSetUp _instance = FirestoreSetUp._privateConstructor();
-
-//   static FirestoreSetUp get instance => _instance;
-// }
-
 class Step2 extends StatefulWidget {
   @override
   _Step2State createState() => new _Step2State();
 }
 
 class _Step2State extends State<Step2> {
-  String? _endDevice = 'Unknown';
-  // String _endDevice = 'Unknown';
+  String? _gatewayDevice = 'Unknown';
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
@@ -109,19 +87,12 @@ class _Step2State extends State<Step2> {
                         scanQR();
                       },
                     ),
-
-                    //  RaisedButton(
-                    //     color: Colors.blue,
-                    //     textColor: Colors.white,
-                    //     splashColor: Colors.blueGrey,
-                    //     onPressed: scanQR,
-                    //     child: const Text('Scan End Deivce')),
                   ),
                   Padding(
                     padding:
                         EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     child: Text(
-                      _endDevice!,
+                      _gatewayDevice!,
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -151,30 +122,16 @@ class _Step2State extends State<Step2> {
     if (!mounted) return;
 
     setState(() {
-      _endDevice = barcodeScanRes;
-      // FirestoreSetUp.instance.endDevice = _endDevice;
+      _gatewayDevice = barcodeScanRes;
+      // FirestoreSetUp.instance.endDevice = _gatewayDevice;
     });
   }
 
-  Future<void> sendGatewayID(String data) async {
+  Future<void> sendGatewayID(String gatewayMac) async {
     await DatabaseService(uid: _firebaseAuth.currentUser!.uid)
-        .updateGatewayID(data)
+        .createGateway(gatewayMac)
         .then((value) => Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => Step3(),
             )));
-
-    // if (context.read<BleModel>().characteristics.elementAt(3) == null)
-    //   return; //End Device Characteristic
-
-    // List<int> bytes = utf8.encode(data);
-    // await context
-    //     .read<BleModel>()
-    //     .characteristics
-    //     .elementAt(3)
-    //     .write(bytes); //Write End Device to ESP32
-
-    // Navigator.of(context).push(MaterialPageRoute(
-    //   builder: (context) => Step3(),
-    // ));
   }
 }

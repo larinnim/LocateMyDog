@@ -11,15 +11,15 @@ import '../loading.dart';
 class Wrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    CollectionReference users =
-        FirebaseFirestore.instance.collection('locateDog');
+    CollectionReference usersCollection =
+        FirebaseFirestore.instance.collection('users');
 
     if (FirebaseAuth.instance.currentUser == null) {
       print("In Authenticate screen");
       return Authenticate();
     } else {
       return FutureBuilder<DocumentSnapshot>(
-        future: users.doc(FirebaseAuth.instance.currentUser!.uid).get(),
+        future: usersCollection.doc(FirebaseAuth.instance.currentUser!.uid).get(),
         builder:
             (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
           if (snapshot.hasError) {

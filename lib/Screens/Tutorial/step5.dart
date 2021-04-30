@@ -29,8 +29,8 @@ class Step5 extends StatefulWidget {
 }
 
 class _Step5State extends State<Step5> {
-  CollectionReference locationDB =
-      FirebaseFirestore.instance.collection('locateDog');
+  // CollectionReference locationDB =
+  //     FirebaseFirestore.instance.collection('locateDog');
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final List<Color> _availableColors = [
     Colors.green,

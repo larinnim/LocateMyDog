@@ -14,8 +14,7 @@ class DeviceDetail extends StatefulWidget {
       this.title,
       this.color,
       this.battery,
-      this.id,
-      this.senderNumber,
+      this.senderID,
       this.availableColors})
       : super(key: key);
   @override
@@ -26,15 +25,15 @@ class DeviceDetail extends StatefulWidget {
   String? title;
   Color? color;
   int? battery;
-  String? id;
-  String? senderNumber;
+  String? senderID;
   List<Color>? availableColors;
 }
 
 class _DeviceDetailState extends State<DeviceDetail> {
-  CollectionReference locationDB =
-      FirebaseFirestore.instance.collection('locateDog');
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
+  CollectionReference senderCollection =
+      FirebaseFirestore.instance.collection('sender');
+
   TextEditingController _renameController = TextEditingController();
 
   Color? currentColor = Color(0xff443a49);
@@ -49,13 +48,13 @@ class _DeviceDetailState extends State<DeviceDetail> {
 // ValueChanged<Color> callback
   void changeColor(Color? color) {
     setState(() => _pickerColor = color);
-    DatabaseService(uid: _firebaseAuth.currentUser!.uid).updateDeviceColor(
-        AuxFunc().colorNamefromColor(_pickerColor), widget.senderNumber.toString());
+    DatabaseService(uid: widget.senderID).updateDeviceColor(
+        AuxFunc().colorNamefromColor(_pickerColor));
   }
 
   void updateName() async {
-    await DatabaseService(uid: _firebaseAuth.currentUser!.uid)
-        .updateDeviceName(_renameController.text, widget.senderNumber);
+    await DatabaseService(uid: widget.senderID)
+        .updateDeviceName(_renameController.text);
   }
 
 // raise the [showDialog] widget
@@ -188,8 +187,8 @@ class _DeviceDetailState extends State<DeviceDetail> {
   }
 
   Future<void> _displayTextInputDialog(BuildContext context) async {
-    locationDB
-        .doc(_firebaseAuth.currentUser!.uid)
+    senderCollection
+        .doc(widget.senderID)
         .get()
         .then((DocumentSnapshot querySnapshot) {
       return showDialog(
@@ -200,7 +199,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
             content: TextField(
               controller: _renameController,
               decoration: InputDecoration(
-                  hintText: querySnapshot.data()![widget.senderNumber!]["name"]),
+                  hintText: querySnapshot.data()!["name"]),
             ),
             actions: <Widget>[
               TextButton(

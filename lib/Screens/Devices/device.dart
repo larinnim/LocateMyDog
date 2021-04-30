@@ -15,17 +15,4 @@ class Device {
       this.longitude,
       this.color,
       this.senderNumber});
-
-  // Device.fromJson(Map<String, dynamic> json)
-  //     : name = json['name'],
-  //       filling = json['filling'],
-  //       topping = json['topping'],
-  //       price = json['price'];
-
-  // Map<String, dynamic> toJson() => {
-  //   'name' : name,
-  //   'filling' : filling,
-  //   'topping' : topping,
-  //   'price' : price
-  // };
 }

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart'
     as barcode;
@@ -10,11 +11,17 @@ import 'package:get/get.dart';
 class AddNewDevice extends StatelessWidget {
   AddNewDevice(this.senderID, this.colorString);
 
+  CollectionReference senderCollection =
+      FirebaseFirestore.instance.collection('sender');
+
+  CollectionReference gatewayCollection =
+      FirebaseFirestore.instance.collection('gateway');
+
   late final int senderID;
   late final String colorString;
 
-  final CollectionReference locationDB =
-      FirebaseFirestore.instance.collection('locateDog');
+  // final CollectionReference locationDB =
+  //     FirebaseFirestore.instance.collection('locateDog');
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   Future<void> scanQR() async {
@@ -24,37 +31,53 @@ class AddNewDevice extends StatelessWidget {
     try {
       barcodeScanRes = await barcode.FlutterBarcodeScanner.scanBarcode(
           "#ff6666", "Cancel", true, barcode.ScanMode.QR);
-      String newSender = "Sender" + senderID.toString();
 
-      locationDB
-          .doc(_firebaseAuth.currentUser!.uid)
-          .collection('gateway')
-          .doc(newSender)
-          .set({
+      senderCollection.doc('GW-' + barcodeScanRes).set({
+        'senderMac': barcodeScanRes,
+        'userID': _firebaseAuth.currentUser!.uid,
         'Location': {'Latitude': '', 'Longitude': ''},
+        'LocationTimestamp': '',
+        'batteryLevel': 0,
         'color': colorString,
-        'name': newSender,
-        'batteryLevel' : 0,
-        'id' : barcodeScanRes,
+        'name': barcodeScanRes,
+        'id': barcodeScanRes,
       }, SetOptions(merge: true)).then((value) {
         Get.back();
-        // setState(() {
-        //   _devices.add(Device(
-        //     id: barcodeScanRes,
-        //     name: newSender,
-        //     batteryLevel: null,
-        //     latitude: null,
-        //     longitude: null,
-        //     color: AuxFunc().colorNamefromColor(_availableColors[0]),
-        //     senderNumber: "Sender" + (_devices.length + 1).toString(),
-        //   ));
-        //   _availableColors.removeAt(0);
-        // });
       }).catchError((error) => print("Failed to add user: $error"));
       print(barcodeScanRes);
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
+
+    //   senderCollection
+    //       .doc()
+    //       .collection('gateway')
+    //       .doc(newSender)
+    //       .set({
+    //     'Location': {'Latitude': '', 'Longitude': ''},
+    //     'color': colorString,
+    //     'name': newSender,
+    //     'batteryLevel' : 0,
+    //     'id' : barcodeScanRes,
+    //   }, SetOptions(merge: true)).then((value) {
+    //     Get.back();
+    //     // setState(() {
+    //     //   _devices.add(Device(
+    //     //     id: barcodeScanRes,
+    //     //     name: newSender,
+    //     //     batteryLevel: null,
+    //     //     latitude: null,
+    //     //     longitude: null,
+    //     //     color: AuxFunc().colorNamefromColor(_availableColors[0]),
+    //     //     senderNumber: "Sender" + (_devices.length + 1).toString(),
+    //     //   ));
+    //     //   _availableColors.removeAt(0);
+    //     // });
+    //   }).catchError((error) => print("Failed to add user: $error"));
+    //   print(barcodeScanRes);
+    // } on PlatformException {
+    //   barcodeScanRes = 'Failed to get platform version.';
+    // }
 
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
