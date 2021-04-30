@@ -8,6 +8,7 @@ import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Tutorial/step3.dart';
 import 'package:flutter_maps/Screens/Tutorial/step4.dart';
+import 'package:flutter_maps/Screens/Tutorial/step5.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -131,7 +132,7 @@ class _Step2State extends State<Step2> {
     await DatabaseService(uid: _firebaseAuth.currentUser!.uid)
         .createGateway(gatewayMac)
         .then((value) => Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => Step3(),
+              builder: (context) => Step3(_gatewayDevice!),
             )));
   }
 }

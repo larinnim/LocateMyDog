@@ -10,7 +10,7 @@ import 'package:flutter_maps/Screens/Authenticate/signed.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Screens/Tutorial/step1.dart';
-import 'package:flutter_maps/Screens/Tutorial/step3.dart';
+import 'package:flutter_maps/Screens/Tutorial/step4.dart';
 import 'package:flutter_maps/Screens/loading.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/user_controller.dart';

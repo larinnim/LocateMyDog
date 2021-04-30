@@ -1,23 +1,14 @@
 import 'dart:async';
-import 'dart:collection';
-import 'dart:typed_data';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:connectivity/connectivity.dart';
+import 'package:esptouch_smartconfig/esptouch_smartconfig.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_maps/Models/user.dart';
-import 'package:flutter_maps/Screens/Fence/Geofence.dart';
+import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/task_route.dart';
+import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/wifi_settings.dart';
+import 'package:flutter_maps/Screens/Tutorial/step4.dart';
 import 'package:flutter_maps/Screens/Tutorial/step5.dart';
-import 'package:flutter_maps/Services/database.dart';
-import 'package:flutter_maps/Services/user_controller.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:get/get.dart';
-import 'package:flutter_maps/locator.dart';
-import 'package:location/location.dart' as localization;
+import 'package:permission_handler/permission_handler.dart';
 
 import '../loading.dart';
 
@@ -27,453 +18,296 @@ class Step4 extends StatefulWidget {
 }
 
 class _Step4State extends State<Step4> {
-  Completer<GoogleMapController> _controller = Completer();
-  double _configuredRadius = 10.0; //Radius is 30 meters
-  double _configuredRadiusToUnits = 0.0; //Radius is 30 meters
-  String? _units = 'meter';
-  bool _unitsMeterOn = true; //on in cupertino is feet
-  int _incrementRadius = 5;
-  AppUser? _currentUser = locator.get<UserController>().currentUser;
-  static LatLng? _initialPosition;
-  bool _isDoNotEnterFence = false;
-  bool _isPolygonFence = false;
-  late Uint8List imageData;
-  late localization.LocationData location;
-  Circle? circle;
-  Marker? marker;
-  Set<Polygon> _polygonsFence = HashSet<Polygon>();
-  List<LatLng> dotNotEnterFenceLatLngs = [];
-  List<LatLng> polygonFenceLatLngs = [];
-  Set<Polygon> _doNotEnterFence = HashSet<Polygon>();
-  int _doNotEnterFenceIdCounter = 1;
-  int _polygonFenceIdCounter = 1;
-  CollectionReference userInstance =
-      FirebaseFirestore.instance.collection('users');
-  localization.Location _locationTracker = localization.Location();
-  StreamSubscription? _locationSubscription;
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  late Connectivity _connectivity;
+  late Stream<ConnectivityResult> _connectivityStream;
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  ConnectivityResult? result;
+  bool isBroad = true;
+  TextEditingController password = TextEditingController();
+  TextEditingController deviceCount = TextEditingController(text: "1");
+  bool _obscureText = false;
+  String _espIP = "";
+  bool _isDisconnected = true;
+  late PermissionStatus _locationPermissionStatus;
+
+  void espIPReceived(String receivedIP) {
+    setState(() {
+      _espIP = receivedIP;
+      _isDisconnected = false;
+    });
+    Navigator.push(
+        context, new MaterialPageRoute(builder: (context) => new Step5()));
+  }
 
   @override
   void initState() {
+    // TODO: implement initState
     super.initState();
-    _getRadiusAndUnits();
-    _getCurrentLocation();
+    _connectivity = Connectivity();
+    _connectivityStream = _connectivity.onConnectivityChanged;
+    _connectivitySubscription = _connectivityStream.listen((e) {
+      setState(() {});
+    });
+    // getLocationPermission();
   }
 
-  Future<void> _getRadiusAndUnits() async {
-    await userInstance
-        .doc(_currentUser!.uid)
-        .get()
-        .then((DocumentSnapshot documentSnapshot) {
-      setState(() {
-        _units = documentSnapshot['units'];
-        if (_units == 'feet') {
-          _unitsMeterOn = true;
-          _incrementRadius = (_incrementRadius * 0.621371).round();
-        } else {
-          _unitsMeterOn = false;
-        }
-      });
-      _updateCurrentRadius();
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _connectivitySubscription.cancel();
+    super.dispose();
+  }
+
+  // void getLocationPermission() async {
+  //   final status = await Permission.location.request();
+  //   setState(() {
+  //     _locationPermissionStatus = status;
+  //   });
+  // }
+
+  void goToTaskRoute(String ssid, String bssid) async {
+    await Navigator.of(context)
+        .push(MaterialPageRoute(
+            builder: (context) => TaskRoute(
+                ssid, bssid, password.text, deviceCount.text, isBroad)))
+        .then((value) {
+      password.clear();
+      espIPReceived(value);
     });
   }
 
-  void _updateUnits(String? unitsChoose) {
-    _db
-        .collection('users')
-        .doc(_firebaseAuth.currentUser!.uid)
-        .set({'units': _units}, SetOptions(merge: true));
-  }
-
-  void _onSettingsPressed() {
-    showModalBottomSheet(
-        context: context,
-        builder: (context) {
-          return StatefulBuilder(builder: (BuildContext context,
-              StateSetter mystate /*You can rename this!*/) {
-            return Container(
-              color: Color(0xFF737373), // It's full transparency
-              height: 180,
-              child: Container(
-                child: bottonNavigationBuilder(mystate),
-                decoration: BoxDecoration(
-                    color: Theme.of(context).canvasColor,
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(10),
-                      topRight: const Radius.circular(10),
-                    )),
-              ),
-            );
-          });
-        });
-  }
-
-  Column bottonNavigationBuilder(StateSetter mystate) {
-    return Column(children: <Widget>[
-      SizedBox(height: 50),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'meter',
-            style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[600]),
-          ),
-          Transform.scale(
-              scale: 0.7,
-              child: CupertinoSwitch(
-                trackColor: Colors.lightGreen,
-                activeColor: Colors.red[300],
-                value: _unitsMeterOn,
-                onChanged: (bool val) {
-                  mystate(() {
-                    _unitsMeterOn = val;
-                    if (_unitsMeterOn == false) {
-                      _units = "meter";
-                    } else {
-                      _units = "feet";
-                    }
-                  });
-                  _updateUnits(_units);
-                  _updateCurrentRadius();
-                },
-              )),
-          Text(
-            'feet',
-            style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[600]),
-          ),
-        ],
-      ),
-      ListTile(
-        leading: Icon(Icons.adjust_rounded),
-        title: Row(
-          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text("Rounded Geofence"),
-                  SizedBox(height: 5),
-                  Text(
-                      'current'.tr +
-                          ': ' +
-                          _configuredRadiusToUnits.toStringAsFixed(2) +
-                          // _configuredRadius.toString() +
-                          ' ' +
-                          _units!.tr,
-                      style: TextStyle(color: Colors.black.withOpacity(0.6))),
-                ]),
-            SizedBox(width: 30),
-            Row(
-              children: [
-                IconButton(
-                    icon: Icon(FontAwesomeIcons.plus, size: 20),
-                    onPressed: () async {
-                      mystate(() {
-                        _configuredRadius +=
-                            _incrementRadius; //Increase by 5 meters
-                      });
-                      _updateCurrentRadius();
-                      await DatabaseService(uid: _currentUser!.uid)
-                          .updateCircleRadius(
-                              _configuredRadius, _initialPosition!);
-                    }),
-                SizedBox(width: 50),
-                IconButton(
-                    icon: Icon(FontAwesomeIcons.minus, size: 20),
-                    onPressed: () async {
-                      mystate(() {
-                        if (_configuredRadius > 0.0) {
-                          _configuredRadius -=
-                              _incrementRadius; //Increase by 5 meters
-                        } else {
-                          _configuredRadius = 0.0;
-                        }
-                      });
-                      _updateCurrentRadius();
-                      await DatabaseService(uid: _currentUser!.uid)
-                          .updateCircleRadius(
-                              _configuredRadius, _initialPosition!);
-                    }),
-                // })
-              ],
-            ),
-          ],
+  Widget normalState(BuildContext context, String ssidName, String bssidName) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 50.0,
         ),
-        onTap: () => {
-          mystate(() {
-            _isPolygonFence = false;
-            _isDoNotEnterFence = false;
-          }),
-          Navigator.of(context).pop()
-        },
-      ),
-    ]);
+        Visibility(
+            visible: _isDisconnected,
+            child: Image.asset(
+              'assets/images/wifi_disconnected.png',
+              fit: BoxFit.cover,
+            ),
+            replacement: Image.asset(
+              'assets/images/wifi_connected.png',
+              // fit: BoxFit.fill,
+            )),
+        SizedBox(
+          height: 30.0,
+        ),
+        Visibility(
+            visible: _isDisconnected,
+            child: Text(
+              'disconnected'.tr,
+              style: TextStyle(
+                  fontSize: 40.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red[300]),
+            ),
+            replacement: Text(
+              'connected'.tr,
+              style: TextStyle(
+                  fontSize: 72.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.lightGreen),
+            )),
+        SizedBox(
+          height: 30.0,
+        ),
+        Text.rich(TextSpan(children: [
+          TextSpan(
+              text: "ssid".tr + " : \t ",
+              style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.bold)),
+          TextSpan(
+              text: ssidName,
+              style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold)),
+        ])),
+        Text.rich(TextSpan(children: [
+          TextSpan(
+              text: "ip_address".tr + ' : \t',
+              style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.bold)),
+          TextSpan(
+              text: _espIP,
+              style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold)),
+        ])),
+        SizedBox(
+          height: 60,
+        ),
+        Visibility(
+          visible: _isDisconnected,
+          child: disconnectedPasswordRequest(context, ssidName, bssidName),
+          replacement: ElevatedButton(
+            style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Colors.black),
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0),
+                ))),
+            child: Text(
+              'Continue',
+              style: TextStyle(fontSize: 16, color: Colors.white),
+            ),
+            onPressed: () {},
+          ),
+        ),
+      ],
+    );
   }
 
-  void _updateCurrentRadius() {
-    setState(() {
-      if (_configuredRadius != 0.0) {
-        if (_units == 'meter') {
-          _configuredRadiusToUnits = _configuredRadius;
-        } else if (_units == 'feet') {
-          _configuredRadiusToUnits = _configuredRadius * 3.28084;
-        }
-      } else {
-        _configuredRadius = 5; //minimum is 5 meters
-        if (_units == 'meter') {
-          _configuredRadiusToUnits = 5;
-        } else if (_units == 'feet') {
-          _configuredRadiusToUnits = _configuredRadius * 3.28084;
-        }
-      }
-    });
-    updateMarkerAndCircle(location, imageData);
-  }
-
-  Future<Uint8List> getMarker() async {
-    ByteData byteData = await DefaultAssetBundle.of(context)
-        .load("assets/images/round_marker.png");
-    return byteData.buffer.asUint8List();
-  }
-
-  void _getCurrentLocation() async {
-    try {
-      Position position = await GeolocatorPlatform.instance
-          .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      _initialPosition = LatLng(position.latitude, position.longitude);
-
-      // Uint8List imageData = await getMarker();
-      imageData = await getMarker();
-
-      // var location = await _locationTracker.getLocation();
-
-      location = await _locationTracker.getLocation();
-
-      updateMarkerAndCircle(location, imageData);
-
-      if (_locationSubscription != null) {
-        _locationSubscription!.cancel();
-      }
-
-      _locationSubscription =
-          _locationTracker.onLocationChanged.listen((newLocalData) async {
-        final GoogleMapController controller = await _controller.future;
-        controller.animateCamera(CameraUpdate.newCameraPosition(
-            new CameraPosition(
-                bearing: 192.8334901395799,
-                target: LatLng(newLocalData.latitude!, newLocalData.longitude!),
-                tilt: 0,
-                zoom: 18.00)));
-        // updateMarkerAndCircle(newLocalData, imageData);
-      });
-    } on PlatformException catch (e) {
-      if (e.code == 'PERMISSION_DENIED') {
-        debugPrint("Permission Denied");
-      }
-    }
-  }
-
-  void updateMarkerAndCircle(
-      localization.LocationData newLocalData, Uint8List imageData) {
-    LatLng latlng = LatLng(newLocalData.latitude!, newLocalData.longitude!);
-    this.setState(() {
-      marker = Marker(
-          markerId: MarkerId("home"),
-          position: latlng,
-          rotation: newLocalData.heading!,
-          draggable: false,
-          zIndex: 2,
-          flat: true,
-          anchor: Offset(0.5, 0.5),
-          icon: BitmapDescriptor.fromBytes(imageData));
-      circle = Circle(
-          circleId: CircleId("pet"),
-          radius: _configuredRadius,
-          // radius: newLocalData.accuracy,
-          zIndex: 1,
-          strokeColor: Colors.blue,
-          center: latlng,
-          strokeWidth: 2,
-          fillColor: Colors.blue.withOpacity(0.7));
-      // fillColor: Colors.blue.withAlpha(70));
-    });
-  }
-
-  void _setPolygonFence() {
-    final String polygonVal = 'polygon_id_$_polygonFenceIdCounter';
-    _polygonsFence.add(Polygon(
-      polygonId: PolygonId(polygonVal),
-      points: polygonFenceLatLngs,
-      // geodesic: true,
-      strokeWidth: 2,
-      strokeColor: Colors.blue,
-      fillColor: Colors.lightBlue,
-    ));
-  }
-
-  void _setDoNotEnterFence() {
-    final String doNotEnterVal = 'doNotEnter_id_$_doNotEnterFenceIdCounter';
-    _doNotEnterFence.add(Polygon(
-      polygonId: PolygonId(doNotEnterVal),
-      points: dotNotEnterFenceLatLngs,
-      strokeWidth: 2,
-      strokeColor: Colors.red,
-      fillColor: Colors.redAccent,
-    ));
+  Widget disconnectedPasswordRequest(
+      BuildContext context, String ssidName, String bssidName) {
+    return Column(
+      children: [
+        SizedBox(
+          width: MediaQuery.of(context).size.width * 0.9,
+          child: TextField(
+            obscureText: _obscureText,
+            controller: password,
+            cursorColor: Colors.black,
+            decoration: InputDecoration(
+                labelText: "password".tr + ' :',
+                suffixIcon: IconButton(
+                  icon: _obscureText
+                      ? Icon(Icons.visibility, color: Colors.grey)
+                      : Icon(Icons.visibility_off, color: Colors.grey),
+                  onPressed: () {
+                    // Update the state i.e. toogle the state of passwordVisible variable
+                    setState(() {
+                      _obscureText = !_obscureText;
+                    });
+                  },
+                ),
+                labelStyle: TextStyle(color: Colors.grey),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(color: Colors.red),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(color: Colors.black),
+                )),
+          ),
+        ),
+        SizedBox(
+          height: 60,
+        ),
+        SizedBox(
+          width: 150.0,
+          height: 50.0,
+          child: ElevatedButton(
+              onPressed: () async {
+                print(password.text);
+                print(deviceCount.text);
+                // goToTaskRoute(ssidName, bssidName); //TODO enable when arina finishes the ESP32
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (context) => Step4()));
+              },
+              style: ElevatedButton.styleFrom(
+                primary: Colors.red[300],
+                shape: new RoundedRectangleBorder(
+                  borderRadius: new BorderRadius.circular(30.0),
+                ),
+              ),
+              child: Text("confirm".tr)),
+        )
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-          child: Material(
-          type: MaterialType.transparency,
-          child: new Container(
-            decoration: BoxDecoration(color: Colors.white),
-            child: SafeArea(
-                child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 28.0, vertical: 40.0),
-              child: Column(children: <Widget>[
-                Row(
+    return Scaffold(
+        body: SingleChildScrollView(
+      child: FutureBuilder(
+          future: _connectivity.checkConnectivity(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData)
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            else if (snapshot.data == ConnectivityResult.wifi) {
+              return FutureBuilder<Map<String, String>?>(
+                  future: EsptouchSmartconfig.wifiData(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      return Center(
+                          child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 50.0,
+                          ),
+                          Row(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(30.0),
+                                child: Text(
+                                  'Step 4 of 5',
+                                  style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 20.0,
+                                      fontFamily: 'RobotoMono'),
+                                ),
+                              )
+                            ],
+                          ),
+                          SizedBox(
+                            height: 20.0,
+                          ),
+                          // SizedBox(
+                          //   height: 50.0,
+                          // ),
+                          Text(
+                            "Now, Let's connect the Gateway to WiFi.",
+                            style: TextStyle(
+                              // fontWeight: FontWeight.bold,
+                              fontSize: 20.0,
+                            ),
+                          ),
+                          normalState(context, snapshot.data!['wifiName']!,
+                              snapshot.data!['bssid']!),
+                        ],
+                      ));
+
+                      // return WifiPage(snapshot.data!['wifiName']!,
+                      //     snapshot.data!['bssid']!);
+                    } else
+                      return Container();
+                  });
+            } else {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                    Icon(
+                      Icons.wifi_off_sharp,
+                      size: 200,
+                      color: Colors.red,
+                    ),
                     Text(
-                      'Step 4 of 5',
-                      style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 20.0,
-                          fontFamily: 'RobotoMono'),
+                      "wifi_not_connected".tr,
+                      style: TextStyle(fontSize: 20, color: Colors.grey),
                     )
                   ],
                 ),
-                SizedBox(
-                  height: 20.0,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Configure the Geofence',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 30.0,
-                          fontFamily: 'RobotoMono'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => _onSettingsPressed(),
-                      child: Row(
-                        // mainAxisAlignment: MainAxisAlignment.end,
-                        children: <Widget>[Icon(Icons.settings)],
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 20.0,
-                ),
-                _initialPosition == null
-                    ? Loading()
-                    : SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.65,
-                        width: MediaQuery.of(context).size.width,
-                        child: _isPolygonFence
-                            ? GoogleMap(
-                                mapType: MapType.hybrid,
-                                initialCameraPosition: CameraPosition(
-                                  target: _initialPosition!,
-                                  zoom: 11,
-                                ),
-                                zoomGesturesEnabled: true,
-                                myLocationEnabled: false,
-                                compassEnabled: true,
-                                myLocationButtonEnabled: false,
-                                markers:
-                                    Set.of((marker != null) ? [marker!] : []),
-                                circles:
-                                    Set.of((circle != null) ? [circle!] : []),
-                                polygons: _polygonsFence,
-                                onTap: (point) {
-                                  if (_isPolygonFence) {
-                                    setState(() {
-                                      polygonFenceLatLngs.add(point);
-                                      _setPolygonFence();
-                                    });
-                                  }
-                                  if (_isDoNotEnterFence) {
-                                    setState(() {
-                                      dotNotEnterFenceLatLngs.add(point);
-                                      _setDoNotEnterFence();
-                                    });
-                                  }
-                                },
-                                onMapCreated: (GoogleMapController controller) {
-                                  // _controller = _controller;
-                                  _controller.complete(controller);
-                                },
-                              )
-                            : GoogleMap(
-                                mapType: MapType.hybrid,
-                                initialCameraPosition: CameraPosition(
-                                  target: _initialPosition!,
-                                  zoom: 11,
-                                ),
-                                zoomGesturesEnabled: true,
-                                myLocationEnabled: false,
-                                compassEnabled: true,
-                                myLocationButtonEnabled: false,
-                                markers:
-                                    Set.of((marker != null) ? [marker!] : []),
-                                circles:
-                                    Set.of((circle != null) ? [circle!] : []),
-                                polygons: _doNotEnterFence,
-                                onTap: (point) {
-                                  if (_isPolygonFence) {
-                                    setState(() {
-                                      polygonFenceLatLngs.add(point);
-                                      _setPolygonFence();
-                                    });
-                                  }
-                                  if (_isDoNotEnterFence) {
-                                    setState(() {
-                                      dotNotEnterFenceLatLngs.add(point);
-                                      _setDoNotEnterFence();
-                                    });
-                                  }
-                                },
-                                onMapCreated: (GoogleMapController controller) {
-                                  _controller.complete(controller);
-                                  // _controller = _controller;
-                                },
-                              )),
-                SizedBox(
-                  height: 20.0,
-                ),
-                ElevatedButton(
-                  style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(Colors.black),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0),
-                      ))),
-                  child: Text(
-                    'Continue',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        new MaterialPageRoute(
-                            builder: (context) => new Step5()));
-                  },
-                ),
-              ]),
-            )),
-          )),
-    );
+              );
+            }
+          }),
+    ));
   }
 }

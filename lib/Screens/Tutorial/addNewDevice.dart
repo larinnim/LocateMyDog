@@ -1,24 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart'
     as barcode;
+import 'package:flutter_maps/Screens/Tutorial/step3.dart';
 import 'package:get/get.dart';
 
 class AddNewDevice extends StatelessWidget {
-  AddNewDevice(this.senderID, this.colorString);
+  AddNewDevice(this.colorString, this.gatewayID);
 
-  CollectionReference senderCollection =
+  late final CollectionReference senderCollection =
       FirebaseFirestore.instance.collection('sender');
 
-  CollectionReference gatewayCollection =
+  late final CollectionReference gatewayCollection =
       FirebaseFirestore.instance.collection('gateway');
 
-  late final int senderID;
+  late final String senderID;
   late final String colorString;
+  late final String gatewayID;
 
   // final CollectionReference locationDB =
   //     FirebaseFirestore.instance.collection('locateDog');
@@ -32,19 +35,65 @@ class AddNewDevice extends StatelessWidget {
       barcodeScanRes = await barcode.FlutterBarcodeScanner.scanBarcode(
           "#ff6666", "Cancel", true, barcode.ScanMode.QR);
 
-      senderCollection.doc('GW-' + barcodeScanRes).set({
-        'senderMac': barcodeScanRes,
-        'userID': _firebaseAuth.currentUser!.uid,
-        'Location': {'Latitude': '', 'Longitude': ''},
-        'LocationTimestamp': '',
-        'batteryLevel': 0,
-        'color': colorString,
-        'name': barcodeScanRes,
-        'id': barcodeScanRes,
-      }, SetOptions(merge: true)).then((value) {
-        Get.back();
-      }).catchError((error) => print("Failed to add user: $error"));
-      print(barcodeScanRes);
+      final checkIfAlredySetup =
+          await senderCollection.doc('GW-' + barcodeScanRes).get();
+
+      if (checkIfAlredySetup.exists) {
+        Get.dialog(AlertDialog(
+          title: Text('Whoops'),
+          content: Text('You have already setup this sender.'),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Get.offAll(Step3(gatewayID));
+              },
+              child: Text('OK'),
+              style: ElevatedButton.styleFrom(primary: Colors.lightGreen),
+            )
+          ],
+        ));
+        //   SimpleDialog(
+        //   title: Text(
+        //     "Whoops",
+        //     textAlign: TextAlign.center,
+        //     style: TextStyle(fontWeight: FontWeight.bold),
+        //   ),
+        //   titlePadding: EdgeInsets.symmetric(
+        //     horizontal: 30,
+        //     vertical: 20,
+        //   ),
+        //   shape: RoundedRectangleBorder(
+        //       borderRadius: new BorderRadius.circular(10.0)),
+        //   children: [
+        //     Text('You have already setup this sender',
+        //         textAlign: TextAlign.center, style: TextStyle(fontSize: 20.0)),
+        //     SimpleDialogOption(
+        //       onPressed: () {
+        //         Get.offAll(Step3(gatewayID));
+        //       },
+        //       child: const Text('OK'),
+        //     ),
+        //   ],
+        //   contentPadding: EdgeInsets.symmetric(
+        //     horizontal: 40,
+        //     vertical: 20,
+        //   ),
+        // ));
+      } else {
+        senderCollection.doc('GW-' + barcodeScanRes).set({
+          'senderMac': barcodeScanRes,
+          'userID': _firebaseAuth.currentUser!.uid,
+          'Location': {'Latitude': '', 'Longitude': ''},
+          'LocationTimestamp': '',
+          'batteryLevel': 0,
+          'color': colorString,
+          'name': barcodeScanRes,
+          'gatewayID': gatewayID,
+        }, SetOptions(merge: true)).then((value) {
+          Get.back();
+        }).catchError((error) => print("Failed to add user: $error"));
+        print(barcodeScanRes);
+      }
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
@@ -103,7 +152,7 @@ class AddNewDevice extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'Step 5 of 5',
+                      'Step 3 of 5',
                       style: TextStyle(
                           color: Colors.grey,
                           fontSize: 20.0,

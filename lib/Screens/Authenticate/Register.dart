@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Screens/Tutorial/step1.dart';
-import 'package:flutter_maps/Screens/Tutorial/step3.dart';
+import 'package:flutter_maps/Screens/Tutorial/step4.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/push_notification.dart';
 

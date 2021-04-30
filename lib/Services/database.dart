@@ -17,13 +17,16 @@ class DatabaseService {
       FirebaseFirestore.instance.collection('sender');
 
   final CollectionReference gatewayCollection =
-      FirebaseFirestore.instance.collection('sender');
+      FirebaseFirestore.instance.collection('gateway');
+
+  final CollectionReference usersCollection =
+      FirebaseFirestore.instance.collection('users');
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   Future<void> updateUserData(
       String? dogname, String? ownername, String? breed) async {
-    locateCollection.doc(uid).set({
+    usersCollection.doc(uid).set({
       'Geofence': {
         'Circle': {'initialLat': 0, 'initialLng': 0, 'radius': 0}
       }
@@ -42,7 +45,7 @@ class DatabaseService {
 
   Future<void> updateCircleRadius(
       double? radius, LatLng initialLocation) async {
-    return await locateCollection.doc(uid).set({
+    return await usersCollection.doc(uid).set({
       'Geofence': {
         "Circle": {
           "radius": radius,
@@ -54,13 +57,13 @@ class DatabaseService {
   }
 
   Future<void> updateGatewayName(String name) async {
-    await locateCollection.doc(uid).set({
-      'gateway': {"name": name},
+    await gatewayCollection.doc(uid).set({
+      'name': name,
     }, SetOptions(merge: true));
   }
 
   Future<void> completedSetup(bool completed) async {
-    await locateCollection.doc(uid).set({
+    await usersCollection.doc(uid).set({
       'hasCompletedSetup': completed,
     }, SetOptions(merge: true));
   }
@@ -81,7 +84,7 @@ class DatabaseService {
   }
 
   Future<void> updateFencePreference(String fencePref) async {
-    return await locateCollection.doc(uid).set({
+    return await usersCollection.doc(uid).set({
       'Geofence': {"Preference": fencePref},
     }, SetOptions(merge: true));
   }

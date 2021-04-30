@@ -27,7 +27,7 @@ void main() async {
   // void main() {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  await Permission.location.request();
+  // await Permission.location.request();
   setupServices();
 
   runApp(MultiProvider(providers: [

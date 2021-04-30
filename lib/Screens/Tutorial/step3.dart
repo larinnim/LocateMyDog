@@ -1,302 +1,231 @@
 import 'dart:async';
-
-import 'package:connectivity/connectivity.dart';
-import 'package:esptouch_smartconfig/esptouch_smartconfig.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/task_route.dart';
-import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/wifi_settings.dart';
-import 'package:flutter_maps/Screens/Tutorial/step3.dart';
-import 'package:flutter_maps/Screens/Tutorial/step4.dart';
+import 'package:flutter/services.dart';
+// import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:flutter_maps/Models/user.dart';
+import 'package:flutter_maps/Screens/Devices/device.dart';
+import 'package:flutter_maps/Screens/Devices/device_detail.dart';
+import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
+import 'package:flutter_maps/Screens/Home/wrapper.dart';
+import 'package:flutter_maps/Screens/Profile/profile.dart';
+import 'package:flutter_maps/Services/database.dart';
+import 'package:flutter_maps/Services/user_controller.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:line_awesome_flutter/line_awesome_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../loading.dart';
+import 'addNewDevice.dart';
+import 'step4.dart';
+import '../../locator.dart';
+
+import 'package:flutter_maps/Services/database.dart';
 
 class Step3 extends StatefulWidget {
+  Step3(this.gatewayID);
+
+  final String gatewayID;
+
   @override
-  _Step3State createState() => _Step3State();
+  _Step3State createState() => new _Step3State();
 }
 
 class _Step3State extends State<Step3> {
-  late Connectivity _connectivity;
-  late Stream<ConnectivityResult> _connectivityStream;
-  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
-  ConnectivityResult? result;
-  bool isBroad = true;
-  TextEditingController password = TextEditingController();
-  TextEditingController deviceCount = TextEditingController(text: "1");
-  bool _obscureText = false;
-  String _espIP = "";
-  bool _isDisconnected = true;
-
-  void espIPReceived(String receivedIP) {
-    setState(() {
-      _espIP = receivedIP;
-      _isDisconnected = false;
-    });
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => Step4()));
-  }
-
+  // CollectionReference locationDB =
+  //     FirebaseFirestore.instance.collection('locateDog');
+  final CollectionReference senderCollection =
+      FirebaseFirestore.instance.collection('sender');
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final List<Color> _availableColors = [
+    Colors.green,
+    Colors.orange,
+    Colors.purple,
+    Colors.red
+  ];
   @override
-  void initState() {
-    // TODO: implement initState
+  initState() {
     super.initState();
-    _connectivity = Connectivity();
-    _connectivityStream = _connectivity.onConnectivityChanged;
-    _connectivitySubscription = _connectivityStream.listen((e) {
-      setState(() {});
+  }
+
+  void getAvailableColors() {
+    senderCollection
+        .where('gatewayID', isEqualTo: widget.gatewayID)
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((DocumentSnapshot documentSnapshot) async {
+        // if (_availableColors.contains(documentSnapshot.data()!['color'])) {
+        _availableColors.removeWhere(
+            (element) => element == documentSnapshot.data()!['color']);
+        // }
+      });
     });
   }
 
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    _connectivitySubscription.cancel();
-    super.dispose();
-  }
 
-  void goToTaskRoute(String ssid, String bssid) async {
+
+  void goToAddNewDevice(String color) async {
     await Navigator.of(context)
         .push(MaterialPageRoute(
-            builder: (context) => TaskRoute(
-                ssid, bssid, password.text, deviceCount.text, isBroad)))
+            builder: (context) => AddNewDevice(color, widget.gatewayID)))
         .then((value) {
-      password.clear();
-      espIPReceived(value);
+      _availableColors.removeAt(0);
+      print(value.toString());
     });
-  }
-
-  Widget normalState(BuildContext context, String ssidName, String bssidName) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        SizedBox(
-          height: 50.0,
-        ),
-        Visibility(
-            visible: _isDisconnected,
-            child: Image.asset(
-              'assets/images/wifi_disconnected.png',
-              fit: BoxFit.cover,
-            ),
-            replacement: Image.asset(
-              'assets/images/wifi_connected.png',
-              // fit: BoxFit.fill,
-            )),
-        SizedBox(
-          height: 30.0,
-        ),
-        Visibility(
-            visible: _isDisconnected,
-            child: Text(
-              'disconnected'.tr,
-              style: TextStyle(
-                  fontSize: 40.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red[300]),
-            ),
-            replacement: Text(
-              'connected'.tr,
-              style: TextStyle(
-                  fontSize: 72.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.lightGreen),
-            )),
-        SizedBox(
-          height: 30.0,
-        ),
-        Text.rich(TextSpan(children: [
-          TextSpan(
-              text: "ssid".tr + " : \t ",
-              style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[700],
-                  fontWeight: FontWeight.bold)),
-          TextSpan(
-              text: ssidName,
-              style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey,
-                  fontWeight: FontWeight.bold)),
-        ])),
-        Text.rich(TextSpan(children: [
-          TextSpan(
-              text: "ip_address".tr + ' : \t',
-              style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[700],
-                  fontWeight: FontWeight.bold)),
-          TextSpan(
-              text: _espIP,
-              style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey,
-                  fontWeight: FontWeight.bold)),
-        ])),
-        SizedBox(
-          height: 60,
-        ),
-        Visibility(
-          visible: _isDisconnected,
-          child: disconnectedPasswordRequest(context, ssidName, bssidName),
-          replacement: ElevatedButton(
-            style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(Colors.black),
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                    RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18.0),
-                ))),
-            child: Text(
-              'Continue',
-              style: TextStyle(fontSize: 16, color: Colors.white),
-            ),
-            onPressed: () {},
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget disconnectedPasswordRequest(
-      BuildContext context, String ssidName, String bssidName) {
-    return Column(
-      children: [
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.9,
-          child: TextField(
-            obscureText: _obscureText,
-            controller: password,
-            cursorColor: Colors.black,
-            decoration: InputDecoration(
-                labelText: "password".tr + ' :',
-                suffixIcon: IconButton(
-                  icon: _obscureText
-                      ? Icon(Icons.visibility, color: Colors.grey)
-                      : Icon(Icons.visibility_off, color: Colors.grey),
-                  onPressed: () {
-                    // Update the state i.e. toogle the state of passwordVisible variable
-                    setState(() {
-                      _obscureText = !_obscureText;
-                    });
-                  },
-                ),
-                labelStyle: TextStyle(color: Colors.grey),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
-                  borderSide: BorderSide(color: Colors.red),
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
-                  borderSide: BorderSide(color: Colors.black),
-                )),
-          ),
-        ),
-        SizedBox(
-          height: 60,
-        ),
-        SizedBox(
-          width: 150.0,
-          height: 50.0,
-          child: ElevatedButton(
-              onPressed: () async {
-                print(password.text);
-                print(deviceCount.text);
-                // goToTaskRoute(ssidName, bssidName); //TODO enable when arina finishes the ESP32
-                 Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => Step4()));
-              },
-              style: ElevatedButton.styleFrom(
-                primary: Colors.red[300],
-                shape: new RoundedRectangleBorder(
-                  borderRadius: new BorderRadius.circular(30.0),
-                ),
-              ),
-              child: Text("confirm".tr)),
-        )
-      ],
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: FutureBuilder(
-            future: _connectivity.checkConnectivity(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData)
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
-              else if (snapshot.data == ConnectivityResult.wifi) {
-                return FutureBuilder<Map<String, String>?>(
-                    future: EsptouchSmartconfig.wifiData(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        return Center(
-                            child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              height: 50.0,
-                            ),
-                            Row(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(30.0),
-                                  child: Text(
-                                    'Step 3 of 5',
-                                    style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 20.0,
-                                        fontFamily: 'RobotoMono'),
-                                  ),
-                                )
-                              ],
-                            ),
-                            SizedBox(
-                              height: 20.0,
-                            ),
-                            // SizedBox(
-                            //   height: 50.0,
-                            // ),
-                            Text(
-                              "Now, Let's connect the Gateway to WiFi.",
-                              style: TextStyle(
-                                // fontWeight: FontWeight.bold,
-                                fontSize: 20.0,
-                              ),
-                            ),
-                            normalState(context, snapshot.data!['wifiName']!,
-                                snapshot.data!['bssid']!),
-                          ],
-                        ));
+    CollectionReference sendersStream =
+        FirebaseFirestore.instance.collection('sender');
 
-                        // return WifiPage(snapshot.data!['wifiName']!,
-                        //     snapshot.data!['bssid']!);
-                      } else
-                        return Container();
-                    });
-              } else {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.3),
-                      Icon(
-                        Icons.wifi_off_sharp,
-                        size: 200,
-                        color: Colors.red,
+    return StreamBuilder<QuerySnapshot>(
+        stream: sendersStream.snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.hasError) {
+            return Text('Something went wrong');
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Loading();
+          }
+
+          return Material(
+              type: MaterialType.transparency,
+              child: new Container(
+                decoration: BoxDecoration(color: Colors.white),
+                child: SafeArea(
+                    child: Padding(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 28.0, vertical: 40.0),
+                  child: Column(children: <Widget>[
+                    Row(
+                      children: [
+                        Text(
+                          'Step 3 of 5',
+                          style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 20.0,
+                              fontFamily: 'RobotoMono'),
+                        )
+                      ],
+                    ),
+                    SizedBox(
+                      height: 20.0,
+                    ),
+                    Visibility(
+                      visible: snapshot.data!.size < 4,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment
+                            .center, //Center Row contents horizontally,
+                        children: [
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.7,
+                            height: 50,
+                            child: ElevatedButton.icon(
+                              icon: Icon(
+                                Icons.add_circle_outline,
+                                color: Colors.white,
+                                size: 24.0,
+                              ),
+                              style: ButtonStyle(
+                                  backgroundColor: MaterialStateProperty.all(
+                                      Colors.red[300]),
+                                  shape: MaterialStateProperty.all<
+                                          RoundedRectangleBorder>(
+                                      RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ))),
+                              label: Text(
+                                'Add New Device',
+                                style: TextStyle(
+                                    fontSize: 20, color: Colors.white),
+                              ),
+                              onPressed: () {
+                                goToAddNewDevice(AuxFunc()
+                                    .colorNamefromColor(_availableColors[0]));
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        "wifi_not_connected".tr,
-                        style: TextStyle(fontSize: 20, color: Colors.grey),
-                      )
-                    ],
-                  ),
-                );
-              }
-            }),
-      ),
-    );
+                      replacement: Row(
+                        children: [
+                          Text(
+                            'You have already configured up to 4 devices',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20.0,
+                                fontFamily: 'RobotoMono'),
+                          )
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 30.0),
+                    Expanded(
+                      child: new ListView.separated(
+                          itemCount: snapshot.data!.docs.length,
+                          separatorBuilder: (BuildContext context, int index) =>
+                              Divider(height: 1),
+                          itemBuilder: (BuildContext context, int index) {
+                            return ClipRRect(
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  bottomLeft: Radius.circular(10),
+                                ),
+                                child: ListTile(
+                                    tileColor: AuxFunc().getColor(
+                                        snapshot.data!.docs[index]['color']),
+                                    leading: Icon(
+                                      LineAwesomeIcons.mobile_phone,
+                                      color: Colors.white,
+                                    ),
+                                    title: Text(
+                                      snapshot.data!.docs[index]['name'],
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 20),
+                                    )));
+                            // title: Text("List item $index"));
+                          }),
+                    ),
+                    Visibility(
+                      visible: snapshot.data!.docs.length < 1,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[],
+                      ),
+                      replacement: Column(
+                        children: [
+                          SizedBox(
+                            height: 30.0,
+                          ),
+                          ElevatedButton(
+                            style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStateProperty.all(Colors.black),
+                                shape: MaterialStateProperty.all<
+                                        RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18.0),
+                                ))),
+                            child: Text(
+                              'Continue',
+                              style:
+                                  TextStyle(fontSize: 16, color: Colors.white),
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => Step4()));
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]),
+                )),
+              ));
+        });
   }
 }
