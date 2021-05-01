@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:esptouch_smartconfig/esptouch_smartconfig.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/task_route.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/wifi_settings.dart';
@@ -160,7 +161,10 @@ class _Step4State extends State<Step4> {
               'Continue',
               style: TextStyle(fontSize: 16, color: Colors.white),
             ),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (context) => Step5()));
+            },
           ),
         ),
       ],
@@ -209,11 +213,36 @@ class _Step4State extends State<Step4> {
           height: 50.0,
           child: ElevatedButton(
               onPressed: () async {
-                print(password.text);
-                print(deviceCount.text);
-                // goToTaskRoute(ssidName, bssidName); //TODO enable when arina finishes the ESP32
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (context) => Step4()));
+                if (password.text.isEmpty) {
+                  Get.dialog(SimpleDialog(
+                    title: Text(
+                      "Required Fields",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    titlePadding: EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 20,
+                    ),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: new BorderRadius.circular(10.0)),
+                    children: [
+                      Text('Password field cannot be empty',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 20.0)),
+                    ],
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 40,
+                      vertical: 20,
+                    ),
+                  ));
+                } else {
+                  print(password.text);
+                  print(deviceCount.text);
+                  // goToTaskRoute(ssidName, bssidName); //TODO enable when arina finishes the ESP32
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (context) => Step5()));
+                }
               },
               style: ElevatedButton.styleFrom(
                 primary: Colors.red[300],

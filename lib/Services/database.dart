@@ -28,11 +28,11 @@ class DatabaseService {
       String? dogname, String? ownername, String? breed) async {
     usersCollection.doc(uid).set({
       'Geofence': {
-        'Circle': {'initialLat': 0, 'initialLng': 0, 'radius': 0}
+        'Circle': {'initialLat': 0, 'initialLng': 0, 'radius': 30}
       }
     }, SetOptions(merge: true));
     _db.collection('users').doc(uid).set(
-        {'dogname': dogname, 'ownername': ownername, 'breed': breed},
+        {'dogname': dogname, 'ownername': ownername, 'breed': breed, 'units': 'feet'}, //default unit is feet
         SetOptions(merge: true));
     // SetOptions(merge: true);
   }

@@ -26,7 +26,7 @@ class PermisisonChangeBuilder extends StatelessWidget {
       builder: (context, stateStream) => StreamBuilder<AppLifecycleState>(
         stream: stateStream,
         builder: (context, snapshot) => FutureBuilder<PermissionStatus>(
-          future: Permission.location.status,
+          future: permission.status,
           builder: (context, snapshot) =>
               snapshot.hasData ? builder(context, snapshot.data!) : Loading(),
         ),

@@ -15,6 +15,7 @@ import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../loading.dart';
 import 'addNewDevice.dart';
@@ -46,10 +47,16 @@ class _Step3State extends State<Step3> {
   ];
   @override
   initState() {
+    getAvailableColors();
+    requestLocation();
     super.initState();
   }
 
-  void getAvailableColors() {
+  void requestLocation() async {
+    await Permission.camera.request();
+  }
+
+  void getAvailableColors() async {
     senderCollection
         .where('gatewayID', isEqualTo: widget.gatewayID)
         .get()
@@ -62,8 +69,6 @@ class _Step3State extends State<Step3> {
       });
     });
   }
-
-
 
   void goToAddNewDevice(String color) async {
     await Navigator.of(context)
