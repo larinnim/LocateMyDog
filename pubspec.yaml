@@ -62,6 +62,8 @@ dependencies:
   flutter_facebook_auth: ^3.3.2+2
   esptouch_smartconfig: ^0.0.5+1
   animated_text_kit: ^4.2.1
+  app_settings: ^4.1.0
+  permission_handler_platform_interface: ^3.3.0
 
   # mapbox_gl:
   #   git:
@@ -130,6 +132,7 @@ flutter:
     - assets/images/cloud_disconnected.png
     - assets/images/cloud_connected.png
     - assets/images/power_on.png
+    - assets/images/denied.png
     - assets/lottie/devs.jpg
     - assets/lottie/powered_by.png
     - assets/icon/icon.png
