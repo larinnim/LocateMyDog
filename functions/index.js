@@ -4,7 +4,7 @@
   deviceConfiguration: require('./device-iat/device-configuration'),
   deviceState: require('./device-iat/device-state'),
   onlineState: require('./device-iat/online-state'),
-  registerDevice: require('./device-iat/register-device'),
+  // registerDevice: require('./device-iat/register-device'),
   // // Smart Home Functions
   // token: require('./smart-home/token'),
   // fulfillment: require('./smart-home/fulfillment'),

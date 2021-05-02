@@ -2,48 +2,48 @@
 const functions = require('firebase-functions');
 const { google } = require('googleapis');
 
-const projectId = 'locatemydog-17a7b';
+const projectIdEnv = 'locatemydog-17a7b';
 const cloudRegion = 'us-central1';
 
-exports.relayCloudIot = function (event, callback) {
-    console.log(event.data);
-    const record = JSON.parse(
-      event.data
-        ? Buffer.from(event.data, 'base64').toString()
-        : '{}');
-    console.log(record);
+// exports.relayCloudIot = function (event, callback) {
+//     console.log(event.data);
+//     const record = JSON.parse(
+//       event.data
+//         ? Buffer.from(event.data, 'base64').toString()
+//         : '{}');
+//     console.log(record);
   
-    let messagesSent = record.hops;
-    messagesSent = messagesSent + 1;
-    console.log(`${record.deviceId} ${record.registryId} ${messagesSent}`);
+//     let messagesSent = record.hops;
+//     messagesSent = messagesSent + 1;
+//     console.log(`${record.deviceId} ${record.registryId} ${messagesSent}`);
   
-    const config = {
-      cloudRegion: record.cloudRegion,
-      deviceId: record.deviceId,
-      registryId: record.registryId,
-      hops: messagesSent
-    };
+//     const config = {
+//       cloudRegion: record.cloudRegion,
+//       deviceId: record.deviceId,
+//       registryId: record.registryId,
+//       hops: messagesSent
+//     };
   
-    google.auth.getClient().then(client => {
-      google.options({
-        auth: client
-      });
-      console.log('START setDeviceConfig');
-      const parentName = `projects/${projectId}/locations/${cloudRegion}`;
-      const registryName = `${parentName}/registries/${config.registryId}`;
-      const binaryData = Buffer.from(JSON.stringify(config)).toString('base64');
-      const request = {
-        name: `${registryName}/devices/${config.deviceId}`,
-        versionToUpdate: 0,
-        binaryData: binaryData
-      };
-      console.log('Set device config.');
-      return google.cloudiot('v1').projects.locations.registries.devices.modifyCloudToDeviceConfig(request);
-    }).then(result => {
-      console.log(result);
-      console.log(result.data);
-    });
-  };
+//     google.auth.getClient().then(client => {
+//       google.options({
+//         auth: client
+//       });
+//       console.log('START setDeviceConfig');
+//       const parentName = `projects/${projectId}/locations/${cloudRegion}`;
+//       const registryName = `${parentName}/registries/${config.registryId}`;
+//       const binaryData = Buffer.from(JSON.stringify(config)).toString('base64');
+//       const request = {
+//         name: `${registryName}/devices/${config.deviceId}`,
+//         versionToUpdate: 0,
+//         binaryData: binaryData
+//       };
+//       console.log('Set device config.');
+//       return google.cloudiot('v1').projects.locations.registries.devices.modifyCloudToDeviceConfig(request);
+//     }).then(result => {
+//       console.log(result);
+//       console.log(result.data);
+//     });
+//   };
 
 /**
  * Return a promise to publish the new device config to Cloud IoT Core
@@ -51,7 +51,7 @@ exports.relayCloudIot = function (event, callback) {
 function updateConfig(client, deviceId, config) {
     return new Promise((resolve, reject) => {
 
-      // const projectId = projectId;
+      const projectId = projectIdEnv;
 
         // const projectId = process.env.GCLOUD_PROJECT;
         const parentName = `projects/${projectId}/locations/${functions.config().cloudiot.region}`;

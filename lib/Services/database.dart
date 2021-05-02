@@ -25,6 +25,9 @@ class DatabaseService {
   late final CollectionReference gatewayConfigCollection =
       FirebaseFirestore.instance.collection('gateway-config');
 
+  late final CollectionReference pendingDevicesCollection =
+      FirebaseFirestore.instance.collection('pendingDevices');
+
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   Future<void> updateUserData(
@@ -53,8 +56,8 @@ class DatabaseService {
 
   Future<void> addSenderToGateway(String senderMac, String gatewayID) async {
     await gatewayConfigCollection.doc(gatewayID).set({
-      'senders' : FieldValue.arrayUnion([senderMac]),
-      'userID' : uid
+      'senders': FieldValue.arrayUnion([senderMac]),
+      'userID': uid
     }, SetOptions(merge: true));
   }
 
@@ -90,6 +93,11 @@ class DatabaseService {
       'version': '1.0',
       'gatewayMAC': gatewayMAC
     }, SetOptions(merge: true)).then((value) => null);
+    var isItPending =
+        await pendingDevicesCollection.doc('GW-' + gatewayMAC).get();
+    if (isItPending.exists) {
+      await pendingDevicesCollection.doc('GW-' + gatewayMAC).delete();
+    }
   }
 
   Future<void> updateDeviceName(String name) async {
