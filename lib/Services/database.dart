@@ -22,6 +22,9 @@ class DatabaseService {
   final CollectionReference usersCollection =
       FirebaseFirestore.instance.collection('users');
 
+  late final CollectionReference gatewayConfigCollection =
+      FirebaseFirestore.instance.collection('gateway-config');
+
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   Future<void> updateUserData(
@@ -32,7 +35,12 @@ class DatabaseService {
       }
     }, SetOptions(merge: true));
     _db.collection('users').doc(uid).set(
-        {'dogname': dogname, 'ownername': ownername, 'breed': breed, 'units': 'feet'}, //default unit is feet
+        {
+          'dogname': dogname,
+          'ownername': ownername,
+          'breed': breed,
+          'units': 'feet'
+        }, //default unit is feet
         SetOptions(merge: true));
     // SetOptions(merge: true);
   }
@@ -40,6 +48,13 @@ class DatabaseService {
   Future<void> updateDeviceColor(String deviceColor) async {
     await senderCollection.doc(uid).set({
       'color': deviceColor,
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> addSenderToGateway(String senderMac, String gatewayID) async {
+    await gatewayConfigCollection.doc(gatewayID).set({
+      'senders' : FieldValue.arrayUnion([senderMac]),
+      'userID' : uid
     }, SetOptions(merge: true));
   }
 
@@ -74,7 +89,7 @@ class DatabaseService {
       'userID': _firebaseAuth.currentUser!.uid,
       'version': '1.0',
       'gatewayMAC': gatewayMAC
-    }, SetOptions(merge: true));
+    }, SetOptions(merge: true)).then((value) => null);
   }
 
   Future<void> updateDeviceName(String name) async {

@@ -63,8 +63,11 @@ class _Step3State extends State<Step3> {
         .then((QuerySnapshot querySnapshot) {
       querySnapshot.docs.forEach((DocumentSnapshot documentSnapshot) async {
         // if (_availableColors.contains(documentSnapshot.data()!['color'])) {
-        _availableColors.removeWhere(
-            (element) => element == documentSnapshot.data()!['color']);
+        setState(() {
+          _availableColors.removeWhere(
+              (element) => element == documentSnapshot.data()!['color']);
+        });
+
         // }
       });
     });
@@ -82,11 +85,11 @@ class _Step3State extends State<Step3> {
 
   @override
   Widget build(BuildContext context) {
-    CollectionReference sendersStream =
-        FirebaseFirestore.instance.collection('sender');
+    Stream<QuerySnapshot> sendersStream =
+        FirebaseFirestore.instance.collection('sender').where('userID', isEqualTo: _firebaseAuth.currentUser!.uid).snapshots();
 
     return StreamBuilder<QuerySnapshot>(
-        stream: sendersStream.snapshots(),
+        stream: sendersStream,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
             return Text('Something went wrong');

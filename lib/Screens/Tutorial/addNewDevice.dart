@@ -9,6 +9,7 @@ import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart'
     as barcode;
 import 'package:flutter_maps/Screens/Tutorial/step3.dart';
+import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/permissionChangeBuilder.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -26,8 +27,6 @@ class AddNewDevice extends StatelessWidget {
   late final String colorString;
   late final String gatewayID;
 
-  // final CollectionReference locationDB =
-  //     FirebaseFirestore.instance.collection('locateDog');
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   Future<void> scanQR() async {
@@ -38,10 +37,13 @@ class AddNewDevice extends StatelessWidget {
       barcodeScanRes = await barcode.FlutterBarcodeScanner.scanBarcode(
           "#ff6666", "Cancel", true, barcode.ScanMode.QR);
 
+      print('Going to check DOC: ' + 'GW-' + barcodeScanRes);
       final checkIfAlredySetup =
-          await senderCollection.doc('GW-' + barcodeScanRes).get();
+               await  senderCollection.where('userID', isEqualTo: _firebaseAuth.currentUser!.uid).where('senderMac', isEqualTo: barcodeScanRes).get();
 
-      if (checkIfAlredySetup.exists) {
+          // await senderCollection.doc('GW-' + barcodeScanRes).get();
+
+      if (checkIfAlredySetup.docs.length.isGreaterThan(0)) {
         Get.dialog(AlertDialog(
           title: Text('Whoops'),
           content: Text('You have already setup this sender.'),
@@ -55,33 +57,6 @@ class AddNewDevice extends StatelessWidget {
             )
           ],
         ));
-        //   SimpleDialog(
-        //   title: Text(
-        //     "Whoops",
-        //     textAlign: TextAlign.center,
-        //     style: TextStyle(fontWeight: FontWeight.bold),
-        //   ),
-        //   titlePadding: EdgeInsets.symmetric(
-        //     horizontal: 30,
-        //     vertical: 20,
-        //   ),
-        //   shape: RoundedRectangleBorder(
-        //       borderRadius: new BorderRadius.circular(10.0)),
-        //   children: [
-        //     Text('You have already setup this sender',
-        //         textAlign: TextAlign.center, style: TextStyle(fontSize: 20.0)),
-        //     SimpleDialogOption(
-        //       onPressed: () {
-        //         Get.offAll(Step3(gatewayID));
-        //       },
-        //       child: const Text('OK'),
-        //     ),
-        //   ],
-        //   contentPadding: EdgeInsets.symmetric(
-        //     horizontal: 40,
-        //     vertical: 20,
-        //   ),
-        // ));
       } else {
         senderCollection.doc('GW-' + barcodeScanRes).set({
           'senderMac': barcodeScanRes,
@@ -96,49 +71,12 @@ class AddNewDevice extends StatelessWidget {
           Get.back();
         }).catchError((error) => print("Failed to add user: $error"));
         print(barcodeScanRes);
+        await DatabaseService(uid: _firebaseAuth.currentUser!.uid)
+            .addSenderToGateway(barcodeScanRes, gatewayID);
       }
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
-
-    //   senderCollection
-    //       .doc()
-    //       .collection('gateway')
-    //       .doc(newSender)
-    //       .set({
-    //     'Location': {'Latitude': '', 'Longitude': ''},
-    //     'color': colorString,
-    //     'name': newSender,
-    //     'batteryLevel' : 0,
-    //     'id' : barcodeScanRes,
-    //   }, SetOptions(merge: true)).then((value) {
-    //     Get.back();
-    //     // setState(() {
-    //     //   _devices.add(Device(
-    //     //     id: barcodeScanRes,
-    //     //     name: newSender,
-    //     //     batteryLevel: null,
-    //     //     latitude: null,
-    //     //     longitude: null,
-    //     //     color: AuxFunc().colorNamefromColor(_availableColors[0]),
-    //     //     senderNumber: "Sender" + (_devices.length + 1).toString(),
-    //     //   ));
-    //     //   _availableColors.removeAt(0);
-    //     // });
-    //   }).catchError((error) => print("Failed to add user: $error"));
-    //   print(barcodeScanRes);
-    // } on PlatformException {
-    //   barcodeScanRes = 'Failed to get platform version.';
-    // }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    // if (!mounted) return;
-
-    // setState(() {
-    //   _endDevice = barcodeScanRes;
-    // });
   }
 
   @override
@@ -254,13 +192,6 @@ class AddNewDevice extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            // Padding(
-                            //   padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                            //   child: Text(
-                            //     _endDevice!,
-                            //     textAlign: TextAlign.center,
-                            //   ),
-                            // ),
                           ],
                         ),
                       ),
