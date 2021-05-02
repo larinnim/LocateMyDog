@@ -3,7 +3,7 @@
   // Device Cloud Functions
   deviceConfiguration: require('./device-iat/device-configuration'),
   deviceState: require('./device-iat/device-state'),
-  onlineState: require('./device-iat/online-state'),
+  // onlineState: require('./device-cloud/online-state'),
   // registerDevice: require('./device-iat/register-device'),
   // // Smart Home Functions
   // token: require('./smart-home/token'),

@@ -2,13 +2,13 @@
  * Common module to initialize Firebase Admin SDK
  */
 
- const admin = require('firebase-admin');
- const app = admin.initializeApp();
+const admin = require("firebase-admin");
+const app = admin.initializeApp();
  
- const firestore = app.firestore();
- const auth = app.auth();
+const firestore = app.firestore();
+const auth = app.auth();
  
- module.exports = {
+module.exports = {
      auth,
      firestore
  }
