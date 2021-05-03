@@ -56,7 +56,9 @@ class DatabaseService {
 
   Future<void> addSenderToGateway(String senderMac, String gatewayID) async {
     await gatewayConfigCollection.doc('GW-' + gatewayID).set({
-      'senders': FieldValue.arrayUnion([senderMac]),
+      'senders': FieldValue.arrayUnion([
+        {'ID': senderMac}
+      ]),
       'userID': uid
     }, SetOptions(merge: true));
   }
