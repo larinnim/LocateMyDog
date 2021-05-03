@@ -38,8 +38,11 @@ class TaskRouteState extends State<TaskRoute> {
     return Center(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.5,
+          ),
           CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation(Colors.red),
           ),
@@ -56,11 +59,24 @@ class TaskRouteState extends State<TaskRoute> {
   Widget error(BuildContext context) {
     return Center(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          SizedBox(
+            height: 100.0,
+          ),
+          Image.asset(
+            'assets/images/cloud_disconnected.png',
+            fit: BoxFit.cover,
+          ),
+          SizedBox(
+            height: 200.0,
+          ),
           Text(
             "wifi_credentials_not_work".tr,
-            style: TextStyle(color: Colors.red),
+            style: TextStyle(
+                color: Colors.red, fontWeight: FontWeight.bold, fontSize: 20.0),
           ),
+          SizedBox(height: 100.0),
           SizedBox(
             width: 150.0,
             height: 50.0,
@@ -86,19 +102,36 @@ class TaskRouteState extends State<TaskRoute> {
   Widget success(BuildContext context, String espIP) {
     return Center(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          SizedBox(
+            height: 100.0,
+          ),
+          Image.asset(
+            'assets/images/cloud_connected.png',
+            fit: BoxFit.cover,
+          ),
+          SizedBox(
+            height: 200.0,
+          ),
           Text(
             "wifi_connected".tr,
-            style: TextStyle(color: Colors.red),
+            style: TextStyle(
+                color: Colors.lightGreen[400],
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold),
           ),
+          SizedBox(height: 100.0),
           SizedBox(
             width: 150.0,
             height: 50.0,
             child: ElevatedButton(
                 onPressed: () async {
-                 Navigator.of(context).pop(MaterialPageRoute(
-                  builder: (context) =>
-                      WifiPage(widget.ssid, widget.bssid, espIP)));
+                  Navigator.pop(context, espIP);
+
+                  // Navigator.of(context).pop(MaterialPageRoute(
+                  //     builder: (context) =>
+                  //         WifiPage(widget.ssid, widget.bssid, espIP)));
                 },
                 style: ElevatedButton.styleFrom(
                   primary: Colors.red[300],
@@ -116,24 +149,25 @@ class TaskRouteState extends State<TaskRoute> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        child: StreamBuilder<ESPTouchResult>(
-          stream: _stream,
-          builder: (context, AsyncSnapshot<ESPTouchResult> snapshot) {
-            if (snapshot.hasError) {
-              return error(context);
-            }
-            if (snapshot.connectionState == ConnectionState.active ||
-                snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-             
-              return success(context, snapshot.data!.ip);
-            }
-             else if (snapshot.connectionState == ConnectionState.waiting) {
-              return waitingState(context);
-            } else {
-              return error(context);
-            }
-          },
+      body: SingleChildScrollView(
+        child: Container(
+          child: StreamBuilder<ESPTouchResult>(
+            stream: _stream,
+            builder: (context, AsyncSnapshot<ESPTouchResult> snapshot) {
+              if (snapshot.hasError) {
+                return error(context);
+              }
+              if (snapshot.connectionState == ConnectionState.active ||
+                  snapshot.connectionState == ConnectionState.done &&
+                      snapshot.hasData) {
+                return success(context, snapshot.data!.ip);
+              } else if (snapshot.connectionState == ConnectionState.waiting) {
+                return waitingState(context);
+              } else {
+                return error(context);
+              }
+            },
+          ),
         ),
       ),
     );

@@ -22,22 +22,26 @@ import 'package:provider/provider.dart';
 // ignore: must_be_immutable
 class GatewayDetails extends StatefulWidget {
   String? title;
-  GatewayDetails({Key? key, required this.title}) : super(key: key);
+  String? gatewayID;
+  GatewayDetails({Key? key, required this.title, required this.gatewayID})
+      : super(key: key);
 
   @override
   _GatewayDetailsState createState() => _GatewayDetailsState();
 }
 
 class _GatewayDetailsState extends State<GatewayDetails> {
-  CollectionReference locationDB =
-      FirebaseFirestore.instance.collection('locateDog');
+  CollectionReference senderCollection =
+      FirebaseFirestore.instance.collection('sender');
+
+  CollectionReference gatewayCollection =
+      FirebaseFirestore.instance.collection('gateway');
+
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   TextEditingController _renameController = TextEditingController();
   FlutterBlue flutterBlue = FlutterBlue.instance;
   bool _isScanning = false;
   String serviceUUID = "d1acf0d0-0a9b-11eb-adc1-0242ac120002";
-  String _scanBarcode = 'Unknown';
-  List<String> _senders = [];
   List<Device> _devices = [];
   List<Color> _availableColors = [
     Colors.green,
@@ -131,8 +135,6 @@ class _GatewayDetailsState extends State<GatewayDetails> {
         context.read<BleModel>().addconnectedDevices(dev);
 
         context.read<BleModel>().services = await dev.discoverServices();
-        //Only works if I have 1 service. Review the logic if there is more than 1
-        // context.read<BleModel>().services.forEach((service) async {
         for (BluetoothService service in await dev.discoverServices()) {
           if (service.uuid.toString() == serviceUUID) {
             for (BluetoothCharacteristic c in service.characteristics) {
@@ -143,83 +145,11 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                   return value;
                 });
                 print(value);
-                // await c.setNotifyValue(true);
-                // c.value.listen((value) {
-                //   final split = Utf8Decoder().convert(value).split(',');
-                //   final Map<int, String> values = {
-                //     for (int i = 0; i < split.length; i++) i: split[i]
-                //   };
-                //   print(values); // {0: grubs, 1:  sheep}
-
-                //   final lat = values[0];
-                //   final lng = values[1];
-                //   final sender = values[2];
-
-                //   // print("LAT VALUEE:" + value.toString());
-                //   context.read<BleModel>().addLatLng(double.parse(lat),
-                //       double.parse(lng), sender); // Add lat to provider
-                // });
               }
-
               context.read<BleModel>().addcharacteristics(c);
-              // List<int> value = await c.read();
-              // print(value);
             }
           }
         }
-
-        // context.read<BleModel>().characteristics = service.characteristics;
-        // print("Characteristics: " + service.characteristics.toString());
-        // });
-        // await context
-        //     .read<BleModel>()
-        //     .characteristics
-        //     .elementAt(1)
-        //     .setNotifyValue(true);
-        // await context
-        //     .read<BleModel>()
-        //     .characteristics
-        //     .elementAt(1)
-        //     .setNotifyValue(true);
-        //   await context
-        // .read<BleModel>()
-        // .characteristics
-        // .elementAt(2)
-        // .setNotifyValue(true);
-        //    await context
-        // .read<BleModel>()
-        // .characteristics
-        // .elementAt(3)
-        // .setNotifyValue(true);
-        // await context
-        //     .read<BleModel>()
-        //     .characteristics
-        //     .elementAt(1)
-        //     .setNotifyValue(true); //ESP32 - Longitude
-
-        // print("Size characteristics: " +
-        //     context.read<BleModel>().characteristics.length.toString());
-        // context
-        //     .read<BleModel>()
-        //     .characteristics
-        //     .elementAt(1)
-        //     .value
-        //     .listen((value) {
-        //   final split = Utf8Decoder().convert(value).split(',');
-        //   final Map<int, String> values = {
-        //     for (int i = 0; i < split.length; i++) i: split[i]
-        //   };
-        //   print(values); // {0: grubs, 1:  sheep}
-
-        //   final lat = values[0];
-        //   final lng = values[1];
-        //   final sender = values[2];
-
-        //   // print("LAT VALUEE:" + value.toString());
-        //   context.read<BleModel>().addLatLng(double.parse(lat),
-        //       double.parse(lng), sender); // Add lat to provider
-        // });
-
         print("Connected");
         setState(() {});
       }).catchError((e) => print("Connection Error $e"));
@@ -232,29 +162,25 @@ class _GatewayDetailsState extends State<GatewayDetails> {
     try {
       barcodeScanRes = await barcode.FlutterBarcodeScanner.scanBarcode(
           "#ff6666", "Cancel", true, barcode.ScanMode.QR);
-      String newSender = "Sender" + (_devices.length + 1).toString();
+      // String newSender = "Sender" + (_devices.length + 1).toString();
 
-      locationDB.doc(_firebaseAuth.currentUser!.uid).set({
-        newSender: {
-          'ID': barcodeScanRes,
-          'LastRequestedWifiSSID': '',
-          'Location': {'Latitude': '', 'Longitude': ''},
-          'LocationTimestamp': '',
-          'RSSI': 0,
-          'battery': 0,
-          'color': AuxFunc().colorNamefromColor(_availableColors[0]),
-          'name': newSender
-        },
+      senderCollection.doc('GW-' + barcodeScanRes).set({
+        'senderMac': barcodeScanRes,
+        'userID': _firebaseAuth.currentUser!.uid,
+        'Location': {'Latitude': '', 'Longitude': ''},
+        'LocationTimestamp': '',
+        'batteryLevel': 0,
+        'color': AuxFunc().colorNamefromColor(_availableColors[0]),
+        'name': barcodeScanRes
       }, SetOptions(merge: true)).then((value) {
         setState(() {
           _devices.add(Device(
-            id: barcodeScanRes,
-            name: newSender,
+            id: 'GW-' + barcodeScanRes,
+            name: 'GW-' + barcodeScanRes,
             batteryLevel: null,
             latitude: null,
             longitude: null,
             color: AuxFunc().colorNamefromColor(_availableColors[0]),
-            senderNumber: "Sender" + (_devices.length + 1).toString(),
           ));
           _availableColors.removeAt(0);
         });
@@ -268,38 +194,28 @@ class _GatewayDetailsState extends State<GatewayDetails> {
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
     if (!mounted) return;
-
-    setState(() {
-      _scanBarcode = barcodeScanRes;
-    });
   }
 
   void _getDevices() async {
-    locationDB
-        .doc(_firebaseAuth.currentUser!.uid)
+    senderCollection
+        .where('gatewayID', isEqualTo: widget.gatewayID)
         .get()
-        .then((DocumentSnapshot documentSnapshot) {
-      if (documentSnapshot.exists) {
-        documentSnapshot.data()!.forEach((key, value) {
-          if (key.startsWith('Sender')) {
-            Color devColor = AuxFunc().getColor(value['color']);
-            _availableColors
-                .removeWhere((colorAvailable) => devColor == colorAvailable);
-            setState(() {
-              _devices.add(Device(
-                id: value['ID'],
-                name: value['name'],
-                batteryLevel: value['battery'],
-                latitude: value['Location']["Latitude"],
-                longitude: value['Location']["Longitude"],
-                color: value['color'],
-                senderNumber: key,
-              ));
-            });
-          }
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        Color devColor = AuxFunc().getColor(doc['color']);
+        _availableColors
+            .removeWhere((colorAvailable) => devColor == colorAvailable);
+        setState(() {
+          _devices.add(Device(
+            id: doc.id,
+            name: doc['name'],
+            batteryLevel: doc['batteryLevel'],
+            latitude: doc['Location']["Latitude"],
+            longitude: doc['Location']["Longitude"],
+            color: doc['color'],
+          ));
         });
-        print('Document exists on the database');
-      }
+      });
     });
   }
 
@@ -540,9 +456,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                   color:
                                       AuxFunc().getColor(_devices[index].color),
                                   battery: _devices[index].batteryLevel,
-                                  id: _devices[index].id,
-                                  senderNumber:
-                                      _devices[index].senderNumber.toString(),
+                                  senderID: _devices[index].id,
                                   availableColors: _availableColors,
                                 ));
                               }));
@@ -598,10 +512,10 @@ class _GatewayDetailsState extends State<GatewayDetails> {
   }
 
   Future<void> _displayTextInputDialog(BuildContext context) async {
-    locationDB
-        .doc(_firebaseAuth.currentUser!.uid)
+    gatewayCollection
+        .doc(widget.gatewayID)
         .get()
-        .then((DocumentSnapshot querySnapshot) {
+        .then((DocumentSnapshot documentSnapshot) {
       return showDialog(
         context: context,
         builder: (context) {
@@ -609,8 +523,8 @@ class _GatewayDetailsState extends State<GatewayDetails> {
             title: Text('Rename Gateway'),
             content: TextField(
               controller: _renameController,
-              decoration: InputDecoration(
-                  hintText: querySnapshot.data()!["gateway"]["name"]),
+              decoration:
+                  InputDecoration(hintText: documentSnapshot.data()!["name"]),
             ),
             actions: <Widget>[
               TextButton(

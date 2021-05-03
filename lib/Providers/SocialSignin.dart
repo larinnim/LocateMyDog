@@ -4,6 +4,7 @@ import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
 import 'package:flutter_maps/Screens/Authenticate/sign_in.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
+import 'package:flutter_maps/Services/database.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -94,6 +95,9 @@ class SocialSignInProvider extends ChangeNotifier {
       isSigningIn = false;
       isSignedIn = true;
       socialSiginSingleton.isSocialLogin = true;
+
+      await DatabaseService(uid: FirebaseAuth.instance.currentUser!.uid)
+          .updateUserData('', user.displayName, '');
     }
   }
 
@@ -112,6 +116,7 @@ class SocialSignInProvider extends ChangeNotifier {
       if (result.status == LoginStatus.success) {
         final facebookCredential =
             FacebookAuthProvider.credential(result.accessToken!.token);
+        final userData = await FacebookAuth.instance.getUserData();
 
         await FirebaseAuth.instance.signInWithCredential(facebookCredential);
         box.write("token", result.accessToken!.token);
@@ -119,6 +124,8 @@ class SocialSignInProvider extends ChangeNotifier {
         isSigningIn = false;
         isSignedIn = true;
         socialSiginSingleton.isSocialLogin = true;
+        await DatabaseService(uid: FirebaseAuth.instance.currentUser!.uid)
+            .updateUserData('', userData['name'], '');
       } else {
         isCancelledByUser = true;
         isSigningIn = false;

@@ -1,0 +1,28 @@
+{
+  "dependencies": {
+    "firebase-functions": "^3.13.2"
+  },
+  "name": "flutter_maps",
+  "description": "A new Flutter application.",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/larinnim/LocateMyDog.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/larinnim/LocateMyDog/issues"
+  },
+  "homepage": "https://github.com/larinnim/LocateMyDog#readme",
+  "devDependencies": {
+    "googleapis": "^73.0.0"
+  }
+}

@@ -11,6 +11,7 @@ import 'package:flutter_maps/Screens/help_support.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Screens/Profile/profile.dart';
@@ -26,6 +27,7 @@ void main() async {
   // void main() {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  // await Permission.location.request();
   setupServices();
 
   runApp(MultiProvider(providers: [

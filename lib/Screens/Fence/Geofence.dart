@@ -40,10 +40,13 @@ class _GeofenceWidgetState extends State<Geofence> {
   late Uint8List imageData;
   late localization.LocationData location;
   AppUser? _currentUser = locator.get<UserController>().currentUser;
-  CollectionReference locateDogInstance =
-      FirebaseFirestore.instance.collection('locateDog');
-  CollectionReference userInstance =
+
+  // CollectionReference locateDogInstance =
+  //     FirebaseFirestore.instance.collection('locateDog');
+
+  CollectionReference userCollection =
       FirebaseFirestore.instance.collection('users');
+
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   bool _isPolygonFence = false;
@@ -80,7 +83,7 @@ class _GeofenceWidgetState extends State<Geofence> {
   }
 
   Future<void> _getRadiusAndUnits() async {
-    await userInstance
+    await userCollection
         .doc(_currentUser!.uid)
         .get()
         .then((DocumentSnapshot documentSnapshot) {
@@ -89,20 +92,27 @@ class _GeofenceWidgetState extends State<Geofence> {
         if (_units == 'miles') {
           _incrementRadius = (_incrementRadius * 0.621371).round();
         }
+        _configuredRadius =
+            documentSnapshot.data()!['Geofence']['Circle']['radius'];
+        if (_configuredRadius.isNegative) {
+          _configuredRadius = 0.0;
+          _updateCurrentRadius();
+          print('Radius: ' + _configuredRadius.toString());
+        }
       });
     });
 
-    await locateDogInstance.doc(_currentUser!.uid).get().then((value) {
-      //  _configuredRadius = value.data()['Geofence'].Circle.radius;
-      setState(() {
-        _configuredRadius = value.data()!['Geofence']['Circle']['radius'];
-        if (_configuredRadius.isNegative) {
-          _configuredRadius = 0.0;
-        }
-        _updateCurrentRadius();
-        print('Radius: ' + _configuredRadius.toString());
-      });
-    });
+    // await userCollection.doc(_currentUser!.uid).get().then((value) {
+    //   //  _configuredRadius = value.data()['Geofence'].Circle.radius;
+    //   setState(() {
+    //     _configuredRadius = value.data()!['Geofence']['Circle']['radius'];
+    //     if (_configuredRadius.isNegative) {
+    //       _configuredRadius = 0.0;
+    //     }
+    //     _updateCurrentRadius();
+    //     print('Radius: ' + _configuredRadius.toString());
+    //   });
+    // });
   }
 
   void _updateCurrentRadius() {

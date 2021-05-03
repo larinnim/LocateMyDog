@@ -61,6 +61,9 @@ dependencies:
   flutter_colorpicker: ^0.4.0
   flutter_facebook_auth: ^3.3.2+2
   esptouch_smartconfig: ^0.0.5+1
+  animated_text_kit: ^4.2.1
+  app_settings: ^4.1.0
+  permission_handler_platform_interface: ^3.3.0
 
   # mapbox_gl:
   #   git:
@@ -70,7 +73,7 @@ dependencies:
   flutter_barcode_scanner:
     git:
       url: git://github.com/larinnim/flutter_barcode_scanner-1.git
-      ref: nullsafety
+      ref: master
   flutter_ble_lib:
     git:
       url: git://github.com/privatdoktor/FlutterBleLib.git
@@ -124,8 +127,12 @@ flutter:
     - assets/images/dogpin_red.png
     - assets/images/dogpin_purple.png
     - assets/images/help.png
-    - assets/images/Wifi-On.png
-    - assets/images/Wifi-Off.png
+    - assets/images/wifi_connected.png
+    - assets/images/wifi_disconnected.png
+    - assets/images/cloud_disconnected.png
+    - assets/images/cloud_connected.png
+    - assets/images/power_on.png
+    - assets/images/denied.png
     - assets/lottie/devs.jpg
     - assets/lottie/powered_by.png
     - assets/icon/icon.png
