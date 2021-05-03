@@ -312,37 +312,37 @@ GestureDetector buildChangeWifiSettings(BuildContext context, String title) {
         ));
   }
 
-  InkWell buildUnitSelection(BuildContext context, String title) {
-    return InkWell(
-      onTap: () {
-        setState(() {
-          if (_units == "miles") {
-            _units = "";
-          } else {
-            _units = "miles";
-          }
-        });
-        _updateUnits(_units);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title.tr,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[600],
-              ),
-            ),
-            Text(_units!),
-          ],
-        ),
-      ),
-    );
-  }
+  // InkWell buildUnitSelection(BuildContext context, String title) {
+  //   return InkWell(
+  //     onTap: () {
+  //       setState(() {
+  //         if (_units == "miles") {
+  //           _units = "";
+  //         } else {
+  //           _units = "miles";
+  //         }
+  //       });
+  //       _updateUnits(_units);
+  //     },
+  //     child: Padding(
+  //       padding: const EdgeInsets.symmetric(vertical: 8.0),
+  //       child: Row(
+  //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //         children: [
+  //           Text(
+  //             title.tr,
+  //             style: TextStyle(
+  //               fontSize: 18,
+  //               fontWeight: FontWeight.w500,
+  //               color: Colors.grey[600],
+  //             ),
+  //           ),
+  //           Text(_units!),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   GestureDetector buildLanguageSelection(BuildContext context, String title) {
     return GestureDetector(

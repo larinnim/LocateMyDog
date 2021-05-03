@@ -32,12 +32,7 @@ class DatabaseService {
 
   Future<void> updateUserData(
       String? dogname, String? ownername, String? breed) async {
-    usersCollection.doc(uid).set({
-      'Geofence': {
-        'Circle': {'initialLat': 0, 'initialLng': 0, 'radius': 30}
-      }
-    }, SetOptions(merge: true));
-    _db.collection('users').doc(uid).set(
+    usersCollection.doc(uid).set(
         {
           'dogname': dogname,
           'ownername': ownername,
@@ -59,21 +54,32 @@ class DatabaseService {
       'senders': FieldValue.arrayUnion([
         {'ID': senderMac}
       ]),
-      'userID': uid
+      'userID': uid,
+      'Geofence': {
+        'Circle': {'initialLat': 0, 'initialLng': 0, 'radius': 30}
+      }
     }, SetOptions(merge: true));
   }
 
   Future<void> updateCircleRadius(
       double? radius, LatLng initialLocation) async {
-    return await usersCollection.doc(uid).set({
-      'Geofence': {
-        "Circle": {
-          "radius": radius,
-          "initialLat": initialLocation.latitude,
-          "initialLng": initialLocation.longitude,
-        }
-      },
-    }, SetOptions(merge: true));
+    // return
+    var getGatewayConfig = await gatewayConfigCollection
+        .where('userID', isEqualTo: uid)
+        .get(); //Temporary as it's one-to-one UserID Gatewat relationship
+
+    getGatewayConfig.docs.forEach((docCollected) {
+      //should return only 1 entry
+      gatewayConfigCollection.doc(docCollected.id).set({
+        'Geofence': {
+          "Circle": {
+            "radius": radius,
+            "initialLat": initialLocation.latitude,
+            "initialLng": initialLocation.longitude,
+          }
+        },
+      }, SetOptions(merge: true));
+    });
   }
 
   Future<void> updateGatewayName(String name) async {
@@ -108,11 +114,11 @@ class DatabaseService {
     }, SetOptions(merge: true));
   }
 
-  Future<void> updateFencePreference(String fencePref) async {
-    return await usersCollection.doc(uid).set({
-      'Geofence': {"Preference": fencePref},
-    }, SetOptions(merge: true));
-  }
+  // Future<void> updateFencePreference(String fencePref) async {
+  //   return await gatewayConfigCollection.doc(uid).set({
+  //     'Geofence': {"Preference": fencePref},
+  //   }, SetOptions(merge: true));
+  // }
 }
 
 class FirestoreSetUp {

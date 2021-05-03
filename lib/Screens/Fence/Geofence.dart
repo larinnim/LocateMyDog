@@ -35,8 +35,8 @@ class _GeofenceWidgetState extends State<Geofence> {
   late Polygon polygon;
   GoogleMapController? _controller;
   static LatLng? _initialPosition;
-  double _configuredRadius = 0.0; //Radius is 30 meters
-  double _configuredRadiusToUnits = 0.0; //Radius is 30 meters
+  late double _configuredRadius; //Radius is 30 meters
+  late double _configuredRadiusToUnits; //Radius is 30 meters
   late Uint8List imageData;
   late localization.LocationData location;
   AppUser? _currentUser = locator.get<UserController>().currentUser;
@@ -46,6 +46,9 @@ class _GeofenceWidgetState extends State<Geofence> {
 
   CollectionReference userCollection =
       FirebaseFirestore.instance.collection('users');
+
+  CollectionReference gatewayConfigCollection =
+      FirebaseFirestore.instance.collection('gateway-config');
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -77,9 +80,11 @@ class _GeofenceWidgetState extends State<Geofence> {
   @override
   void initState() {
     super.initState();
+    _getCurrentLocation();
+
     _getRadiusAndUnits();
     // _getInitialLocation();
-    _getCurrentLocation();
+    // _getCurrentLocation();
   }
 
   Future<void> _getRadiusAndUnits() async {
@@ -89,16 +94,38 @@ class _GeofenceWidgetState extends State<Geofence> {
         .then((DocumentSnapshot documentSnapshot) {
       setState(() {
         _units = documentSnapshot['units'];
-        if (_units == 'miles') {
+        if (_units == 'feet') {
           _incrementRadius = (_incrementRadius * 0.621371).round();
         }
-        _configuredRadius =
-            documentSnapshot.data()!['Geofence']['Circle']['radius'];
-        if (_configuredRadius.isNegative) {
-          _configuredRadius = 0.0;
+        // _configuredRadius = (documentSnapshot.data()!['Geofence']['Circle']
+        //         ['radius'])
+        //     .toDouble();
+        // // _configuredRadiusToUnits = _configuredRadius;
+        // if (_configuredRadius.isNegative) {
+        //   _configuredRadius = 0.0;
+        //   // _updateCurrentRadius();
+        //   print('Radius: ' + _configuredRadius.toString());
+        // }
+        // _updateCurrentRadius();
+      });
+    });
+
+    await gatewayConfigCollection
+        .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        setState(() {
+          _configuredRadius =
+              (doc.data()['Geofence']['Circle']['radius']).toDouble();
+          // _configuredRadiusToUnits = _configuredRadius;
+          if (_configuredRadius.isNegative) {
+            _configuredRadius = 0.0;
+            // _updateCurrentRadius();
+            print('Radius: ' + _configuredRadius.toString());
+          }
           _updateCurrentRadius();
-          print('Radius: ' + _configuredRadius.toString());
-        }
+        });
       });
     });
 
@@ -132,7 +159,10 @@ class _GeofenceWidgetState extends State<Geofence> {
         }
       }
     });
-    updateMarkerAndCircle(location, imageData);
+    
+        updateMarkerAndCircle(imageData);
+
+    // updateMarkerAndCircle(location, imageData);
   }
 
   void _onSettingsPressed() {
@@ -175,9 +205,10 @@ class _GeofenceWidgetState extends State<Geofence> {
 
       // var location = await _locationTracker.getLocation();
 
-      location = await _locationTracker.getLocation();
+      // location = await _locationTracker.getLocation();
+      updateMarkerAndCircle(imageData);
 
-      updateMarkerAndCircle(location, imageData);
+      // updateMarkerAndCircle(location, imageData);
 
       if (_locationSubscription != null) {
         _locationSubscription!.cancel();
@@ -233,14 +264,17 @@ class _GeofenceWidgetState extends State<Geofence> {
     ));
   }
 
-  void updateMarkerAndCircle(
-      localization.LocationData newLocalData, Uint8List imageData) {
-    LatLng latlng = LatLng(newLocalData.latitude!, newLocalData.longitude!);
+  // void updateMarkerAndCircle(
+  //     localization.LocationData newLocalData, Uint8List imageData) async {
+  // 
+  void updateMarkerAndCircle(Uint8List imageData) async {
+    var loc = await _locationTracker.getLocation();
+    LatLng latlng = LatLng(loc.latitude!, loc.longitude!);
     this.setState(() {
       marker = Marker(
           markerId: MarkerId("home"),
           position: latlng,
-          rotation: newLocalData.heading!,
+          rotation: loc.heading!,
           draggable: false,
           zIndex: 2,
           flat: true,
