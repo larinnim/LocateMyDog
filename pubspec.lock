@@ -304,11 +304,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: nullsafety
-      resolved-ref: "8ecb9d67a113e0894e94d580f86d84dfc2e281eb"
+      ref: master
+      resolved-ref: "238928fc266d29ec83ed98d449bafa641aab4ea1"
       url: "git://github.com/larinnim/flutter_barcode_scanner-1.git"
     source: git
-    version: "2.0.0-nullsafety.0"
+    version: "2.0.0"
   flutter_ble_lib:
     dependency: "direct main"
     description:
