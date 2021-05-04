@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_wrapper/connectivity_wrapper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_maps/Screens/ProfileSettings/change_email.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/languages.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/offline_regions.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/reset_password.dart';
+import 'package:flutter_maps/Services/utils.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 
@@ -108,15 +110,23 @@ class _SettingsPageState extends State<SettingsPage> {
                     // buildUnitSelection(context, "Units"),
 
                     InkWell(
-                      onTap: () {
-                        setState(() {
-                          if (_units == "feet") {
-                            _units = "meter";
-                          } else {
-                            _units = "feet";
-                          }
-                        });
-                        _updateUnits(_units);
+                      onTap: () async {
+                        if (await ConnectivityWrapper.instance.isConnected) {
+                          setState(() {
+                            if (_units == "feet") {
+                              _units = "meter";
+                            } else {
+                              _units = "feet";
+                            }
+                          });
+                          _updateUnits(_units);
+                        } else {
+                          showSnackBar(
+                            context,
+                            title:
+                                "You are offline. Please connect to an active internet connection!",
+                          );
+                        }
                       },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -229,7 +239,8 @@ class _SettingsPageState extends State<SettingsPage> {
       ],
     );
   }
-GestureDetector buildChangeWifiSettings(BuildContext context, String title) {
+
+  GestureDetector buildChangeWifiSettings(BuildContext context, String title) {
     return GestureDetector(
         onTap: () {
           Navigator.of(context).push(MaterialPageRoute(
@@ -256,6 +267,7 @@ GestureDetector buildChangeWifiSettings(BuildContext context, String title) {
           ),
         ));
   }
+
   GestureDetector buildChangeEmail(BuildContext context, String title) {
     return GestureDetector(
         onTap: () {

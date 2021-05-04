@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_wrapper/connectivity_wrapper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
@@ -159,8 +160,8 @@ class _GeofenceWidgetState extends State<Geofence> {
         }
       }
     });
-    
-        updateMarkerAndCircle(imageData);
+
+    updateMarkerAndCircle(imageData);
 
     // updateMarkerAndCircle(location, imageData);
   }
@@ -266,7 +267,7 @@ class _GeofenceWidgetState extends State<Geofence> {
 
   // void updateMarkerAndCircle(
   //     localization.LocationData newLocalData, Uint8List imageData) async {
-  // 
+  //
   void updateMarkerAndCircle(Uint8List imageData) async {
     var loc = await _locationTracker.getLocation();
     LatLng latlng = LatLng(loc.latitude!, loc.longitude!);
@@ -422,153 +423,163 @@ class _GeofenceWidgetState extends State<Geofence> {
           ],
         ),
         backgroundColor: Colors.grey[100],
-        body: Consumer<ConnectionStatusModel>(
-            builder: (_, connectionProvider, child) {
-          return FutureBuilder(
-              initialData: false,
-              future: mounted
-                  ? connectionStatus.getCurrentStatus()
-                  : Future.value(null),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return connectionProvider.connectionStatus ==
-                              NetworkStatus.Offline ||
-                          snapshot.data == NetworkStatus.Offline
-                      ? CupertinoAlertDialog(
-                          title: Text(
-                              'You are offline. Please connect to the internet to continue to use this feature'),
-                          actions: [
-                            CupertinoDialogAction(
-                              child: Text('OK'),
-                              onPressed: () {
-                                Navigator.push(context,
-                                    MaterialPageRoute(builder: (context) {
-                                  return ProfileScreen();
-                                }));
-                              },
-                            )
-                          ],
-                        )
-                      : _initialPosition == null
-                          ? Container(
-                              child: Center(
-                                child: Text(
-                                  'Loading Map...',
-                                  style: TextStyle(
-                                      fontFamily: 'Avenir-Medium',
-                                      color: Colors.grey[400]),
+        body: ConnectivityWidgetWrapper(
+          stacked: false,
+          alignment: Alignment.topCenter,
+          disableInteraction: true,
+          message: "You are offline. Please connect to an active internet connection!",
+          child: Consumer<ConnectionStatusModel>(
+              builder: (_, connectionProvider, child) {
+            return FutureBuilder(
+                initialData: false,
+                future: mounted
+                    ? connectionStatus.getCurrentStatus()
+                    : Future.value(null),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return connectionProvider.connectionStatus ==
+                                NetworkStatus.Offline ||
+                            snapshot.data == NetworkStatus.Offline
+                        ? CupertinoAlertDialog(
+                            title: Text(
+                                'You are offline. Please connect to the internet to continue to use this feature'),
+                            actions: [
+                              CupertinoDialogAction(
+                                child: Text('OK'),
+                                onPressed: () {
+                                  Navigator.push(context,
+                                      MaterialPageRoute(builder: (context) {
+                                    return ProfileScreen();
+                                  }));
+                                },
+                              )
+                            ],
+                          )
+                        : _initialPosition == null
+                            ? Container(
+                                child: Center(
+                                  child: Text(
+                                    'Loading Map...',
+                                    style: TextStyle(
+                                        fontFamily: 'Avenir-Medium',
+                                        color: Colors.grey[400]),
+                                  ),
                                 ),
-                              ),
-                            )
-                          : new Stack(children: <Widget>[
-                              new Container(
-                                  height: 1000, // This line solved the issue
-                                  child: _isPolygonFence
-                                      ? GoogleMap(
-                                          mapType: MapType.hybrid,
-                                          initialCameraPosition: CameraPosition(
-                                            target: _initialPosition!,
-                                            zoom: 11,
-                                          ),
-                                          zoomGesturesEnabled: true,
-                                          myLocationEnabled: false,
-                                          compassEnabled: true,
-                                          myLocationButtonEnabled: false,
-                                          markers: Set.of((marker != null)
-                                              ? [marker!]
-                                              : []),
-                                          circles: Set.of((circle != null)
-                                              ? [circle!]
-                                              : []),
-                                          polygons: _polygonsFence,
-                                          //     : _isDoNotEnterFence
-                                          //         ? _doNotEnterFence
-                                          //         : null,
-                                          onTap: (point) {
-                                            if (_isPolygonFence) {
-                                              setState(() {
-                                                polygonFenceLatLngs.add(point);
-                                                _setPolygonFence();
-                                              });
-                                            }
-                                            if (_isDoNotEnterFence) {
-                                              setState(() {
-                                                dotNotEnterFenceLatLngs
-                                                    .add(point);
-                                                _setDoNotEnterFence();
-                                              });
-                                            }
-                                          },
-                                          onMapCreated:
-                                              (GoogleMapController controller) {
-                                            _controller = controller;
-                                          },
-                                        )
-                                      : GoogleMap(
-                                          mapType: MapType.hybrid,
-                                          initialCameraPosition: CameraPosition(
-                                            target: _initialPosition!,
-                                            zoom: 11,
-                                          ),
-                                          zoomGesturesEnabled: true,
-                                          myLocationEnabled: false,
-                                          compassEnabled: true,
-                                          myLocationButtonEnabled: false,
-                                          markers: Set.of((marker != null)
-                                              ? [marker!]
-                                              : []),
-                                          circles: Set.of((circle != null)
-                                              ? [circle!]
-                                              : []),
-                                          polygons: _doNotEnterFence,
-                                          onTap: (point) {
-                                            if (_isPolygonFence) {
-                                              setState(() {
-                                                polygonFenceLatLngs.add(point);
-                                                _setPolygonFence();
-                                              });
-                                            }
-                                            if (_isDoNotEnterFence) {
-                                              setState(() {
-                                                dotNotEnterFenceLatLngs
-                                                    .add(point);
-                                                _setDoNotEnterFence();
-                                              });
-                                            }
-                                          },
-                                          onMapCreated:
-                                              (GoogleMapController controller) {
-                                            _controller = controller;
-                                          },
-                                        )),
-                              // connectionProvider.connectionStatus == NetworkStatus.Offline
-                              //     ? CupertinoAlertDialog(
-                              //         title: Text(
-                              //             'You are offline. Please connect to internet to continue to use this feature'),
-                              //         actions: [
-                              //           CupertinoDialogAction(
-                              //             child: Text('OK'),
-                              //             onPressed: () {
-                              //               Navigator.push(context,
-                              //                   MaterialPageRoute(builder: (context) {
-                              //                 return ProfileScreen();
-                              //               }));
-                              //             },
-                              //           )
-                              //         ],
-                              //       )
-                              //     : new Container()
-                            ]);
-                } else {
-                  return Container(
-                    color: Colors.white,
-                    child: SpinKitCircle(
-                      color: Colors.red,
-                      size: 30.0,
-                    ),
-                  );
-                }
-              });
-        }));
+                              )
+                            : new Stack(children: <Widget>[
+                                new Container(
+                                    height: 1000, // This line solved the issue
+                                    child: _isPolygonFence
+                                        ? GoogleMap(
+                                            mapType: MapType.hybrid,
+                                            initialCameraPosition:
+                                                CameraPosition(
+                                              target: _initialPosition!,
+                                              zoom: 11,
+                                            ),
+                                            zoomGesturesEnabled: true,
+                                            myLocationEnabled: false,
+                                            compassEnabled: true,
+                                            myLocationButtonEnabled: false,
+                                            markers: Set.of((marker != null)
+                                                ? [marker!]
+                                                : []),
+                                            circles: Set.of((circle != null)
+                                                ? [circle!]
+                                                : []),
+                                            polygons: _polygonsFence,
+                                            //     : _isDoNotEnterFence
+                                            //         ? _doNotEnterFence
+                                            //         : null,
+                                            onTap: (point) {
+                                              if (_isPolygonFence) {
+                                                setState(() {
+                                                  polygonFenceLatLngs
+                                                      .add(point);
+                                                  _setPolygonFence();
+                                                });
+                                              }
+                                              if (_isDoNotEnterFence) {
+                                                setState(() {
+                                                  dotNotEnterFenceLatLngs
+                                                      .add(point);
+                                                  _setDoNotEnterFence();
+                                                });
+                                              }
+                                            },
+                                            onMapCreated: (GoogleMapController
+                                                controller) {
+                                              _controller = controller;
+                                            },
+                                          )
+                                        : GoogleMap(
+                                            mapType: MapType.hybrid,
+                                            initialCameraPosition:
+                                                CameraPosition(
+                                              target: _initialPosition!,
+                                              zoom: 11,
+                                            ),
+                                            zoomGesturesEnabled: true,
+                                            myLocationEnabled: false,
+                                            compassEnabled: true,
+                                            myLocationButtonEnabled: false,
+                                            markers: Set.of((marker != null)
+                                                ? [marker!]
+                                                : []),
+                                            circles: Set.of((circle != null)
+                                                ? [circle!]
+                                                : []),
+                                            polygons: _doNotEnterFence,
+                                            onTap: (point) {
+                                              if (_isPolygonFence) {
+                                                setState(() {
+                                                  polygonFenceLatLngs
+                                                      .add(point);
+                                                  _setPolygonFence();
+                                                });
+                                              }
+                                              if (_isDoNotEnterFence) {
+                                                setState(() {
+                                                  dotNotEnterFenceLatLngs
+                                                      .add(point);
+                                                  _setDoNotEnterFence();
+                                                });
+                                              }
+                                            },
+                                            onMapCreated: (GoogleMapController
+                                                controller) {
+                                              _controller = controller;
+                                            },
+                                          )),
+                                // connectionProvider.connectionStatus == NetworkStatus.Offline
+                                //     ? CupertinoAlertDialog(
+                                //         title: Text(
+                                //             'You are offline. Please connect to internet to continue to use this feature'),
+                                //         actions: [
+                                //           CupertinoDialogAction(
+                                //             child: Text('OK'),
+                                //             onPressed: () {
+                                //               Navigator.push(context,
+                                //                   MaterialPageRoute(builder: (context) {
+                                //                 return ProfileScreen();
+                                //               }));
+                                //             },
+                                //           )
+                                //         ],
+                                //       )
+                                //     : new Container()
+                              ]);
+                  } else {
+                    return Container(
+                      color: Colors.white,
+                      child: SpinKitCircle(
+                        color: Colors.red,
+                        size: 30.0,
+                      ),
+                    );
+                  }
+                });
+          }),
+        ));
   }
 }

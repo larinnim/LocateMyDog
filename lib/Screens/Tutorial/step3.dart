@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_wrapper/connectivity_wrapper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -85,8 +86,10 @@ class _Step3State extends State<Step3> {
 
   @override
   Widget build(BuildContext context) {
-    Stream<QuerySnapshot> sendersStream =
-        FirebaseFirestore.instance.collection('sender').where('userID', isEqualTo: _firebaseAuth.currentUser!.uid).snapshots();
+    Stream<QuerySnapshot> sendersStream = FirebaseFirestore.instance
+        .collection('sender')
+        .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
+        .snapshots();
 
     return StreamBuilder<QuerySnapshot>(
         stream: sendersStream,
@@ -99,141 +102,149 @@ class _Step3State extends State<Step3> {
             return Loading();
           }
 
-          return Material(
-              type: MaterialType.transparency,
-              child: new Container(
-                decoration: BoxDecoration(color: Colors.white),
-                child: SafeArea(
-                    child: Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 28.0, vertical: 40.0),
-                  child: Column(children: <Widget>[
-                    Row(
-                      children: [
-                        Text(
-                          'Step 3 of 5',
-                          style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 20.0,
-                              fontFamily: 'RobotoMono'),
-                        )
-                      ],
-                    ),
-                    SizedBox(
-                      height: 20.0,
-                    ),
-                    Visibility(
-                      visible: snapshot.data!.size < 4,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment
-                            .center, //Center Row contents horizontally,
-                        children: [
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width * 0.7,
-                            height: 50,
-                            child: ElevatedButton.icon(
-                              icon: Icon(
-                                Icons.add_circle_outline,
-                                color: Colors.white,
-                                size: 24.0,
-                              ),
-                              style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(
-                                      Colors.red[300]),
-                                  shape: MaterialStateProperty.all<
-                                          RoundedRectangleBorder>(
-                                      RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ))),
-                              label: Text(
-                                'Add New Device',
-                                style: TextStyle(
-                                    fontSize: 20, color: Colors.white),
-                              ),
-                              onPressed: () {
-                                goToAddNewDevice(AuxFunc()
-                                    .colorNamefromColor(_availableColors[0]));
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      replacement: Row(
+          return ConnectivityWidgetWrapper(
+            stacked: false,
+            alignment: Alignment.topCenter,
+            disableInteraction: true,
+            message:
+                "You are offline. Please connect to an active internet connection!",
+            child: Material(
+                type: MaterialType.transparency,
+                child: new Container(
+                  decoration: BoxDecoration(color: Colors.white),
+                  child: SafeArea(
+                      child: Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 28.0, vertical: 40.0),
+                    child: Column(children: <Widget>[
+                      Row(
                         children: [
                           Text(
-                            'You have already configured up to 4 devices',
+                            'Step 3 of 5',
                             style: TextStyle(
-                                fontWeight: FontWeight.bold,
+                                color: Colors.grey,
                                 fontSize: 20.0,
                                 fontFamily: 'RobotoMono'),
                           )
                         ],
                       ),
-                    ),
-                    SizedBox(height: 30.0),
-                    Expanded(
-                      child: new ListView.separated(
-                          itemCount: snapshot.data!.docs.length,
-                          separatorBuilder: (BuildContext context, int index) =>
-                              Divider(height: 1),
-                          itemBuilder: (BuildContext context, int index) {
-                            return ClipRRect(
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(10),
-                                  bottomLeft: Radius.circular(10),
+                      SizedBox(
+                        height: 20.0,
+                      ),
+                      Visibility(
+                        visible: snapshot.data!.size < 4,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment
+                              .center, //Center Row contents horizontally,
+                          children: [
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.7,
+                              height: 50,
+                              child: ElevatedButton.icon(
+                                icon: Icon(
+                                  Icons.add_circle_outline,
+                                  color: Colors.white,
+                                  size: 24.0,
                                 ),
-                                child: ListTile(
-                                    tileColor: AuxFunc().getColor(
-                                        snapshot.data!.docs[index]['color']),
-                                    leading: Icon(
-                                      LineAwesomeIcons.mobile_phone,
-                                      color: Colors.white,
-                                    ),
-                                    title: Text(
-                                      snapshot.data!.docs[index]['name'],
-                                      style: TextStyle(
-                                          color: Colors.white, fontSize: 20),
-                                    )));
-                            // title: Text("List item $index"));
-                          }),
-                    ),
-                    Visibility(
-                      visible: snapshot.data!.docs.length < 1,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[],
-                      ),
-                      replacement: Column(
-                        children: [
-                          SizedBox(
-                            height: 30.0,
-                          ),
-                          ElevatedButton(
-                            style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all(Colors.black),
-                                shape: MaterialStateProperty.all<
-                                        RoundedRectangleBorder>(
-                                    RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(18.0),
-                                ))),
-                            child: Text(
-                              'Continue',
-                              style:
-                                  TextStyle(fontSize: 16, color: Colors.white),
+                                style: ButtonStyle(
+                                    backgroundColor: MaterialStateProperty.all(
+                                        Colors.red[300]),
+                                    shape: MaterialStateProperty.all<
+                                            RoundedRectangleBorder>(
+                                        RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ))),
+                                label: Text(
+                                  'Add New Device',
+                                  style: TextStyle(
+                                      fontSize: 20, color: Colors.white),
+                                ),
+                                onPressed: () {
+                                  goToAddNewDevice(AuxFunc()
+                                      .colorNamefromColor(_availableColors[0]));
+                                },
+                              ),
                             ),
-                            onPressed: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => Step4()));
-                            },
-                          ),
-                        ],
+                          ],
+                        ),
+                        replacement: Row(
+                          children: [
+                            Text(
+                              'You have already configured up to 4 devices',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20.0,
+                                  fontFamily: 'RobotoMono'),
+                            )
+                          ],
+                        ),
                       ),
-                    ),
-                  ]),
+                      SizedBox(height: 30.0),
+                      Expanded(
+                        child: new ListView.separated(
+                            itemCount: snapshot.data!.docs.length,
+                            separatorBuilder:
+                                (BuildContext context, int index) =>
+                                    Divider(height: 1),
+                            itemBuilder: (BuildContext context, int index) {
+                              return ClipRRect(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10),
+                                    bottomLeft: Radius.circular(10),
+                                  ),
+                                  child: ListTile(
+                                      tileColor: AuxFunc().getColor(
+                                          snapshot.data!.docs[index]['color']),
+                                      leading: Icon(
+                                        LineAwesomeIcons.mobile_phone,
+                                        color: Colors.white,
+                                      ),
+                                      title: Text(
+                                        snapshot.data!.docs[index]['name'],
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 20),
+                                      )));
+                              // title: Text("List item $index"));
+                            }),
+                      ),
+                      Visibility(
+                        visible: snapshot.data!.docs.length < 1,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[],
+                        ),
+                        replacement: Column(
+                          children: [
+                            SizedBox(
+                              height: 30.0,
+                            ),
+                            ElevatedButton(
+                              style: ButtonStyle(
+                                  backgroundColor:
+                                      MaterialStateProperty.all(Colors.black),
+                                  shape: MaterialStateProperty.all<
+                                          RoundedRectangleBorder>(
+                                      RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18.0),
+                                  ))),
+                              child: Text(
+                                'Continue',
+                                style: TextStyle(
+                                    fontSize: 16, color: Colors.white),
+                              ),
+                              onPressed: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (context) => Step4()));
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ]),
+                  )),
                 )),
-              ));
+          );
         });
   }
 }

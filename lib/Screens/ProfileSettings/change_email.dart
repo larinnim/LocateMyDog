@@ -1,3 +1,4 @@
+import 'package:connectivity_wrapper/connectivity_wrapper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -132,132 +133,143 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
             ),
           ),
         ),
-        body: Container(
-          padding: EdgeInsets.only(left: 16, top: 25, right: 16),
-          child: Column(children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.only(bottom: 35.0),
-              child: TextFormField(
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                onChanged: (textValue) {
-                  setState(() {
-                    emailEntry = textValue;
-                  });
-                },
-                validator: (emailEntry) {
-                  if (emailEntry!.isEmpty) {
-                    return 'field_mandatory'.tr;
-                  }
-                  return null;
-                },
-                controller: emailController,
-                focusNode: _emailFocus,
-                autofocus: false,
-                decoration: InputDecoration(
-                    focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
-                    contentPadding: EdgeInsets.only(bottom: 3),
-                    labelText: "Email",
-                    labelStyle: TextStyle(
-                      color: _emailFocus.hasFocus ? Colors.green : Colors.black,
-                    ),
-                    floatingLabelBehavior: FloatingLabelBehavior.always,
-                    hintText: user_email,
-                    hintStyle: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    )),
-              ),
-            ),
-            SizedBox(
-              height: 35,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 35.0),
-              child: TextFormField(
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                onChanged: (textValue) {
-                  setState(() {
-                    passwordEntry = textValue;
-                  });
-                },
-                validator: (passwordEntry) {
-                  if (passwordEntry!.isEmpty) {
-                    return 'field_mandatory'.tr;
-                  }
-                  return null;
-                },
-                controller: passwordController,
-                obscureText: showPassword,
-                focusNode: _passwordFocus,
-                autofocus: false,
-                decoration: InputDecoration(
-                    suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          showPassword = !showPassword;
-                        });
-                      },
-                      icon: Icon(
-                        Icons.remove_red_eye,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    contentPadding: EdgeInsets.only(bottom: 3),
-                    labelText: "password".tr,
-                    labelStyle: TextStyle(
-                      color:
-                          _passwordFocus.hasFocus ? Colors.green : Colors.black,
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
-                    floatingLabelBehavior: FloatingLabelBehavior.always,
-                    hintText: "",
-                    hintStyle: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    )),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                OutlineButton(
-                  padding: EdgeInsets.symmetric(horizontal: 50),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)),
-                  onPressed: () {
-                    Navigator.of(context).pop();
+        body: ConnectivityWidgetWrapper(
+          stacked: false,
+          alignment: Alignment.topCenter,
+          disableInteraction: true,
+          message:
+              "You are offline. Please connect to an active internet connection!",
+          child: Container(
+            padding: EdgeInsets.only(left: 16, top: 25, right: 16),
+            child: Column(children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(bottom: 35.0),
+                child: TextFormField(
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  onChanged: (textValue) {
+                    setState(() {
+                      emailEntry = textValue;
+                    });
                   },
-                  child: Text("cancel".tr,
+                  validator: (emailEntry) {
+                    if (emailEntry!.isEmpty) {
+                      return 'field_mandatory'.tr;
+                    }
+                    return null;
+                  },
+                  controller: emailController,
+                  focusNode: _emailFocus,
+                  autofocus: false,
+                  decoration: InputDecoration(
+                      focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green)),
+                      contentPadding: EdgeInsets.only(bottom: 3),
+                      labelText: "Email",
+                      labelStyle: TextStyle(
+                        color:
+                            _emailFocus.hasFocus ? Colors.green : Colors.black,
+                      ),
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
+                      hintText: user_email,
+                      hintStyle: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      )),
+                ),
+              ),
+              SizedBox(
+                height: 35,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 35.0),
+                child: TextFormField(
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  onChanged: (textValue) {
+                    setState(() {
+                      passwordEntry = textValue;
+                    });
+                  },
+                  validator: (passwordEntry) {
+                    if (passwordEntry!.isEmpty) {
+                      return 'field_mandatory'.tr;
+                    }
+                    return null;
+                  },
+                  controller: passwordController,
+                  obscureText: showPassword,
+                  focusNode: _passwordFocus,
+                  autofocus: false,
+                  decoration: InputDecoration(
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            showPassword = !showPassword;
+                          });
+                        },
+                        icon: Icon(
+                          Icons.remove_red_eye,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      contentPadding: EdgeInsets.only(bottom: 3),
+                      labelText: "password".tr,
+                      labelStyle: TextStyle(
+                        color: _passwordFocus.hasFocus
+                            ? Colors.green
+                            : Colors.black,
+                      ),
+                      focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green)),
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
+                      hintText: "",
+                      hintStyle: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      )),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  OutlineButton(
+                    padding: EdgeInsets.symmetric(horizontal: 50),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20)),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text("cancel".tr,
+                        style: TextStyle(
+                            fontSize: 14,
+                            letterSpacing: 2.2,
+                            color: Colors.black)),
+                  ),
+                  RaisedButton(
+                    onPressed: () {
+                      if (formKey.currentState!.validate()) {
+                        formKey.currentState!.save();
+                        _updateEmail();
+                      }
+                    },
+                    color: Colors.red[200],
+                    padding: EdgeInsets.symmetric(horizontal: 50),
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20)),
+                    child: Text(
+                      "save".tr,
                       style: TextStyle(
                           fontSize: 14,
                           letterSpacing: 2.2,
-                          color: Colors.black)),
-                ),
-                RaisedButton(
-                  onPressed: () {
-                    if (formKey.currentState!.validate()) {
-                      formKey.currentState!.save();
-                      _updateEmail();
-                    }
-                  },
-                  color: Colors.red[200],
-                  padding: EdgeInsets.symmetric(horizontal: 50),
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)),
-                  child: Text(
-                    "save".tr,
-                    style: TextStyle(
-                        fontSize: 14, letterSpacing: 2.2, color: Colors.white),
-                  ),
-                )
-              ],
-            )
-          ]),
+                          color: Colors.white),
+                    ),
+                  )
+                ],
+              )
+            ]),
+          ),
         ),
       ),
     );

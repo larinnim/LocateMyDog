@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_wrapper/connectivity_wrapper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -141,28 +142,35 @@ class LanguagesPageState extends State<LanguagesPage> {
                   ),
                 ),
               ),
-              body: ListView(
-                padding: EdgeInsets.all(8.0),
-                children: _buttonOptions
-                    .map((langVal) => RadioListTile(
-                          activeColor: Colors.red[300],
-                          groupValue: lang,
-                          title: Text(langVal._value.tr),
-                          value: langVal._key,
-                          onChanged: (dynamic val) {
-                            setState(() {
-                              debugPrint('VAL = $val');
-                              lang = val;
-                              // _currentLang = val;
-                            });
-                            //                           WidgetsBinding.instance
-                            // .addPostFrameCallback((_) => setState(() {
-                            // lang = val;
-                            // }));
-                            _updateLanguage(val);
-                          },
-                        ))
-                    .toList(),
+              body: ConnectivityWidgetWrapper(
+                stacked: false,
+                alignment: Alignment.topCenter,
+                disableInteraction: true,
+                message:
+                    "You are offline. Please connect to an active internet connection!",
+                child: ListView(
+                  padding: EdgeInsets.all(8.0),
+                  children: _buttonOptions
+                      .map((langVal) => RadioListTile(
+                            activeColor: Colors.red[300],
+                            groupValue: lang,
+                            title: Text(langVal._value.tr),
+                            value: langVal._key,
+                            onChanged: (dynamic val) {
+                              setState(() {
+                                debugPrint('VAL = $val');
+                                lang = val;
+                                // _currentLang = val;
+                              });
+                              //                           WidgetsBinding.instance
+                              // .addPostFrameCallback((_) => setState(() {
+                              // lang = val;
+                              // }));
+                              _updateLanguage(val);
+                            },
+                          ))
+                      .toList(),
+                ),
               ),
             );
           } else if (snapshot.hasError) {
