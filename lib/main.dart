@@ -1,4 +1,3 @@
-import 'package:connectivity_wrapper/connectivity_wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -55,29 +54,28 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ConnectivityAppWrapper(
-          app: GetMaterialApp(
-          locale: Get.deviceLocale, //read the system locale
-          translations: Messages(),
-          fallbackLocale: Locale('en', 'US'),
-          debugShowCheckedModeBanner: false,
-          title: 'IAT',
-          routes: {
-            '/profile': (context) => ProfileScreen(),
-            '/trackwalk': (context) => BluetoothConnection(),
-            '/blueMap': (context) => MapLocation(),
-            // '/wifiConf': (context) => SetWiFiConf(),
-            '/authenticate': (context) => Authenticate(),
-            '/helpSupport': (context) => HelpSupport(),
-          },
-          theme: ThemeData(
-            primaryColor: Colors.white,
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-          ),
-          home: Material(
-            // child: SplashView(),
-            child: Wrapper(),
-          )),
+    return GetMaterialApp(
+      locale: Get.deviceLocale, //read the system locale
+      translations: Messages(),
+      fallbackLocale: Locale('en', 'US'),
+      debugShowCheckedModeBanner: false,
+      title: 'IAT',
+      routes: {
+        '/profile': (context) => ProfileScreen(),
+        '/trackwalk': (context) => BluetoothConnection(),
+        '/blueMap': (context) => MapLocation(),
+        // '/wifiConf': (context) => SetWiFiConf(),
+        '/authenticate': (context) => Authenticate(),
+        '/helpSupport': (context) => HelpSupport(),
+      },
+      theme: ThemeData(
+        primaryColor: Colors.white,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: Material(
+        // child: SplashView(),
+        child: Wrapper(),
+      ),
     );
   }
 

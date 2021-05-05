@@ -147,6 +147,24 @@ class HomeSignInWidget extends StatelessWidget {
                     onTap: () {
                       Provider.of<SocialSignInProvider>(context, listen: false);
                       provider.loginFacebook();
+                      if (provider.isError!) {
+                        showCupertinoDialog(
+                            context: context,
+                            builder: (_) => CupertinoAlertDialog(
+                                  title: Text("Error"),
+                                  content: Text(
+                                      "Error occured. Please check your internet connection."),
+                                  actions: [
+                                    // Close the dialog
+                                    // You can use the CupertinoDialogAction widget instead
+                                    CupertinoButton(
+                                        child: Text('Dismiss'),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        }),
+                                  ],
+                                ));
+                      }
                       // _signInFacebook();
                     },
                     child: Container(

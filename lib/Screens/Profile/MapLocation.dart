@@ -31,7 +31,7 @@ class _MapLocationState extends State<MapLocation> {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   CollectionReference sendersCollection =
-      FirebaseFirestore.instance.collection('senders');
+      FirebaseFirestore.instance.collection('sender');
 
   // List<Marker?> markers = <Marker?>[];
   List<Polyline> mapPolylines = <Polyline>[];
@@ -386,7 +386,8 @@ class _MapLocationState extends State<MapLocation> {
                             )
                           ],
                         )
-                      : bleProvider.lat != null && bleProvider.lng != null ||
+                      :
+                       bleProvider.lat != null && bleProvider.lng != null ||
                               wifiProvider.lat != null &&
                                   wifiProvider.lng != null
                           ? FutureBuilder(

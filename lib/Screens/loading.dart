@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -20,15 +21,23 @@ class _LoadingState extends State<Loading> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(
-            child: Container(
-            color: Colors.white,
-            child: SpinKitCircle(
-              color: Colors.red,
-              size: 30.0,
-            ))
-        ));
+    return Positioned.fill(
+      child: Container(
+        color: Colors.white70,
+        child: Center(
+          child: CupertinoActivityIndicator(),
+        ),
+      ),
+    );
   }
-} 
+  // return Scaffold(
+  //     backgroundColor: Colors.black,
+  //     body: Center(
+  //         child: Container(
+  //         color: Colors.white,
+  //         child: SpinKitCircle(
+  //           color: Colors.red,
+  //           size: 30.0,
+  //         ))
+  //     ));
+}

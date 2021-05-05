@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ import 'package:get/get.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Services/database.dart';
+import '../loading.dart';
 import './functions_aux.dart';
 import 'package:provider/provider.dart';
 
@@ -49,6 +51,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
     Colors.purple,
     Colors.red
   ];
+  final Connectivity _connectivity = Connectivity();
 
   @override
   void initState() {
@@ -465,46 +468,86 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                         ],
                       );
                     }),
-                ListTile(
-                  tileColor: Colors.red[200],
-                  title: Text('Add a New Device'.toUpperCase(),
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.white)),
-                  leading: Icon(
-                    LineAwesomeIcons.plus_circle,
-                    color: Colors.white,
-                  ),
-                  onTap: () {
-                    if (_devices.length < 4) {
-                      scanQR(); //Maximum 4 devices
-                    } else {
-                      Get.dialog(SimpleDialog(
-                        title: Text(
-                          "Error",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        titlePadding: EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 20,
-                        ),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: new BorderRadius.circular(10.0)),
-                        children: [
-                          Text("Maximum number of devices paired",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 20.0)),
-                        ],
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 40,
-                          vertical: 20,
-                        ),
-                      ));
-                    }
-                  },
-                ),
+                FutureBuilder(
+                    initialData: false,
+                    future: mounted
+                        ? _connectivity.checkConnectivity()
+                        : Future.value(null),
+                    builder: (context, connectivitySnap) {
+                      if (connectivitySnap.hasData) {
+                        return ListTile(
+                          tileColor: Colors.red[200],
+                          title: Text('Add a New Device'.toUpperCase(),
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w300,
+                                  color: Colors.white)),
+                          leading: Icon(
+                            LineAwesomeIcons.plus_circle,
+                            color: Colors.white,
+                          ),
+                          onTap: () {
+                            if (connectivitySnap.data ==
+                                ConnectivityResult.none) {
+                              showCupertinoDialog(
+                                  context: context,
+                                  builder: (_) => CupertinoAlertDialog(
+                                        title: Text("Error"),
+                                        content: Text(
+                                            "You are offline. Please connect to an active internet connection."),
+                                        actions: [
+                                          // Close the dialog
+                                          // You can use the CupertinoDialogAction widget instead
+                                          CupertinoButton(
+                                              child: Text('Dismiss'),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              }),
+                                          // CupertinoButton(
+                                          //   child: Text('I agree'),
+                                          //   onPressed: () {
+                                          //     // Do something
+                                          //     print('I agreed');
+                                          //   },
+                                          // )
+                                        ],
+                                      ));
+                            } else {
+                              if (_devices.length < 4) {
+                                scanQR(); //Maximum 4 devices
+                              } else {
+                                Get.dialog(SimpleDialog(
+                                  title: Text(
+                                    "Error",
+                                    textAlign: TextAlign.center,
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  titlePadding: EdgeInsets.symmetric(
+                                    horizontal: 30,
+                                    vertical: 20,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          new BorderRadius.circular(10.0)),
+                                  children: [
+                                    Text("Maximum number of devices paired",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(fontSize: 20.0)),
+                                  ],
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 40,
+                                    vertical: 20,
+                                  ),
+                                ));
+                              }
+                            }
+                          },
+                        );
+                      } else {
+                        return Loading();
+                      }
+                    }),
               ],
             ),
           )));

@@ -34,6 +34,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:get/get.dart';
 
@@ -70,6 +71,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (widget.wantsTouchId != null && widget.password != null) {
       checkAuthentication();
     }
+    requestLocation();
+  }
+
+  void requestLocation() async {
+    await Permission.location.request();
   }
 
   @override

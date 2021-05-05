@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:connectivity/connectivity.dart';
-import 'package:connectivity_wrapper/connectivity_wrapper.dart';
 import 'package:esptouch_smartconfig/esptouch_smartconfig.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -260,92 +259,85 @@ class _Step4State extends State<Step4> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: ConnectivityWidgetWrapper(
-      stacked: false,
-      alignment: Alignment.topCenter,
-      disableInteraction: true,
-      message:
-          "You are offline. Please connect to an active internet connection!",
-      child: SingleChildScrollView(
-        child: FutureBuilder(
-            future: _connectivity.checkConnectivity(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData)
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
-              else if (snapshot.data == ConnectivityResult.wifi) {
-                return FutureBuilder<Map<String, String>?>(
-                    future: EsptouchSmartconfig.wifiData(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        return Center(
-                            child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              height: 50.0,
-                            ),
-                            Row(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(30.0),
-                                  child: Text(
-                                    'Step 4 of 5',
-                                    style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 20.0,
-                                        fontFamily: 'RobotoMono'),
-                                  ),
-                                )
-                              ],
-                            ),
-                            SizedBox(
-                              height: 20.0,
-                            ),
-                            // SizedBox(
-                            //   height: 50.0,
-                            // ),
-                            Text(
-                              "Now, Let's connect the Gateway to WiFi.",
-                              style: TextStyle(
-                                // fontWeight: FontWeight.bold,
-                                fontSize: 20.0,
+        body: SingleChildScrollView(
+          child: FutureBuilder(
+              future: _connectivity.checkConnectivity(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData)
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                else if (snapshot.data == ConnectivityResult.wifi) {
+                  return FutureBuilder<Map<String, String>?>(
+                      future: EsptouchSmartconfig.wifiData(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          return Center(
+                              child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                height: 50.0,
                               ),
-                            ),
-                            normalState(context, snapshot.data!['wifiName']!,
-                                snapshot.data!['bssid']!),
-                          ],
-                        ));
+                              Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(30.0),
+                                    child: Text(
+                                      'Step 4 of 5',
+                                      style: TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 20.0,
+                                          fontFamily: 'RobotoMono'),
+                                    ),
+                                  )
+                                ],
+                              ),
+                              SizedBox(
+                                height: 20.0,
+                              ),
+                              // SizedBox(
+                              //   height: 50.0,
+                              // ),
+                              Text(
+                                "Now, Let's connect the Gateway to WiFi.",
+                                style: TextStyle(
+                                  // fontWeight: FontWeight.bold,
+                                  fontSize: 20.0,
+                                ),
+                              ),
+                              normalState(context, snapshot.data!['wifiName']!,
+                                  snapshot.data!['bssid']!),
+                            ],
+                          ));
 
-                        // return WifiPage(snapshot.data!['wifiName']!,
-                        //     snapshot.data!['bssid']!);
-                      } else
-                        return Container();
-                    });
-              } else {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.3),
-                      Icon(
-                        Icons.wifi_off_sharp,
-                        size: 200,
-                        color: Colors.red,
-                      ),
-                      Text(
-                        "wifi_not_connected".tr,
-                        style: TextStyle(fontSize: 20, color: Colors.grey),
-                      )
-                    ],
-                  ),
-                );
-              }
-            }),
-      ),
-    ));
+                          // return WifiPage(snapshot.data!['wifiName']!,
+                          //     snapshot.data!['bssid']!);
+                        } else
+                          return Container();
+                      });
+                } else {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.3),
+                        Icon(
+                          Icons.wifi_off_sharp,
+                          size: 200,
+                          color: Colors.red,
+                        ),
+                        Text(
+                          "wifi_not_connected".tr,
+                          style: TextStyle(fontSize: 20, color: Colors.grey),
+                        )
+                      ],
+                    ),
+                  );
+                }
+              }),
+        ));
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +36,7 @@ class _SignInRegisteredState extends State<SignInRegistered> {
   final LocalAuthentication auth = LocalAuthentication();
   final FlutterSecureStorage storage = FlutterSecureStorage();
   final _passwordField = TextEditingController();
+  final Connectivity _connectivity = Connectivity();
 
   bool? _useTouchID = false;
   bool userHasTouchID = false;
@@ -197,273 +199,407 @@ class _SignInRegisteredState extends State<SignInRegistered> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-        create: (context) => SocialSignInProvider(),
-        child: StreamBuilder(
-            stream: FirebaseAuth.instance.authStateChanges(),
-            builder: (context, snapshot) {
-              final provider = Provider.of<SocialSignInProvider>(context);
+    return FutureBuilder(
+        initialData: false,
+        future:
+            mounted ? _connectivity.checkConnectivity() : Future.value(null),
+        builder: (context, connectivitySnap) {
+          if (connectivitySnap.hasData) {
+            return ChangeNotifierProvider(
+                create: (context) => SocialSignInProvider(),
+                child: StreamBuilder(
+                    stream: FirebaseAuth.instance.authStateChanges(),
+                    builder: (context, snapshot) {
+                      final provider =
+                          Provider.of<SocialSignInProvider>(context);
 
-              if (provider.isSigningIn!) {
-                return Loading();
-              } else if (provider.isCancelledByUser!) {
-                Get.dialog(SimpleDialog(
-                  title: Text(
-                    "Error",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: new BorderRadius.circular(10.0)),
-                  children: [
-                    Text("     Operation Cancelled By User",
-                        style: TextStyle(fontSize: 20.0))
-                  ],
-                ));
-                return Container();
-              } else if (provider.isError!) {
-                Get.dialog(SimpleDialog(
-                  title: Text(
-                    "Error",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: new BorderRadius.circular(10.0)),
-                  children: [
-                    Text(
-                        "     Error Occurred. Please contact our support team.",
-                        style: TextStyle(fontSize: 20.0))
-                  ],
-                ));
-                return Container();
-              } else if (snapshot.hasData) {
-                WidgetsBinding.instance!.addPostFrameCallback((_) =>
-                    Navigator.pushReplacement(context,
-                        MaterialPageRoute(builder: (context) {
-                                                return Material(child: Wrapper()
+                      if (provider.isSigningIn!) {
+                        return Loading();
+                      } else if (provider.isCancelledByUser!) {
+                        Get.dialog(SimpleDialog(
+                          title: Text(
+                            "Error",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: new BorderRadius.circular(10.0)),
+                          children: [
+                            Text("     Operation Cancelled By User",
+                                style: TextStyle(fontSize: 20.0))
+                          ],
+                        ));
+                        return Container();
+                      } else if (provider.isError!) {
+                        Get.dialog(SimpleDialog(
+                          title: Text(
+                            "Error",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: new BorderRadius.circular(10.0)),
+                          children: [
+                            Text(
+                                "     Error Occurred. Please contact our support team.",
+                                style: TextStyle(fontSize: 20.0))
+                          ],
+                        ));
+                        return Container();
+                      } else if (snapshot.hasData) {
+                        WidgetsBinding.instance!.addPostFrameCallback((_) =>
+                            Navigator.pushReplacement(context,
+                                MaterialPageRoute(builder: (context) {
+                              return Material(child: Wrapper()
 
-                      // return Material(child: ProfileScreen()
-                      );
-                    })));
-                return Container();
-                // Navigator.pushReplacement(context,
-                //     MaterialPageRoute(builder: (context) {
-                //   return Material(child: ProfileScreen());
-                // }));
-              } else {
-                return Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Column(
-                        children: <Widget>[
-                          Text('SIGN IN',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 26.0,
-                                  fontWeight: FontWeight.w600)),
-                          SizedBox(height: 12.0),
-                          TextField(
-                            onChanged: (textVal) {
-                              setState(() {
-                                email = textVal;
-                              });
-                            },
-                            decoration: InputDecoration(
-                                hintText: 'Enter Email',
-                                hintStyle: TextStyle(
-                                    color: Colors.white.withOpacity(0.6)),
-                                focusColor: Colors.white,
-                                focusedBorder: UnderlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.white)),
-                                enabledBorder: UnderlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.white))),
-                            style:
-                                TextStyle(color: Colors.white, fontSize: 22.0),
-                          ),
-                          SizedBox(height: 20.0),
-                          TextField(
-                            controller: _passwordField,
-                            onChanged: (textVal) {
-                              setState(() {
-                                password = textVal;
-                              });
-                            },
-                            obscureText: true,
-                            decoration: InputDecoration(
-                                hintText: 'Password',
-                                hintStyle: TextStyle(
-                                    color: Colors.white.withOpacity(0.6)),
-                                focusColor: Colors.white,
-                                focusedBorder: UnderlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.white)),
-                                enabledBorder: UnderlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.white))),
-                            style:
-                                TextStyle(color: Colors.white, fontSize: 22.0),
-                          ),
-                          SizedBox(height: 12.0),
-                          userHasTouchID
-                              ? InkWell(
-                                  onTap: () => authenticate(),
-                                  child: Container(
-                                      decoration: BoxDecoration(
-                                          color: Colors.transparent,
-                                          border: Border.all(color: Colors.red),
-                                          borderRadius:
-                                              BorderRadius.circular(30.0)),
-                                      padding: EdgeInsets.all(10.0),
-                                      child:
-                                          Icon(FontAwesomeIcons.fingerprint)),
-                                )
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                      Checkbox(
-                                        activeColor: Colors.orange,
-                                        value: _useTouchID,
-                                        onChanged: (newValue) {
-                                          if (this.mounted) {
-                                            setState(() {
-                                              _useTouchID = newValue;
-                                            });
-                                          }
-                                        },
-                                      ),
-                                      Text('Use TouchID',
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 16.0))
-                                    ]),
-                          SizedBox(height: 20.0),
-                          Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                InkWell(
-                                  onTap: () {
-                                    _passwordField.text.isNotEmpty
-                                        ? _signIn(em: email!, pw: password!)
-                                        : Get.dialog(SimpleDialog(
-                                            title: Text(
-                                              "Sign in Error",
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            titlePadding: EdgeInsets.symmetric(
-                                              horizontal: 30,
-                                              vertical: 20,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    new BorderRadius.circular(
-                                                        10.0)),
-                                            children: [
-                                              Text("Please type your password",
-                                                  textAlign: TextAlign.center,
+                                  // return Material(child: ProfileScreen()
+                                  );
+                            })));
+                        return Container();
+                        // Navigator.pushReplacement(context,
+                        //     MaterialPageRoute(builder: (context) {
+                        //   return Material(child: ProfileScreen());
+                        // }));
+                      } else {
+                        return Stack(
+                          alignment: Alignment.bottomCenter,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 20.0),
+                              child: Column(
+                                children: <Widget>[
+                                  Text('SIGN IN',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 26.0,
+                                          fontWeight: FontWeight.w600)),
+                                  SizedBox(height: 12.0),
+                                  TextField(
+                                    onChanged: (textVal) {
+                                      setState(() {
+                                        email = textVal;
+                                      });
+                                    },
+                                    decoration: InputDecoration(
+                                        hintText: 'Enter Email',
+                                        hintStyle: TextStyle(
+                                            color:
+                                                Colors.white.withOpacity(0.6)),
+                                        focusColor: Colors.white,
+                                        focusedBorder: UnderlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Colors.white)),
+                                        enabledBorder: UnderlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Colors.white))),
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 22.0),
+                                  ),
+                                  SizedBox(height: 20.0),
+                                  TextField(
+                                    controller: _passwordField,
+                                    onChanged: (textVal) {
+                                      setState(() {
+                                        password = textVal;
+                                      });
+                                    },
+                                    obscureText: true,
+                                    decoration: InputDecoration(
+                                        hintText: 'Password',
+                                        hintStyle: TextStyle(
+                                            color:
+                                                Colors.white.withOpacity(0.6)),
+                                        focusColor: Colors.white,
+                                        focusedBorder: UnderlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Colors.white)),
+                                        enabledBorder: UnderlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Colors.white))),
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 22.0),
+                                  ),
+                                  SizedBox(height: 12.0),
+                                  userHasTouchID
+                                      ? InkWell(
+                                          onTap: () {
+                                            if (connectivitySnap.data ==
+                                                ConnectivityResult.none) {
+                                              showCupertinoDialog(
+                                                  context: context,
+                                                  builder: (_) =>
+                                                      CupertinoAlertDialog(
+                                                        title: Text("Error"),
+                                                        content: Text(
+                                                            "You are offline. Please connect to an active internet connection."),
+                                                        actions: [
+                                                          // Close the dialog
+                                                          // You can use the CupertinoDialogAction widget instead
+                                                          CupertinoButton(
+                                                              child: Text(
+                                                                  'Dismiss'),
+                                                              onPressed: () {
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop();
+                                                              }),
+                                                        ],
+                                                      ));
+                                            } else {
+                                              authenticate();
+                                            }
+                                          },
+                                          child: Container(
+                                              decoration: BoxDecoration(
+                                                  color: Colors.transparent,
+                                                  border: Border.all(
+                                                      color: Colors.red),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          30.0)),
+                                              padding: EdgeInsets.all(10.0),
+                                              child: Icon(FontAwesomeIcons
+                                                  .fingerprint)),
+                                        )
+                                      : Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: <Widget>[
+                                              Checkbox(
+                                                activeColor: Colors.orange,
+                                                value: _useTouchID,
+                                                onChanged: (newValue) {
+                                                  if (this.mounted) {
+                                                    setState(() {
+                                                      _useTouchID = newValue;
+                                                    });
+                                                  }
+                                                },
+                                              ),
+                                              Text('Use TouchID',
                                                   style: TextStyle(
-                                                      fontSize: 20.0)),
-                                            ],
-                                            contentPadding:
-                                                EdgeInsets.symmetric(
-                                              horizontal: 40,
-                                              vertical: 20,
-                                            ),
-                                          ));
-                                  },
-                                  child: Container(
-                                      // width: double.infinity,
-                                      padding: EdgeInsets.symmetric(
-                                          vertical: 16.0, horizontal: 34.0),
-                                      decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(30.0)),
-                                      child: Text(
-                                        'LOG IN',
+                                                      color: Colors.white,
+                                                      fontSize: 16.0))
+                                            ]),
+                                  SizedBox(height: 20.0),
+                                  Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        InkWell(
+                                          onTap: () {
+                                            _passwordField.text.isNotEmpty
+                                                ? connectivitySnap.data ==
+                                                        ConnectivityResult.none
+                                                    ? showCupertinoDialog(
+                                                        context: context,
+                                                        builder: (_) =>
+                                                            CupertinoAlertDialog(
+                                                              title:
+                                                                  Text("Error"),
+                                                              content: Text(
+                                                                  "You are offline. Please connect to an active internet connection."),
+                                                              actions: [
+                                                                // Close the dialog
+                                                                // You can use the CupertinoDialogAction widget instead
+                                                                CupertinoButton(
+                                                                    child: Text(
+                                                                        'Dismiss'),
+                                                                    onPressed:
+                                                                        () {
+                                                                      Navigator.of(
+                                                                              context)
+                                                                          .pop();
+                                                                    }),
+                                                              ],
+                                                            ))
+                                                    : _signIn(
+                                                        em: email!,
+                                                        pw: password!)
+                                                : Get.dialog(SimpleDialog(
+                                                    title: Text(
+                                                      "Sign in Error",
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                    titlePadding:
+                                                        EdgeInsets.symmetric(
+                                                      horizontal: 30,
+                                                      vertical: 20,
+                                                    ),
+                                                    shape: RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            new BorderRadius
+                                                                    .circular(
+                                                                10.0)),
+                                                    children: [
+                                                      Text(
+                                                          "Please type your password",
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                              fontSize: 20.0)),
+                                                    ],
+                                                    contentPadding:
+                                                        EdgeInsets.symmetric(
+                                                      horizontal: 40,
+                                                      vertical: 20,
+                                                    ),
+                                                  ));
+                                          },
+                                          child: Container(
+                                              // width: double.infinity,
+                                              padding: EdgeInsets.symmetric(
+                                                  vertical: 16.0,
+                                                  horizontal: 34.0),
+                                              decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          30.0)),
+                                              child: Text(
+                                                'LOG IN',
+                                                style: TextStyle(
+                                                    color: Colors.lightGreen,
+                                                    fontSize: 20,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              )),
+                                        )
+                                      ]),
+                                  SizedBox(height: 20.0),
+                                  Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        InkWell(
+                                          onTap: () {
+                                            // _signInGoogle();
+                                            if (connectivitySnap.data ==
+                                                ConnectivityResult.none) {
+                                              showCupertinoDialog(
+                                                  context: context,
+                                                  builder: (_) =>
+                                                      CupertinoAlertDialog(
+                                                        title: Text("Error"),
+                                                        content: Text(
+                                                            "You are offline. Please connect to an active internet connection."),
+                                                        actions: [
+                                                          // Close the dialog
+                                                          // You can use the CupertinoDialogAction widget instead
+                                                          CupertinoButton(
+                                                              child: Text(
+                                                                  'Dismiss'),
+                                                              onPressed: () {
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop();
+                                                              }),
+                                                        ],
+                                                      ));
+                                            } else {
+                                              Provider.of<SocialSignInProvider>(
+                                                  context,
+                                                  listen: false);
+                                              provider.loginGoogle();
+                                            }
+                                          },
+                                          child: Container(
+                                              padding: EdgeInsets.all(20.0),
+                                              decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          30.0)),
+                                              child: Icon(
+                                                  FontAwesomeIcons.google,
+                                                  color: Colors.lightGreen)),
+                                        ),
+                                        SizedBox(width: 38.0),
+                                        InkWell(
+                                          onTap: () {
+                                            if (connectivitySnap.data ==
+                                                ConnectivityResult.none) {
+                                              showCupertinoDialog(
+                                                  context: context,
+                                                  builder: (_) =>
+                                                      CupertinoAlertDialog(
+                                                        title: Text("Error"),
+                                                        content: Text(
+                                                            "You are offline. Please connect to an active internet connection."),
+                                                        actions: [
+                                                          // Close the dialog
+                                                          // You can use the CupertinoDialogAction widget instead
+                                                          CupertinoButton(
+                                                              child: Text(
+                                                                  'Dismiss'),
+                                                              onPressed: () {
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop();
+                                                              }),
+                                                        ],
+                                                      ));
+                                            } else {
+                                              // _signInFacebook();
+                                              Provider.of<SocialSignInProvider>(
+                                                  context,
+                                                  listen: false);
+                                              provider.loginFacebook();
+                                            }
+                                          },
+                                          child: Container(
+                                              padding: EdgeInsets.all(20.0),
+                                              decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          30.0)),
+                                              child: Icon(
+                                                  FontAwesomeIcons.facebookF,
+                                                  color: Colors.lightGreen)),
+                                        ),
+                                      ]),
+                                  SizedBox(height: 20.0),
+                                  InkWell(
+                                    onTap: () {
+                                      widget.goToForgotPW!();
+                                    },
+                                    child: Text('FORGOT PASSWORD?',
                                         style: TextStyle(
-                                            color: Colors.lightGreen,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold),
-                                      )),
-                                )
-                              ]),
-                          SizedBox(height: 20.0),
-                          Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                InkWell(
-                                  onTap: () {
-                                    // _signInGoogle();
-                                    Provider.of<SocialSignInProvider>(context,
-                                        listen: false);
-                                    provider.loginGoogle();
-                                  },
-                                  child: Container(
-                                      padding: EdgeInsets.all(20.0),
-                                      decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            decoration:
+                                                TextDecoration.underline,
+                                            fontSize: 16.0,
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                widget.gotoSignUp!();
+                              },
+                              child: Container(
+                                  padding: EdgeInsets.all(10.0),
+                                  width: double.infinity,
+                                  color: Colors.black.withOpacity(0.2),
+                                  child: Text('DON\'T HAVE AN ACCOUNT? SIGN UP',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
                                           color: Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(30.0)),
-                                      child: Icon(FontAwesomeIcons.google,
-                                          color: Colors.lightGreen)),
-                                ),
-                                SizedBox(width: 38.0),
-                                InkWell(
-                                  onTap: () {
-                                    // _signInFacebook();
-                                    Provider.of<SocialSignInProvider>(context,
-                                        listen: false);
-                                    provider.loginFacebook();
-                                  },
-                                  child: Container(
-                                      padding: EdgeInsets.all(20.0),
-                                      decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(30.0)),
-                                      child: Icon(FontAwesomeIcons.facebookF,
-                                          color: Colors.lightGreen)),
-                                ),
-                              ]),
-                          SizedBox(height: 20.0),
-                          InkWell(
-                            onTap: () {
-                              widget.goToForgotPW!();
-                            },
-                            child: Text('FORGOT PASSWORD?',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    decoration: TextDecoration.underline,
-                                    fontSize: 16.0,
-                                    fontWeight: FontWeight.bold)),
-                          ),
-                        ],
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        widget.gotoSignUp!();
-                      },
-                      child: Container(
-                          padding: EdgeInsets.all(10.0),
-                          width: double.infinity,
-                          color: Colors.black.withOpacity(0.2),
-                          child: Text('DON\'T HAVE AN ACCOUNT? SIGN UP',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  decoration: TextDecoration.underline,
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w700))),
-                    ),
-                  ],
-                );
-              }
-            }));
+                                          decoration: TextDecoration.underline,
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.w700))),
+                            ),
+                          ],
+                        );
+                      }
+                    }));
+          } else {
+            return Loading();
+          }
+        });
   }
 }

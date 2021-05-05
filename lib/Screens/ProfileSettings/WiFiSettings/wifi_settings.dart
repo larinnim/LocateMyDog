@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:connectivity/connectivity.dart';
-import 'package:connectivity_wrapper/connectivity_wrapper.dart';
 import 'package:esptouch_smartconfig/esptouch_smartconfig.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/wifi_page.dart';
 import 'package:get/get.dart';
+
+import '../../loading.dart';
 
 class ConnectivityPage extends StatefulWidget {
   @override
@@ -45,48 +47,58 @@ class _ConnectivityPageState extends State<ConnectivityPage> {
           centerTitle: true,
           // backgroundColor: Colors.red,
         ),
-        body:
-            // FutureBuilder(
-            //     future: _connectivity.checkConnectivity(),
-            //     builder: (context, snapshot) {
-            //       if (!snapshot.hasData)
-            //         return Center(
-            //           child: CircularProgressIndicator(),
-            //         );
-            //       else if (snapshot.data == ConnectivityResult.wifi) {
-            ConnectivityWidgetWrapper(
-          stacked: false,
-          alignment: Alignment.topCenter,
-          disableInteraction: true,
-          message:
-              "You are offline. Please connect to an active internet connection!",
-          child: FutureBuilder<Map<String, String>?>(
-              future: EsptouchSmartconfig.wifiData(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  return WifiPage(
-                      snapshot.data!['wifiName']!, snapshot.data!['bssid']!);
-                } else
-                  return Container();
-              }),
-        ));
+        body: FutureBuilder(
+            future: _connectivity.checkConnectivity(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return Loading();
+              } else if (snapshot.data == ConnectivityResult.wifi) {
+                return FutureBuilder<Map<String, String>?>(
+                    future: EsptouchSmartconfig.wifiData(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        return WifiPage(snapshot.data!['wifiName']!,
+                            snapshot.data!['bssid']!);
+                      } else {
+                        return Container();
+                      }
+                    });
+              } else {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.wifi_off_sharp,
+                        size: 200,
+                        color: Colors.red,
+                      ),
+                      Text(
+                        "wifi_not_connected".tr,
+                        style: TextStyle(fontSize: 20, color: Colors.grey),
+                      )
+                    ],
+                  ),
+                );
+              }
+            }));
     // } else
-    //   return Center(
-    //     child: Column(
-    //       mainAxisAlignment: MainAxisAlignment.center,
-    //       children: [
-    //         Icon(
-    //           Icons.wifi_off_sharp,
-    //           size: 200,
-    //           color: Colors.red,
-    //         ),
-    //         Text(
-    //           "wifi_not_connected".tr,
-    //           style: TextStyle(fontSize: 20, color: Colors.grey),
-    //         )
-    //       ],
-    //     ),
-    //   );
+    // return Center(
+    //   child: Column(
+    //     mainAxisAlignment: MainAxisAlignment.center,
+    //     children: [
+    //       Icon(
+    //         Icons.wifi_off_sharp,
+    //         size: 200,
+    //         color: Colors.red,
+    //       ),
+    //       Text(
+    //         "wifi_not_connected".tr,
+    //         style: TextStyle(fontSize: 20, color: Colors.grey),
+    //       )
+    //     ],
+    //   ),
+    // );
     // }),
   }
 }

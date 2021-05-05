@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SocialSignInSingleton {
   SocialSignInSingleton._privateConstructor();
@@ -103,6 +104,7 @@ class SocialSignInProvider extends ChangeNotifier {
 
   Future loginFacebook() async {
     isSigningIn = true;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
     try {
       // final token = result.accessToken.token;
@@ -127,6 +129,10 @@ class SocialSignInProvider extends ChangeNotifier {
         await DatabaseService(uid: FirebaseAuth.instance.currentUser!.uid)
             .updateUserData('', userData['name'], '');
       } else {
+        isError = true;
+        // prefs.setString('facebookSigninError',
+        //     'Facebook Login failed. Please check you internet connection.');
+
         isCancelledByUser = true;
         isSigningIn = false;
         Get.off(Wrapper());

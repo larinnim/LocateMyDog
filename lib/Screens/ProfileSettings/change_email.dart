@@ -1,7 +1,15 @@
-import 'package:connectivity_wrapper/connectivity_wrapper.dart';
+import 'dart:async';
+
+import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_maps/Services/checkWiFiConnection.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
+
+import '../loading.dart';
 
 class LanguageValue {
   final int _key;
@@ -26,6 +34,18 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   String? user_email = "";
+  // String _connectionStatus = 'Unknown';
+  final Connectivity _connectivity = Connectivity();
+  // late FToast fToast;
+
+  @override
+  void initState() {
+    // initConnectivity();
+    // _connectivitySubscription =
+    //     _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -34,6 +54,24 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
     passwordController.dispose();
     super.dispose();
   }
+
+  Widget toast = Container(
+    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(25.0),
+      color: Colors.greenAccent,
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.check),
+        SizedBox(
+          width: 12.0,
+        ),
+        Text("This is a Custom Toast"),
+      ],
+    ),
+  );
 
   void _updateEmail() {
     _firebaseAuth
@@ -100,6 +138,9 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
   @override
   Widget build(BuildContext context) {
     user_email = _firebaseAuth.currentUser!.email;
+    // final connectionStatus =
+    //     Provider.of<ConnectionStatusModel>(context, listen: false);
+    // connectionStatus.initConnectionListen();
 
     _emailFocus.addListener(() {
       setState(() {
@@ -112,166 +153,232 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
         color = _passwordFocus.hasFocus ? Colors.green : Colors.black;
       });
     });
-    return Form(
-      key: formKey,
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          centerTitle: true,
-          elevation: 1,
-          title: Text(
-            "change_email".tr,
-            style: TextStyle(color: Colors.green),
-          ),
-          leading: IconButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            icon: Icon(
-              Icons.arrow_back,
-              color: Colors.green,
-            ),
-          ),
-        ),
-        body: ConnectivityWidgetWrapper(
-          stacked: false,
-          alignment: Alignment.topCenter,
-          disableInteraction: true,
-          message:
-              "You are offline. Please connect to an active internet connection!",
-          child: Container(
-            padding: EdgeInsets.only(left: 16, top: 25, right: 16),
-            child: Column(children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.only(bottom: 35.0),
-                child: TextFormField(
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  onChanged: (textValue) {
-                    setState(() {
-                      emailEntry = textValue;
-                    });
-                  },
-                  validator: (emailEntry) {
-                    if (emailEntry!.isEmpty) {
-                      return 'field_mandatory'.tr;
-                    }
-                    return null;
-                  },
-                  controller: emailController,
-                  focusNode: _emailFocus,
-                  autofocus: false,
-                  decoration: InputDecoration(
-                      focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.green)),
-                      contentPadding: EdgeInsets.only(bottom: 3),
-                      labelText: "Email",
-                      labelStyle: TextStyle(
-                        color:
-                            _emailFocus.hasFocus ? Colors.green : Colors.black,
-                      ),
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      hintText: user_email,
-                      hintStyle: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      )),
-                ),
-              ),
-              SizedBox(
-                height: 35,
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 35.0),
-                child: TextFormField(
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  onChanged: (textValue) {
-                    setState(() {
-                      passwordEntry = textValue;
-                    });
-                  },
-                  validator: (passwordEntry) {
-                    if (passwordEntry!.isEmpty) {
-                      return 'field_mandatory'.tr;
-                    }
-                    return null;
-                  },
-                  controller: passwordController,
-                  obscureText: showPassword,
-                  focusNode: _passwordFocus,
-                  autofocus: false,
-                  decoration: InputDecoration(
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            showPassword = !showPassword;
-                          });
-                        },
-                        icon: Icon(
-                          Icons.remove_red_eye,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      contentPadding: EdgeInsets.only(bottom: 3),
-                      labelText: "password".tr,
-                      labelStyle: TextStyle(
-                        color: _passwordFocus.hasFocus
-                            ? Colors.green
-                            : Colors.black,
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.green)),
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      hintText: "",
-                      hintStyle: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      )),
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  OutlineButton(
-                    padding: EdgeInsets.symmetric(horizontal: 50),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20)),
+
+    return FutureBuilder(
+        initialData: false,
+        future:
+            mounted ? _connectivity.checkConnectivity() : Future.value(null),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return
+                // return connectionProvider.connectionStatus ==
+                //             NetworkStatus.Offline ||
+                //         snapshot.data == NetworkStatus.Offline
+                // ? CupertinoAlertDialog(
+                //     title: Text(
+                //         'You are offline. Please connect to the internet to continue to use this feature'),
+                //     actions: [
+                //       CupertinoDialogAction(
+                //         child: Text('OK'),
+                //         onPressed: () {
+                //           Navigator.pop(context);
+                //         },
+                //       )
+                //     ],
+                //   )
+                //     :
+                Form(
+              key: formKey,
+              child: Scaffold(
+                appBar: AppBar(
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  centerTitle: true,
+                  elevation: 1,
+                  title: Text(
+                    "change_email".tr,
+                    style: TextStyle(color: Colors.green),
+                  ),
+                  leading: IconButton(
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: Text("cancel".tr,
-                        style: TextStyle(
-                            fontSize: 14,
-                            letterSpacing: 2.2,
-                            color: Colors.black)),
-                  ),
-                  RaisedButton(
-                    onPressed: () {
-                      if (formKey.currentState!.validate()) {
-                        formKey.currentState!.save();
-                        _updateEmail();
-                      }
-                    },
-                    color: Colors.red[200],
-                    padding: EdgeInsets.symmetric(horizontal: 50),
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20)),
-                    child: Text(
-                      "save".tr,
-                      style: TextStyle(
-                          fontSize: 14,
-                          letterSpacing: 2.2,
-                          color: Colors.white),
+                    icon: Icon(
+                      Icons.arrow_back,
+                      color: Colors.green,
                     ),
-                  )
-                ],
-              )
-            ]),
-          ),
-        ),
-      ),
-    );
+                  ),
+                ),
+                body: Container(
+                  padding: EdgeInsets.only(left: 16, top: 25, right: 16),
+                  child: Column(children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 35.0),
+                      child: TextFormField(
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        onChanged: (textValue) {
+                          setState(() {
+                            emailEntry = textValue;
+                          });
+                        },
+                        validator: (emailEntry) {
+                          if (emailEntry!.isEmpty) {
+                            return 'field_mandatory'.tr;
+                          }
+                          return null;
+                        },
+                        controller: emailController,
+                        focusNode: _emailFocus,
+                        autofocus: false,
+                        decoration: InputDecoration(
+                            focusedBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.green)),
+                            contentPadding: EdgeInsets.only(bottom: 3),
+                            labelText: "Email",
+                            labelStyle: TextStyle(
+                              color: _emailFocus.hasFocus
+                                  ? Colors.green
+                                  : Colors.black,
+                            ),
+                            floatingLabelBehavior: FloatingLabelBehavior.always,
+                            hintText: user_email,
+                            hintStyle: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            )),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 35,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 35.0),
+                      child: TextFormField(
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        onChanged: (textValue) {
+                          setState(() {
+                            passwordEntry = textValue;
+                          });
+                        },
+                        validator: (passwordEntry) {
+                          if (passwordEntry!.isEmpty) {
+                            return 'field_mandatory'.tr;
+                          }
+                          return null;
+                        },
+                        controller: passwordController,
+                        obscureText: showPassword,
+                        focusNode: _passwordFocus,
+                        autofocus: false,
+                        decoration: InputDecoration(
+                            suffixIcon: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  showPassword = !showPassword;
+                                });
+                              },
+                              icon: Icon(
+                                Icons.remove_red_eye,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            contentPadding: EdgeInsets.only(bottom: 3),
+                            labelText: "password".tr,
+                            labelStyle: TextStyle(
+                              color: _passwordFocus.hasFocus
+                                  ? Colors.green
+                                  : Colors.black,
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.green)),
+                            floatingLabelBehavior: FloatingLabelBehavior.always,
+                            hintText: "",
+                            hintStyle: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            )),
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        OutlineButton(
+                          padding: EdgeInsets.symmetric(horizontal: 50),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20)),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text("cancel".tr,
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  letterSpacing: 2.2,
+                                  color: Colors.black)),
+                        ),
+                        RaisedButton(
+                          onPressed: () {
+                            if (formKey.currentState!.validate()) {
+                              formKey.currentState!.save();
+                              if (snapshot.data == ConnectivityResult.none) {
+                                showCupertinoDialog(
+                                    context: context,
+                                    builder: (_) => CupertinoAlertDialog(
+                                          title: Text("Error"),
+                                          content: Text("You are offline. Please connect to an active internet connection."),
+                                          actions: [
+                                            // Close the dialog
+                                            // You can use the CupertinoDialogAction widget instead
+                                            CupertinoButton(
+                                                child: Text('Dismiss'),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                }),
+                                            // CupertinoButton(
+                                            //   child: Text('I agree'),
+                                            //   onPressed: () {
+                                            //     // Do something
+                                            //     print('I agreed');
+                                            //   },
+                                            // )
+                                          ],
+                                        ));
+                                // Fluttertoast.showToast(
+                                //   msg: "You are offline. Please connect to the internet to continue to use this feature",
+                                //   toastLength: Toast.LENGTH_LONG,
+                                //   timeInSecForIosWeb: 5,
+                                //   backgroundColor: Colors.red.shade300,
+                                //   fontSize: 18.0,
+                                // );
+                                //  CupertinoAlertDialog(
+                                //   title: Text(
+                                //       'You are offline. Please connect to the internet to continue to use this feature'),
+                                //   actions: [
+                                //     CupertinoDialogAction(
+                                //       child: Text('OK'),
+                                //       onPressed: () {
+                                //         Navigator.pop(context);
+                                //       },
+                                //     )
+                                //   ],
+                                // );
+                              } else {
+                                _updateEmail();
+                              }
+                            }
+                          },
+                          color: Colors.red[200],
+                          padding: EdgeInsets.symmetric(horizontal: 50),
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20)),
+                          child: Text(
+                            "save".tr,
+                            style: TextStyle(
+                                fontSize: 14,
+                                letterSpacing: 2.2,
+                                color: Colors.white),
+                          ),
+                        )
+                      ],
+                    )
+                  ]),
+                ),
+              ),
+            );
+          } else {
+            return Loading();
+          }
+        });
   }
 }
