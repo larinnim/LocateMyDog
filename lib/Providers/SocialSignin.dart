@@ -32,8 +32,10 @@ class SocialSignInProvider extends ChangeNotifier {
   bool? _isSigningIn;
   bool? _isCancelledByUser;
   bool? _isError;
-  bool? _isSignedIn;
+  bool? _isLogged;
   String? _facebookToken;
+  bool? _fetching = false;
+
   SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
   final box = GetStorage();
 
@@ -41,14 +43,15 @@ class SocialSignInProvider extends ChangeNotifier {
     _isSigningIn = false;
     _isCancelledByUser = false;
     _isError = false;
-    _isSignedIn = false;
+    _isLogged = false;
     _facebookToken = "";
   }
 
+  bool? get fetching => _fetching;
   bool? get isSigningIn => _isSigningIn;
   bool? get isCancelledByUser => _isCancelledByUser;
   bool? get isError => _isError;
-  bool? get isSignedIn => _isSignedIn;
+  bool? get isLogged => _isLogged;
   String? get facebookToken => _facebookToken;
 
   set facebookToken(String? facebookToken) {
@@ -72,20 +75,21 @@ class SocialSignInProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  set isSignedIn(bool? isSignedIn) {
-    _isSignedIn = isSignedIn;
+  set isLogged(bool? _isLogged) {
+    _isLogged = _isLogged;
     notifyListeners();
   }
 
-  Future loginGoogle() async {
+  Future<bool> loginGoogle() async {
     isSigningIn = true;
 
     final user = await googleSignIn.signIn();
     if (user == null) {
       isSigningIn = false;
-      return;
+      _isLogged = false;
     } else {
       final googleAuth = await user.authentication;
+      _isLogged = true;
 
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
@@ -94,92 +98,49 @@ class SocialSignInProvider extends ChangeNotifier {
 
       await FirebaseAuth.instance.signInWithCredential(credential);
       isSigningIn = false;
-      isSignedIn = true;
+      _isLogged = true;
       socialSiginSingleton.isSocialLogin = true;
 
       await DatabaseService(uid: FirebaseAuth.instance.currentUser!.uid)
           .updateUserData('', user.displayName, '');
     }
+    return _isLogged!;
   }
 
-  Future loginFacebook() async {
+  Future<bool> loginFacebook() async {
     isSigningIn = true;
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _fetching = true;
+    notifyListeners();
+    LoginResult result = await FacebookAuth.instance.login();
 
-    try {
-      // final token = result.accessToken.token;
-      LoginResult result = await FacebookAuth.instance.login();
-      // final userData = await FacebookAuth.instance.getUserData();
+    if (result.status == LoginStatus.success) {
+      _isLogged = true;
+      final facebookCredential =
+          FacebookAuthProvider.credential(result.accessToken!.token);
+      final userData = await FacebookAuth.instance.getUserData();
 
-      // final graphResponse = await http.get(
-      //     'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=$token');
-      // print(graphResponse.body);
+      await FirebaseAuth.instance.signInWithCredential(facebookCredential);
+      box.write("token", result.accessToken!.token);
 
-      if (result.status == LoginStatus.success) {
-        final facebookCredential =
-            FacebookAuthProvider.credential(result.accessToken!.token);
-        final userData = await FacebookAuth.instance.getUserData();
-
-        await FirebaseAuth.instance.signInWithCredential(facebookCredential);
-        box.write("token", result.accessToken!.token);
-
-        isSigningIn = false;
-        isSignedIn = true;
-        socialSiginSingleton.isSocialLogin = true;
-        await DatabaseService(uid: FirebaseAuth.instance.currentUser!.uid)
-            .updateUserData('', userData['name'], '');
-      } else {
-        isError = true;
-        // prefs.setString('facebookSigninError',
-        //     'Facebook Login failed. Please check you internet connection.');
-
-        isCancelledByUser = true;
-        isSigningIn = false;
-        Get.off(Wrapper());
-        // Get.to(Authenticate());
-      }
-      // else if (result.status == LoginStatus.failed) {
-      //   isError = true;
-      // }
-    } catch (error) {
-      Get.off(Wrapper());
-      return null;
+      isSigningIn = false;
+      _isLogged = true;
+      socialSiginSingleton.isSocialLogin = true;
+      await DatabaseService(uid: FirebaseAuth.instance.currentUser!.uid)
+          .updateUserData('', userData['name'], '');
+    } else {
+      isCancelledByUser = true;
+      _isLogged = false;
+      isSigningIn = false;
+      // Get.off(() => Wrapper());
     }
-
-    // final result = await facebookSignIn.logIn([
-    //   'email',
-    // ]);
-    // if (result.errorMessage == null) {
-
-    // final token = result.accessToken.token;
-    // final graphResponse = await http.get(
-    //     'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=$token');
-
-    // facebookToken = token;
-    // final profile = jsonDecode(graphResponse.body);
-
-// box.write("token", token);
-
-    // print(graphResponse.body);
-    // if (result.status == FacebookLoginStatus.loggedIn) {
-    //   final facebookCredential = FacebookAuthProvider.credential(token);
-
-    //   await FirebaseAuth.instance.signInWithCredential(facebookCredential);
-
-    //   isSigningIn = false;
-    //   isSignedIn = true;
-    //   socialSiginSingleton.isSocialLogin = true;
-    // } else if (result.status == FacebookLoginStatus.cancelledByUser) {
-    //   isCancelledByUser = true;
-    // } else if (result.status == FacebookLoginStatus.error) {
-    //   isError = true;
-    // }
+    _fetching = false;
+    notifyListeners();
+    return _isLogged!;
   }
 
   void logout() async {
-    // await googleSignIn.disconnect();
-    // FirebaseAuth.instance.signOut();
-
+    _fetching = true;
+    notifyListeners();
     bool isGoogleSignedIn = await GoogleSignIn().isSignedIn();
     bool isFacebookSignedIn = await _checkIfIsLogged();
     if (isGoogleSignedIn == true) {
@@ -188,9 +149,11 @@ class SocialSignInProvider extends ChangeNotifier {
       await FacebookAuth.instance.logOut();
     }
     FirebaseAuth.instance.signOut().then((value) {
-      isSignedIn = false;
+      _isLogged = false;
       Get.offAll(Authenticate());
     });
+    _fetching = false;
+    notifyListeners();
   }
 
   Future<bool> _checkIfIsLogged() async {
