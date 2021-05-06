@@ -376,12 +376,11 @@ class _MapLocationState extends State<MapLocation> {
                             CupertinoDialogAction(
                               child: Text('OK'),
                               onPressed: () {
-                                // TODO ENABLE WHEN MAPBOX NULLSAFETY IS AVAILABLE
-                                // Navigator.push(context,
-                                //     MaterialPageRoute(builder: (context) {
-                                //   // return Radar();
-                                //   return OfflineRegionBody();
-                                // }));
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  // return Radar();
+                                  return OfflineRegionBody();
+                                }));
                               },
                             )
                           ],

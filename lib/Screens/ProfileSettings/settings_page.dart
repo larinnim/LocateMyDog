@@ -426,9 +426,8 @@ GestureDetector buildLanguageSelection(BuildContext context, String title) {
 GestureDetector buildOfflineMapSelection(BuildContext context, String title) {
   return GestureDetector(
     onTap: () {
-      // TODO ENABLE WHEN MAPBOX NULLSAFETY IS AVAILABLE
-      // Navigator.of(context).push(MaterialPageRoute(
-      //     builder: (BuildContext context) => OfflineRegionBody()));
+      Navigator.of(context).push(MaterialPageRoute(
+          builder: (BuildContext context) => OfflineRegionBody()));
     },
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),

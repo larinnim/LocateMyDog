@@ -307,15 +307,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           return MapLocation();
                                         }));
                                       } else {
-                                        // TODO ENABLE WHEN MAPBOX NULLSAFETY IS AVAILABLE
-                                        // Navigator.push(
-                                        //   context,
-                                        //   MaterialPageRoute(
-                                        //       builder: (context) =>
-                                        //           OfflineRegionBody()),
-
-                                        //   // builder: (context) => Radar()),
-                                        // );
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  OfflineRegionBody()),
+                                        );
                                       }
                                     }
                                   },

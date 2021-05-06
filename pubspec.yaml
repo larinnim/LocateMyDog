@@ -65,10 +65,10 @@ dependencies:
   app_settings: ^4.1.0
   permission_handler_platform_interface: ^3.3.0
   fluttertoast: ^8.0.6
-  # mapbox_gl:
-  #   git:
-  #     url: git://github.com/morvagergely/flutter-mapbox-gl.git
-  #     ref: master
+  mapbox_gl:
+    git:
+      url: git://github.com/tobrun/flutter-mapbox-gl.git
+      ref: master
 
   flutter_barcode_scanner:
     git:
