@@ -3,6 +3,9 @@
   // Device Cloud Functions
   deviceConfiguration: require('./device-iat/device-configuration'),
   deviceState: require('./device-iat/device-state'),
+  deviceGeolocation: require('./device-iat/device-geolocation'),
+  escapedNotification: require('./escaped-notification.js'),
+
   // onlineState: require('./device-cloud/online-state'),
   // registerDevice: require('./device-iat/register-device'),
   // // Smart Home Functions

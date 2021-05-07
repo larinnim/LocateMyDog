@@ -65,6 +65,8 @@ dependencies:
   app_settings: ^4.1.0
   permission_handler_platform_interface: ^3.3.0
   fluttertoast: ^8.0.6
+  flutter_local_notifications: ^5.0.0+4
+
   mapbox_gl:
     git:
       url: git://github.com/tobrun/flutter-mapbox-gl.git
