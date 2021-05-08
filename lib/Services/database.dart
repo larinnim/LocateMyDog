@@ -49,6 +49,13 @@ class DatabaseService {
     }, SetOptions(merge: true));
   }
 
+ Future<void> updateNotificationPreference(bool escaped, bool gatewayBattery, bool trackerBattery) async {
+    await usersCollection.doc(uid).set({
+      'Notification': {'geofence': escaped,'gatewayBattery': gatewayBattery, 'trackerBattery': trackerBattery},
+    }, SetOptions(merge: true));
+  }
+
+
   Future<void> addSenderToGateway(String senderMac, String gatewayID) async {
     await gatewayConfigCollection.doc('GW-' + gatewayID).set({
       'senders': FieldValue.arrayUnion([

@@ -7,6 +7,7 @@ import 'package:flutter_maps/Screens/ProfileSettings/change_email.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/languages.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/offline_regions.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/reset_password.dart';
+import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/utils.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
@@ -221,24 +222,57 @@ class _SettingsPageState extends State<SettingsPage> {
                             SizedBox(
                               height: 10,
                             ),
-                            buildNotificationOptionRow("New for you", true),
+                            SwitchListTile(
+                              title: Text('Escape Notifications'),
+                              //  subtitle: Text('Maintenance and general notes'),
+                              onChanged: (value) {
+                                setState(() {
+                                  adminNotifications = value;
+                                  DatabaseService(_firebaseAuth.currentUser.uid!).updateNotificationPreference(value, gatewayBattery, trackerBattery)
+                              },
+                              value: adminNotifications,
+                            ),
+                            SwitchListTile(
+                              title:
+                                  Text('Gateway Battery Level Notifications'),
+                              //  subtitle: Text('Maintenance and general notes'),
+                              onChanged: (value) {
+                                setState(() {
+                                  adminNotifications = value;
+                                  Firestore.instance
+                                      .collection('users')
+                                      .document(loggedInUser.uid)
+                                      .updateData({
+                                    'adminNotifications': value,
+                                  });
+                                });
+                                save('adminNotifications', value);
+                              },
+                              value: adminNotifications,
+                            ),
+                            SwitchListTile(
+                              title:
+                                  Text('Tracker Battery Level Notifications'),
+                              //  subtitle: Text('Maintenance and general notes'),
+                              onChanged: (value) {
+                                setState(() {
+                                  adminNotifications = value;
+                                  Firestore.instance
+                                      .collection('users')
+                                      .document(loggedInUser.uid)
+                                      .updateData({
+                                    'adminNotifications': value,
+                                  });
+                                });
+                                save('adminNotifications', value);
+                              },
+                              value: adminNotifications,
+                            ),
+                            buildNotificationOptionRow("Dog Escaped", true),
                             buildNotificationOptionRow(
-                                "Account activity", true),
-                            buildNotificationOptionRow("Opportunity", false),
-                            // SizedBox(
-                            //   height: 50,
-                            // ),
-                            // Center(
-                            //   child: OutlineButton(
-                            //     padding: EdgeInsets.symmetric(horizontal: 40),
-                            //     shape: RoundedRectangleBorder(
-                            //         borderRadius: BorderRadius.circular(20)),
-                            //     onPressed: () {},
-                            //     child: Text("SIGN OUT",
-                            //         style: TextStyle(
-                            //             fontSize: 16, letterSpacing: 2.2, color: Colors.black)),
-                            //   ),
-                            // )
+                                "Gateway Low Battery", true),
+                            buildNotificationOptionRow(
+                                "Tracker Low Battery", true),
                           ],
                         ),
                       ),

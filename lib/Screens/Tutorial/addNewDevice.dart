@@ -37,11 +37,9 @@ class AddNewDevice extends StatelessWidget {
       barcodeScanRes = await barcode.FlutterBarcodeScanner.scanBarcode(
           "#ff6666", "Cancel", true, barcode.ScanMode.QR);
 
-      print('Going to check DOC: ' + 'GW-' + barcodeScanRes);
+      print('Going to check DOC: ' + 'SD-' + barcodeScanRes);
       final checkIfAlredySetup =
                await  senderCollection.where('userID', isEqualTo: _firebaseAuth.currentUser!.uid).where('senderMac', isEqualTo: barcodeScanRes).get();
-
-          // await senderCollection.doc('GW-' + barcodeScanRes).get();
 
       if (checkIfAlredySetup.docs.length.isGreaterThan(0)) {
         Get.dialog(AlertDialog(
@@ -58,7 +56,7 @@ class AddNewDevice extends StatelessWidget {
           ],
         ));
       } else {
-        senderCollection.doc('GW-' + barcodeScanRes).set({
+        senderCollection.doc('SD-' + barcodeScanRes).set({
           'senderMac': barcodeScanRes,
           'userID': _firebaseAuth.currentUser!.uid,
           'Location': {'Latitude': '', 'Longitude': ''},

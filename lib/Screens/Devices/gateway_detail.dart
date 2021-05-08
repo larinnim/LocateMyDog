@@ -167,7 +167,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
           "#ff6666", "Cancel", true, barcode.ScanMode.QR);
       // String newSender = "Sender" + (_devices.length + 1).toString();
 
-      senderCollection.doc('GW-' + barcodeScanRes).set({
+      senderCollection.doc('SD-' + barcodeScanRes).set({
         'senderMac': barcodeScanRes,
         'userID': _firebaseAuth.currentUser!.uid,
         'Location': {'Latitude': '', 'Longitude': ''},
@@ -178,8 +178,8 @@ class _GatewayDetailsState extends State<GatewayDetails> {
       }, SetOptions(merge: true)).then((value) {
         setState(() {
           _devices.add(Device(
-            id: 'GW-' + barcodeScanRes,
-            name: 'GW-' + barcodeScanRes,
+            id: 'SD-' + barcodeScanRes,
+            name: 'SD-' + barcodeScanRes,
             batteryLevel: null,
             latitude: null,
             longitude: null,

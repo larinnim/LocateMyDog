@@ -3,7 +3,8 @@
  */
 
 const admin = require("firebase-admin");
-var serviceAccount = require("/Users/larinnimalheiros/Documents/MajelTecnologies/Development/flutter_maps/serviceAccountKey.json");
+var serviceAccount = require("./serviceAccountKey.json");
+const functions = require('firebase-functions');
 
 const app = admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -16,5 +17,6 @@ const auth = app.auth();
 module.exports = {
      auth,
      firestore,
-     admin
+     admin,
+     functions
  }

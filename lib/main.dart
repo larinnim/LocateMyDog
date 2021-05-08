@@ -32,22 +32,38 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // make sure you call `initializeApp` before using other Firebase services.
   await Firebase.initializeApp();
   print('Handling a background message ${message.messageId}');
-  print(message.notification!.title);
-  print(message.notification!.body);
   flutterLocalNotificationsPlugin.show(
-      message.notification.hashCode,
-      message.notification!.title,
-      message.notification!.body,
+      message.data.hashCode,
+      message.data['title'],
+      message.data['body'],
       NotificationDetails(
         android: AndroidNotificationDetails(
           channel.id,
           channel.name,
           channel.description,
+          icon: 'launch_background',
+
           // TODO add a proper drawable resource to android, for now using
           //      one that already exists in example app.
-          icon: 'launch_background',
+          // icon: message.notification!.android?.smallIcon,
         ),
       ));
+  // print(message.notification!.title);
+  // print(message.notification!.body);
+  // flutterLocalNotificationsPlugin.show(
+  //     message.notification.hashCode,
+  //     message.notification!.title,
+  //     message.notification!.body,
+  //     NotificationDetails(
+  //       android: AndroidNotificationDetails(
+  //         channel.id,
+  //         channel.name,
+  //         channel.description,
+  //         // TODO add a proper drawable resource to android, for now using
+  //         //      one that already exists in example app.
+  //         icon: 'launch_background',
+  //       ),
+  //     ));
 }
 
 /// Create a [AndroidNotificationChannel] for heads up notifications
