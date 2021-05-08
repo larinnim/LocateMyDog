@@ -30,15 +30,9 @@ class DatabaseService {
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  Future<void> updateUserData(
-      String? dogname, String? ownername, String? breed) async {
+  Future<void> updateUserData(String? ownername) async {
     usersCollection.doc(uid).set(
-        {
-          'dogname': dogname,
-          'ownername': ownername,
-          'breed': breed,
-          'units': 'feet'
-        }, //default unit is feet
+        {'ownername': ownername, 'units': 'feet'}, //default unit is feet
         SetOptions(merge: true));
     // SetOptions(merge: true);
   }
@@ -49,12 +43,16 @@ class DatabaseService {
     }, SetOptions(merge: true));
   }
 
- Future<void> updateNotificationPreference(bool escaped, bool gatewayBattery, bool trackerBattery) async {
+  Future<void> updateNotificationPreference(
+      bool escaped, bool gatewayBattery, bool trackerBattery) async {
     await usersCollection.doc(uid).set({
-      'Notification': {'geofence': escaped,'gatewayBattery': gatewayBattery, 'trackerBattery': trackerBattery},
+      'Notification': {
+        'escapedGeofence': escaped,
+        'gatewayBattery': gatewayBattery,
+        'trackerBattery': trackerBattery
+      },
     }, SetOptions(merge: true));
   }
-
 
   Future<void> addSenderToGateway(String senderMac, String gatewayID) async {
     await gatewayConfigCollection.doc('GW-' + gatewayID).set({
@@ -106,6 +104,7 @@ class DatabaseService {
       'name': "Gateway - IAT - " + gatewayMAC,
       'userID': _firebaseAuth.currentUser!.uid,
       'version': '1.0',
+      'batteryLevel': 0,
       'gatewayMAC': gatewayMAC
     }, SetOptions(merge: true)).then((value) => null);
     var isItPending =

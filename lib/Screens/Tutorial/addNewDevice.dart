@@ -59,7 +59,7 @@ class AddNewDevice extends StatelessWidget {
         senderCollection.doc('SD-' + barcodeScanRes).set({
           'senderMac': barcodeScanRes,
           'userID': _firebaseAuth.currentUser!.uid,
-          'Location': {'Latitude': '', 'Longitude': ''},
+          'Location': {'Latitude': 0, 'Longitude': 0},
           'LocationTimestamp': '',
           'batteryLevel': 0,
           'color': colorString,

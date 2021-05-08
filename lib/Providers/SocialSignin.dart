@@ -102,7 +102,7 @@ class SocialSignInProvider extends ChangeNotifier {
       socialSiginSingleton.isSocialLogin = true;
 
       await DatabaseService(uid: FirebaseAuth.instance.currentUser!.uid)
-          .updateUserData('', user.displayName, '');
+          .updateUserData(user.displayName);
     }
     return _isLogged!;
   }
@@ -126,7 +126,7 @@ class SocialSignInProvider extends ChangeNotifier {
       _isLogged = true;
       socialSiginSingleton.isSocialLogin = true;
       await DatabaseService(uid: FirebaseAuth.instance.currentUser!.uid)
-          .updateUserData('', userData['name'], '');
+          .updateUserData(userData['name']);
     } else {
       isCancelledByUser = true;
       _isLogged = false;

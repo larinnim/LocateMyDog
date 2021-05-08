@@ -22,7 +22,9 @@ class Register extends StatefulWidget {
 class _RegisterState extends State<Register> {
   bool? _termsAgreed = false;
   // bool saveAttempted = false;
-  String? email, password, passwordConfirm, dogname, ownername, dogbreed;
+  // String? email, password, passwordConfirm, dogname, ownername, dogbreed;
+  String? email, password, passwordConfirm, ownername;
+
   final formKey = GlobalKey<FormState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -30,13 +32,18 @@ class _RegisterState extends State<Register> {
     _auth
         .createUserWithEmailAndPassword(email: email, password: pw)
         .then((authResult) async {
-      authResult.user!.updateProfile(displayName: dogname);
+      // authResult.user!.updateProfile(displayName: dogname);
+      authResult.user!.updateProfile(displayName: ownername);
+
       if (authResult.user != null) {
-        AppUser(authResult.user!.uid, displayName: authResult.user!.displayName);
+        AppUser(authResult.user!.uid,
+            displayName: authResult.user!.displayName);
       }
       // create a new document for the user with the uid
+      // await DatabaseService(uid: authResult.user!.uid)
+      //     .updateUserData(dogname, ownername, dogbreed);
       await DatabaseService(uid: authResult.user!.uid)
-          .updateUserData(dogname, ownername, dogbreed);
+          .updateUserData(ownername);
       print('yay! ${authResult.user}');
 
       // Navigator.of(context).push(MaterialPageRoute(
@@ -83,32 +90,32 @@ class _RegisterState extends State<Register> {
           padding: EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             children: <Widget>[
-              TextFormField(
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                // autovalidate: saveAttempted,
-                onChanged: (textValue) {
-                  setState(() {
-                    dogname = textValue;
-                  });
-                },
-                validator: (dogNameVal) {
-                  if (dogNameVal!.isEmpty) {
-                    return 'This field is mandatory';
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                    errorStyle: TextStyle(color: Colors.white),
-                    hintText: 'Dog Name: ',
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
-                    focusColor: Colors.white,
-                    focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white)),
-                    enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white))),
-                style: TextStyle(color: Colors.white, fontSize: 22.0),
-              ),
-              SizedBox(height: 12.0),
+              // TextFormField(
+              //   autovalidateMode: AutovalidateMode.onUserInteraction,
+              //   // autovalidate: saveAttempted,
+              //   onChanged: (textValue) {
+              //     setState(() {
+              //       dogname = textValue;
+              //     });
+              //   },
+              //   validator: (dogNameVal) {
+              //     if (dogNameVal!.isEmpty) {
+              //       return 'This field is mandatory';
+              //     }
+              //     return null;
+              //   },
+              //   decoration: InputDecoration(
+              //       errorStyle: TextStyle(color: Colors.white),
+              //       hintText: 'Dog Name: ',
+              //       hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
+              //       focusColor: Colors.white,
+              //       focusedBorder: UnderlineInputBorder(
+              //           borderSide: BorderSide(color: Colors.white)),
+              //       enabledBorder: UnderlineInputBorder(
+              //           borderSide: BorderSide(color: Colors.white))),
+              //   style: TextStyle(color: Colors.white, fontSize: 22.0),
+              // ),
+              // SizedBox(height: 12.0),
               TextFormField(
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 onChanged: (textValue) {
@@ -133,31 +140,31 @@ class _RegisterState extends State<Register> {
                         borderSide: BorderSide(color: Colors.white))),
                 style: TextStyle(color: Colors.white, fontSize: 22.0),
               ),
-              SizedBox(height: 12.0),
-              TextFormField(
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                onChanged: (textValue) {
-                  setState(() {
-                    dogbreed = textValue;
-                  });
-                },
-                validator: (dogBreedVal) {
-                  if (dogBreedVal!.isEmpty) {
-                    return 'This field is mandatory';
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                    errorStyle: TextStyle(color: Colors.white),
-                    hintText: 'Dog Breed: ',
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
-                    focusColor: Colors.white,
-                    focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white)),
-                    enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white))),
-                style: TextStyle(color: Colors.white, fontSize: 22.0),
-              ),
+              // SizedBox(height: 12.0),
+              // TextFormField(
+              //   autovalidateMode: AutovalidateMode.onUserInteraction,
+              //   onChanged: (textValue) {
+              //     setState(() {
+              //       dogbreed = textValue;
+              //     });
+              //   },
+              //   validator: (dogBreedVal) {
+              //     if (dogBreedVal!.isEmpty) {
+              //       return 'This field is mandatory';
+              //     }
+              //     return null;
+              //   },
+              //   decoration: InputDecoration(
+              //       errorStyle: TextStyle(color: Colors.white),
+              //       hintText: 'Dog Breed: ',
+              //       hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
+              //       focusColor: Colors.white,
+              //       focusedBorder: UnderlineInputBorder(
+              //           borderSide: BorderSide(color: Colors.white)),
+              //       enabledBorder: UnderlineInputBorder(
+              //           borderSide: BorderSide(color: Colors.white))),
+              //   style: TextStyle(color: Colors.white, fontSize: 22.0),
+              // ),
               SizedBox(height: 12.0),
               TextFormField(
                 autovalidateMode: AutovalidateMode.onUserInteraction,

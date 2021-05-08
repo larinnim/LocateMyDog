@@ -173,6 +173,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
         'Location': {'Latitude': '', 'Longitude': ''},
         'LocationTimestamp': '',
         'batteryLevel': 0,
+        'escaped': false,
         'color': AuxFunc().colorNamefromColor(_availableColors[0]),
         'name': barcodeScanRes
       }, SetOptions(merge: true)).then((value) {
@@ -180,7 +181,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
           _devices.add(Device(
             id: 'SD-' + barcodeScanRes,
             name: 'SD-' + barcodeScanRes,
-            batteryLevel: null,
+            batteryLevel: 0,
             latitude: null,
             longitude: null,
             color: AuxFunc().colorNamefromColor(_availableColors[0]),
