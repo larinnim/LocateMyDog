@@ -47,9 +47,15 @@ class DatabaseService {
       bool escaped, bool gatewayBattery, bool trackerBattery) async {
     await usersCollection.doc(uid).set({
       'Notification': {
-        'escapedGeofence': escaped,
-        'gatewayBattery': gatewayBattery,
-        'trackerBattery': trackerBattery
+        'gatewayBattery':{
+          'enabled': gatewayBattery
+        },
+         'geofence':{
+          'enabled': escaped
+        },
+         'trackerBattery':{
+          'enabled': trackerBattery
+        },
       },
     }, SetOptions(merge: true));
   }

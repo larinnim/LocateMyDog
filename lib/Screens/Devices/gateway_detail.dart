@@ -166,7 +166,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
       barcodeScanRes = await barcode.FlutterBarcodeScanner.scanBarcode(
           "#ff6666", "Cancel", true, barcode.ScanMode.QR);
       // String newSender = "Sender" + (_devices.length + 1).toString();
-
+      if (barcodeScanRes != '-1') { 
       senderCollection.doc('SD-' + barcodeScanRes).set({
         'senderMac': barcodeScanRes,
         'userID': _firebaseAuth.currentUser!.uid,
@@ -174,6 +174,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
         'LocationTimestamp': '',
         'batteryLevel': 0,
         'escaped': false,
+        'enabled': true,
         'color': AuxFunc().colorNamefromColor(_availableColors[0]),
         'name': barcodeScanRes
       }, SetOptions(merge: true)).then((value) {
@@ -190,6 +191,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
         });
       }).catchError((error) => print("Failed to add user: $error"));
       print(barcodeScanRes);
+      }
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }

@@ -28,7 +28,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           channel.name,
           channel.description,
           icon: 'launch_background',
-
           // TODO add a proper drawable resource to android, for now using
           //      one that already exists in example app.
           // icon: message.notification!.android?.smallIcon,
@@ -112,7 +111,6 @@ class PushNotificationsManager {
                   channel.name,
                   channel.description,
                   icon: 'launch_background',
-
                   // TODO add a proper drawable resource to android, for now using
                   //      one that already exists in example app.
                   // icon: message.notification!.android?.smallIcon,
@@ -135,7 +133,7 @@ class PushNotificationsManager {
                     channel.description,
                     // TODO add a proper drawable resource to android, for now using
                     //      one that already exists in example app.
-                    icon: 'launch_background',
+                  icon: 'launch_background',
                   ),
                 ));
           }

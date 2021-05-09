@@ -43,9 +43,9 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void getNotificationSetting(Map<String, dynamic> notificatonSettings) {
-    _notifyEscaped = notificatonSettings['escapedGeofence'];
-    _notifyLowGatewayBaterry = notificatonSettings['gatewayBattery'];
-    _notifyLowTrackerBaterry = notificatonSettings['trackerBattery'];
+    _notifyEscaped = notificatonSettings['geofence']['enabled'];
+    _notifyLowGatewayBaterry = notificatonSettings['gatewayBattery']['enabled'];
+    _notifyLowTrackerBaterry = notificatonSettings['trackerBattery']['enabled'];
   }
 
   @override

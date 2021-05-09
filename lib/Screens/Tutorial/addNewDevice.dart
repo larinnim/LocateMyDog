@@ -38,39 +38,44 @@ class AddNewDevice extends StatelessWidget {
           "#ff6666", "Cancel", true, barcode.ScanMode.QR);
 
       print('Going to check DOC: ' + 'SD-' + barcodeScanRes);
-      final checkIfAlredySetup =
-               await  senderCollection.where('userID', isEqualTo: _firebaseAuth.currentUser!.uid).where('senderMac', isEqualTo: barcodeScanRes).get();
+      if (barcodeScanRes != '-1') {
+        final checkIfAlredySetup = await senderCollection
+          .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
+          .where('senderMac', isEqualTo: barcodeScanRes)
+          .get();
 
-      if (checkIfAlredySetup.docs.length.isGreaterThan(0)) {
-        Get.dialog(AlertDialog(
-          title: Text('Whoops'),
-          content: Text('You have already setup this sender.'),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                Get.offAll(Step3(gatewayID));
-              },
-              child: Text('OK'),
-              style: ElevatedButton.styleFrom(primary: Colors.lightGreen),
-            )
-          ],
-        ));
-      } else {
-        senderCollection.doc('SD-' + barcodeScanRes).set({
-          'senderMac': barcodeScanRes,
-          'userID': _firebaseAuth.currentUser!.uid,
-          'Location': {'Latitude': 0, 'Longitude': 0},
-          'LocationTimestamp': '',
-          'batteryLevel': 0,
-          'color': colorString,
-          'name': barcodeScanRes,
-          'gatewayID': gatewayID,
-        }, SetOptions(merge: true)).then((value) {
-          Get.back();
-        }).catchError((error) => print("Failed to add user: $error"));
-        print(barcodeScanRes);
-        await DatabaseService(uid: _firebaseAuth.currentUser!.uid)
-            .addSenderToGateway(barcodeScanRes, gatewayID);
+        if (checkIfAlredySetup.docs.length.isGreaterThan(0)) {
+          Get.dialog(AlertDialog(
+            title: Text('Whoops'),
+            content: Text('You have already setup this sender.'),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Get.offAll(Step3(gatewayID));
+                },
+                child: Text('OK'),
+                style: ElevatedButton.styleFrom(primary: Colors.lightGreen),
+              )
+            ],
+          ));
+        } else {
+          senderCollection.doc('SD-' + barcodeScanRes).set({
+            'senderMac': barcodeScanRes,
+            'userID': _firebaseAuth.currentUser!.uid,
+            'Location': {'Latitude': 0, 'Longitude': 0},
+            'LocationTimestamp': '',
+            'batteryLevel': 0,
+            'color': colorString,
+            'name': barcodeScanRes,
+            'enabled': true,
+            'gatewayID': gatewayID,
+          }, SetOptions(merge: true)).then((value) {
+            Get.back();
+          }).catchError((error) => print("Failed to add user: $error"));
+          print(barcodeScanRes);
+          await DatabaseService(uid: _firebaseAuth.currentUser!.uid)
+              .addSenderToGateway(barcodeScanRes, gatewayID);
+        }
       }
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';

@@ -76,8 +76,8 @@ class _MapLocationState extends State<MapLocation> {
         .get()
         .then((QuerySnapshot querySnapshot) {
       querySnapshot.docs.forEach((doc) {
-        var latlng = LatLng(double.parse(doc['Location']['Latitude']),
-            double.parse(doc['Location']['Longitude']));
+        var latlng =
+            LatLng(doc['Location']['Latitude'], doc['Location']['Longitude']);
         setState(() {
           updateMarkerAndCircle(latlng, doc.id, doc['color']);
         });
@@ -115,13 +115,13 @@ class _MapLocationState extends State<MapLocation> {
             // if (data.contains('Sender')) {
             context.read<WiFiModel>().addLat(
                 firestoreInfo["Location"]["Latitude"] != ""
-                    ? double.parse(firestoreInfo["Location"]["Latitude"])
+                    ? firestoreInfo["Location"]["Latitude"]
                     : 0,
                 change.doc.id,
                 firestoreInfo["color"]);
             context.read<WiFiModel>().addLng(
                 firestoreInfo["Location"]["Longitude"] != ""
-                    ? double.parse(firestoreInfo["Location"]["Longitude"])
+                    ? firestoreInfo["Location"]["Longitude"]
                     : 0,
                 change.doc.id,
                 firestoreInfo["color"]);
@@ -329,6 +329,11 @@ class _MapLocationState extends State<MapLocation> {
   //   });
   //   // markers.add(marker);
   // }
+  GoogleMapController? mapController;
+
+  void _onMapCreated(GoogleMapController controller) {
+    mapController = controller;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -351,14 +356,8 @@ class _MapLocationState extends State<MapLocation> {
                   // off the stack.
                   Navigator.pushNamed(context, '/profile');
                 })),
-        body:
-            // (currentPositionBle.lat != null &&
-            //             currentPositionBle.lng != null ||
-            //         currentPositionWiFi.lat != null &&
-            //             currentPositionWiFi.lng != null)
-            //     ?
-            Consumer3<BleModel, WiFiModel, ConnectionStatusModel>(builder:
-                (_, bleProvider, wifiProvider, connectionProvider, child) {
+        body: Consumer3<BleModel, WiFiModel, ConnectionStatusModel>(
+            builder: (_, bleProvider, wifiProvider, connectionProvider, child) {
           return FutureBuilder(
               future: mounted
                   ? connectionStatus.getCurrentStatus()
@@ -385,8 +384,7 @@ class _MapLocationState extends State<MapLocation> {
                             )
                           ],
                         )
-                      :
-                       bleProvider.lat != null && bleProvider.lng != null ||
+                      : bleProvider.lat != null && bleProvider.lng != null ||
                               wifiProvider.lat != null &&
                                   wifiProvider.lng != null
                           ? FutureBuilder(
@@ -406,114 +404,230 @@ class _MapLocationState extends State<MapLocation> {
                                       wifiProvider.senderNumber,
                                       wifiProvider
                                           .senderColor!), // its sending WIFI
-                              // (bleProvider.timestampBLE == null &&
-                              //         wifiProvider.timestampWiFi != null) //its sending WIFI
-                              //     ? updateMarkerAndCircle(
-                              //         LatLng(wifiProvider.lat!,
-                              //             wifiProvider.lng!),
-                              //         wifiProvider.senderNumber)
-                              // : (bleProvider != null &&
-                              //         wifiProvider == null)
-                              //     ? updateMarkerAndCircle(
-                              //         LatLng(bleProvider.lat!,
-                              //             bleProvider.lng!),
-                              //         bleProvider.senderNumber)
-                              //     : updateMarkerAndCircle(
-                              //         LatLng(wifiProvider.lat!,
-                              //             wifiProvider.lng!),
-                              //         wifiProvider.senderNumber),
                               initialData: Set.of(<Marker>[]),
                               builder: (context, snapshotMarker) {
-                                return new Stack(
-                                  children: <Widget>[
-                                    new Container(
-                                      height:
-                                          1000, // This line solved the issue
-                                      child: GoogleMap(
-                                        mapType: MapType.hybrid,
-                                        initialCameraPosition: (bleProvider
-                                                        .timestampBLE !=
-                                                    null &&
-                                                wifiProvider.timestampWiFi !=
-                                                    null &&
-                                                bleProvider.timestampBLE!
-                                                    .isAfter(wifiProvider
-                                                        .timestampWiFi!)) // BLE is sending
-                                            ? CameraPosition(
-                                                target: LatLng(bleProvider.lat!,
-                                                    bleProvider.lng!),
-                                                zoom: 16.0)
-                                            : CameraPosition(
-                                                target: LatLng(
-                                                    wifiProvider.lat!,
-                                                    wifiProvider.lng!),
-                                                zoom: 16.0), //WIFI is sending
-                                        // (bleProvider.timestampBLE == null &&
-                                        //         wifiProvider.timestampWiFi !=
-                                        //             null)  // WIFI is sending
-                                        //     ? CameraPosition(
-                                        //         target: LatLng(
-                                        //             wifiProvider.lat!,
-                                        //             wifiProvider.lng!),
-                                        //         zoom: 16.0)
-                                        //     : (bleProvider != null &&
-                                        //             wifiProvider == null)
-                                        //         ? CameraPosition(
-                                        //             target: LatLng(
-                                        //                 bleProvider.lat!,
-                                        //                 bleProvider.lng!),
-                                        //             zoom: 16.0)
-                                        //         : CameraPosition(
-                                        //             target: LatLng(bleProvider.lat!, bleProvider.lng!),
-                                        //             zoom: 16.0),
-                                        // markers: snapshotMarker.data,
-                                        markers: markers.toSet(),
+                                return Align(
+                                                             
+                                  child: SafeArea(
+                                    child: Column(
+                                      children: <Widget>[
+                                        // SizedBox(height:  MediaQuery.of(context).size.height * 0.1, width: MediaQuery.of(context).size.width,),          
+                                        Expanded(
+                                            child: SizedBox(
+                                            // width: MediaQuery.of(context).size.width,
+                                            // height: MediaQuery.of(context).size.height * 0.89,
+                                            child: GoogleMap(
+                                            mapType: MapType.hybrid,
+                                            onMapCreated:
+                                              (GoogleMapController controller) {
+                                                _controller = controller;
+                                                moveCamera();
+                                              },                                            initialCameraPosition: (bleProvider
+                                                    .timestampBLE !=
+                                                null &&
+                                            wifiProvider.timestampWiFi !=
+                                                null &&
+                                            bleProvider.timestampBLE!
+                                                .isAfter(wifiProvider
+                                                    .timestampWiFi!)) // BLE is sending
+                                                ? CameraPosition(
+                                                    target: LatLng(bleProvider.lat!,
+                                                        bleProvider.lng!),
+                                                    zoom: 16.0)
+                                                : CameraPosition(
+                                                    target: LatLng(
+                                                        wifiProvider.lat!,
+                                                        wifiProvider.lng!),
+                                                    zoom: 16.0), //WIFI is sending
+                                                     markers: markers.toSet(),
 
-                                        circles: Set.of(
-                                            (circle != null) ? [circle!] : []),
-                                        // polylines: snapshotPolyline.data,
-                                        myLocationButtonEnabled: false,
-                                        zoomGesturesEnabled: true,
-                                        mapToolbarEnabled: true,
-                                        myLocationEnabled: false,
-                                        scrollGesturesEnabled: true,
-                                        onMapCreated:
-                                            (GoogleMapController controller) {
-                                          _controller = controller;
-                                          moveCamera();
-                                        },
-                                      ), // Mapbox
+                                          circles: Set.of(
+                                              (circle != null) ? [circle!] : []),
+                                          // polylines: snapshotPolyline.data,
+                                          myLocationButtonEnabled: false,
+                                          zoomGesturesEnabled: true,
+                                          mapToolbarEnabled: true,
+                                          myLocationEnabled: false,
+                                          scrollGesturesEnabled: true,
+                                              // initialCameraPosition:
+                                              //     const CameraPosition(
+                                              //         target: LatLng(0.0, 0.0)),
+                                            ),
+                                          ),
+                                        ),]
                                     ),
-                                    connectionProvider.connectionStatus ==
-                                            NetworkStatus.Offline
-                                        ? CupertinoAlertDialog(
-                                            title: Text(
-                                                'You are offline. You are going to be redirected to Offline mode'),
-                                            actions: [
-                                              CupertinoDialogAction(
-                                                child: Text('OK'),
-                                                onPressed: () {
-                                                  // TODO ENABLE WHEN MAPBOX NULLSAFETY IS AVAILABLE
-                                                  // Navigator.push(context,
-                                                  //     MaterialPageRoute(
-                                                  //         builder: (context) {
-                                                  //   // return Radar();
-                                                  //   return OfflineRegionBody();
-                                                  // }));
-                                                },
-                                              )
-                                            ],
-                                          )
-                                        : new Container()
-                                  ],
+                                  ),
                                 );
                               })
-                          : Loading();
+                          : new Container();
                 } else {
                   return Loading();
                 }
               });
         })
+
+        // (currentPositionBle.lat != null &&
+        //             currentPositionBle.lng != null ||
+        //         currentPositionWiFi.lat != null &&
+        //             currentPositionWiFi.lng != null)
+        //     ?
+        //   Consumer3<BleModel, WiFiModel, ConnectionStatusModel>(builder:
+        //       (_, bleProvider, wifiProvider, connectionProvider, child) {
+        // return FutureBuilder(
+        //     future: mounted
+        //         ? connectionStatus.getCurrentStatus()
+        //         : Future.value(null),
+        //     initialData: false,
+        //     builder: (context, snapshot) {
+        //       if (snapshot.hasData) {
+        //         return connectionProvider.connectionStatus ==
+        //                     NetworkStatus.Offline ||
+        //                 snapshot.data == NetworkStatus.Offline
+        //             ? CupertinoAlertDialog(
+        //                 title: Text(
+        //                     'You are offline. You are going to be redirected to Offline mode'),
+        //                 actions: [
+        //                   CupertinoDialogAction(
+        //                     child: Text('OK'),
+        //                     onPressed: () {
+        //                       Navigator.push(context,
+        //                           MaterialPageRoute(builder: (context) {
+        //                         // return Radar();
+        //                         return OfflineRegionBody();
+        //                       }));
+        //                     },
+        //                   )
+        //                 ],
+        //               )
+        //             : bleProvider.lat != null && bleProvider.lng != null ||
+        //                     wifiProvider.lat != null &&
+        //                         wifiProvider.lng != null
+        //                 ? FutureBuilder(
+        //                     future: (bleProvider.timestampBLE != null &&
+        //                             wifiProvider.timestampWiFi != null &&
+        //                             bleProvider.timestampBLE!.isAfter(
+        //                                 wifiProvider
+        //                                     .timestampWiFi!)) //its sending BLE
+        //                         ? updateMarkerAndCircle(
+        //                             LatLng(
+        //                                 bleProvider.lat!, bleProvider.lng!),
+        //                             bleProvider.senderNumber,
+        //                             "green") //TODO create color logic for BLE
+        //                         : updateMarkerAndCircle(
+        //                             LatLng(
+        //                                 wifiProvider.lat!, wifiProvider.lng!),
+        //                             wifiProvider.senderNumber,
+        //                             wifiProvider
+        //                                 .senderColor!), // its sending WIFI
+        // (bleProvider.timestampBLE == null &&
+        //         wifiProvider.timestampWiFi != null) //its sending WIFI
+        //     ? updateMarkerAndCircle(
+        //         LatLng(wifiProvider.lat!,
+        //             wifiProvider.lng!),
+        //         wifiProvider.senderNumber)
+        // : (bleProvider != null &&
+        //         wifiProvider == null)
+        //     ? updateMarkerAndCircle(
+        //         LatLng(bleProvider.lat!,
+        //             bleProvider.lng!),
+        //         bleProvider.senderNumber)
+        //     : updateMarkerAndCircle(
+        //         LatLng(wifiProvider.lat!,
+        //             wifiProvider.lng!),
+        //         wifiProvider.senderNumber),
+        // initialData: Set.of(<Marker>[]),
+        // builder: (context, snapshotMarker) {
+        // return new Stack(
+        //   children: <Widget>[
+
+        // new Container(
+        //   height:
+        //       1000, // This line solved the issue
+        //   child: GoogleMap(
+        //     mapType: MapType.hybrid,
+        //     initialCameraPosition: (bleProvider
+        //                     .timestampBLE !=
+        //                 null &&
+        //             wifiProvider.timestampWiFi !=
+        //                 null &&
+        //             bleProvider.timestampBLE!
+        //                 .isAfter(wifiProvider
+        //                     .timestampWiFi!)) // BLE is sending
+        //         ? CameraPosition(
+        //             target: LatLng(bleProvider.lat!,
+        //                 bleProvider.lng!),
+        //             zoom: 16.0)
+        //         : CameraPosition(
+        //             target: LatLng(
+        //                 wifiProvider.lat!,
+        //                 wifiProvider.lng!),
+        //             zoom: 16.0), //WIFI is sending
+        //     // (bleProvider.timestampBLE == null &&
+        //     //         wifiProvider.timestampWiFi !=
+        //     //             null)  // WIFI is sending
+        //     //     ? CameraPosition(
+        //     //         target: LatLng(
+        //     //             wifiProvider.lat!,
+        //     //             wifiProvider.lng!),
+        //     //         zoom: 16.0)
+        //     //     : (bleProvider != null &&
+        //     //             wifiProvider == null)
+        //     //         ? CameraPosition(
+        //     //             target: LatLng(
+        //     //                 bleProvider.lat!,
+        //     //                 bleProvider.lng!),
+        //     //             zoom: 16.0)
+        //     //         : CameraPosition(
+        //     //             target: LatLng(bleProvider.lat!, bleProvider.lng!),
+        //     //             zoom: 16.0),
+        //     // markers: snapshotMarker.data,
+        //     markers: markers.toSet(),
+
+        //     circles: Set.of(
+        //         (circle != null) ? [circle!] : []),
+        //     // polylines: snapshotPolyline.data,
+        //     myLocationButtonEnabled: false,
+        //     zoomGesturesEnabled: true,
+        //     mapToolbarEnabled: true,
+        //     myLocationEnabled: false,
+        //     scrollGesturesEnabled: true,
+        //     onMapCreated:
+        //         (GoogleMapController controller) {
+        //       _controller = controller;
+        //       moveCamera();
+        //     },
+        //   ), // Mapbox
+        // ),
+        // connectionProvider.connectionStatus ==
+        //         NetworkStatus.Offline
+        //     ? CupertinoAlertDialog(
+        //         title: Text(
+        //             'You are offline. You are going to be redirected to Offline mode'),
+        //         actions: [
+        //           CupertinoDialogAction(
+        //             child: Text('OK'),
+        //             onPressed: () {
+        //               // TODO ENABLE WHEN MAPBOX NULLSAFETY IS AVAILABLE
+        //               // Navigator.push(context,
+        //               //     MaterialPageRoute(
+        //               //         builder: (context) {
+        //               //   // return Radar();
+        //               //   return OfflineRegionBody();
+        //               // }));
+        //             },
+        //           )
+        //         ],
+        //       )
+        //     : new Container()
+        //   ],
+        // );
+        //                       })
+        //                   : Loading();
+        //         } else {
+        //           return Loading();
+        //         }
+        //       });
+        // })
         // :
         // Loading()
         //  Center(
