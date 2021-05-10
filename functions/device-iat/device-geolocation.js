@@ -131,6 +131,7 @@ module.exports = functions.pubsub
                       data: {
                         title: `${senderFields.data().name} has returned to home!`,
                         body: `${senderFields.data().name} is safely back home.`,
+                        type: `map`,
                       },
                       token: userToken,
                     };
@@ -192,9 +193,30 @@ module.exports = functions.pubsub
               //Less than 20% is considered Low level Battery and the notification has not been sent
               var message = {
                 data: {
+                  // title: `The gateway ${gatewayName} battery level is low!`,
+                  // body: `Please charge the gateway ${gatewayName}.`,
+                  type: `map`
+                },
+                notification: {
                   title: `The gateway ${gatewayName} battery level is low!`,
                   body: `Please charge the gateway ${gatewayName}.`,
                 },
+                  // Set Android priority to "high"
+                android: {
+                  priority: "high",
+                },
+                 // Add APNS (Apple) config
+              // apns: {
+              //   payload: {
+              //     aps: {
+              //       contentAvailable: true,
+              //     },
+              //   },
+              //   headers: {
+              //     "apns-push-type": "background",
+              //     "apns-priority": "5", // Must be `5` when `contentAvailable` is set to true.
+              //     "apns-topic": "io.flutter.plugins.firebase.messaging", // bundle identifier
+              //   },
                 token: userToken,
               };
               admin
