@@ -74,7 +74,7 @@ module.exports = functions.pubsub
               notificateTrackerBatteryLevel = userDoc.data().Notification['trackerBattery']['enabled']
               console.log(`Looking to get the Escape message.....`);
               console.log(
-                `Received Escaped?  ${receivedEscaped}`
+                `USER TOKEN?  ${userToken}`
               );    
             if (receivedEscaped == true) {
                 console.log(

@@ -4,6 +4,7 @@ import "dart:ui" as ui;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -62,12 +63,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   SocialSignInSingleton socialSiginSingleton = SocialSignInSingleton();
   final box = GetStorage();
   final storage = FlutterSecureStorage();
+  FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
   @override
   void initState() {
     super.initState();
     // readDatabase(); //Read current WIFI info from firebase
     PushNotificationsManager().init();
+
     if (widget.wantsTouchId != null && widget.password != null) {
       checkAuthentication();
     }
@@ -151,7 +154,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } else if (isFacebookSignedIn == true) {
       FacebookAuth.instance.logOut();
     }
-    FirebaseAuth.instance.signOut().then((value) {
+    FirebaseAuth.instance.signOut().then((value) async {
       Get.offAll(Authenticate());
       box.read('token');
       // isSignedIn = false;
@@ -159,6 +162,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       //     transition: Transition.downToUp,
       //     duration: Duration(seconds: 1));
     });
+    _firebaseMessaging.deleteToken(senderId: '687212317780');
+    PushNotificationsManager().clear();
   }
 
   // Future<List<DocumentSnapshot>> getSendersID() async {
