@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
@@ -20,6 +21,10 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../Services/bluetooth_conect.dart';
 
+// Initialize the [FlutterLocalNotificationsPlugin] package.
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+    
 class MapLocation extends StatefulWidget {
   @override
   _MapLocationState createState() => _MapLocationState();
@@ -354,8 +359,10 @@ class _MapLocationState extends State<MapLocation> {
                 onPressed: () {
                   // Navigate back to the first screen by popping the current route
                   // off the stack.
+                  flutterLocalNotificationsPlugin.cancelAll();
                   Navigator.pushNamed(context, '/profile');
-                })),
+                })
+                ),
         body: Consumer3<BleModel, WiFiModel, ConnectionStatusModel>(
             builder: (_, bleProvider, wifiProvider, connectionProvider, child) {
           return FutureBuilder(
