@@ -121,7 +121,7 @@ class PushNotificationsManager {
   bool _initialized = false;
   RemoteMessage? initialMessage;
   PushNotificationsManager._();
-      bool fromForeground = true;
+  bool fromForeground = true;
 
   factory PushNotificationsManager() => _instance;
 
@@ -295,15 +295,20 @@ class PushNotificationsManager {
       // RemoteMessage? initialMessage =
       // initialMessage = await FirebaseMessaging.instance.getInitialMessage();
       // initialMessage =
-      await FirebaseMessaging.instance.getInitialMessage().then((value) {
+      await FirebaseMessaging.instance
+          .getInitialMessage()
+          .then((message) async {
 // If the message also contains a data property with a "type" of "chat",
         // navigate to a chat screen
-
-        if (value?.data['type'] == 'map' && fromForeground == false) {
-          fromForeground = false;
-          // Get.to(MapLocation());
-          Get.offAllNamed('/blueMap');
-        }
+          String messageid = await getFcmId(message!.messageId!);
+          if (message != null && messageid.isNotEmpty) {
+            setFcmId(message.messageId!);
+            if (message.data['type'] == 'map') {
+              fromForeground = false;
+              // Get.to(MapLocation());
+              Get.offAllNamed('/blueMap');
+            }
+          }
       });
 
       // selectNotificationSubject.stream.listen((String? payload) async {
@@ -348,40 +353,51 @@ class PushNotificationsManager {
         }
       });
 
-      // const AndroidInitializationSettings initializationSettingsAndroid =
-      //     AndroidInitializationSettings('app_icon');
-      // final IOSInitializationSettings initializationSettingsIOS =
-      //     IOSInitializationSettings(
-      //         requestSoundPermission: false,
-      //         requestBadgePermission: false,
-      //         requestAlertPermission: false,
-      //         onDidReceiveLocalNotification:
-      //             (int id, String? title, String? body, String? payload) async {
-      //           didReceiveLocalNotificationSubject.add(ReceivedNotification(
-      //               id: id, title: title, body: body, payload: payload));
-      //         });
+      const AndroidInitializationSettings initializationSettingsAndroid =
+          AndroidInitializationSettings('app_icon');
+      final IOSInitializationSettings initializationSettingsIOS =
+          IOSInitializationSettings(
+              requestSoundPermission: false,
+              requestBadgePermission: false,
+              requestAlertPermission: false,
+              onDidReceiveLocalNotification:
+                  (int id, String? title, String? body, String? payload) async {
+                didReceiveLocalNotificationSubject.add(ReceivedNotification(
+                    id: id, title: title, body: body, payload: payload));
+              });
 
-      // final MacOSInitializationSettings initializationSettingsMacOS =
-      //     MacOSInitializationSettings(
-      //         requestAlertPermission: false,
-      //         requestBadgePermission: false,
-      //         requestSoundPermission: false);
-      // final InitializationSettings initializationSettings =
-      //     InitializationSettings(
-      //         android: initializationSettingsAndroid,
-      //         iOS: initializationSettingsIOS,
-      //         macOS: initializationSettingsMacOS);
+      final MacOSInitializationSettings initializationSettingsMacOS =
+          MacOSInitializationSettings(
+              requestAlertPermission: false,
+              requestBadgePermission: false,
+              requestSoundPermission: false);
+      final InitializationSettings initializationSettings =
+          InitializationSettings(
+              android: initializationSettingsAndroid,
+              iOS: initializationSettingsIOS,
+              macOS: initializationSettingsMacOS);
 
-      // await flutterLocalNotificationsPlugin.initialize(initializationSettings,
-      //     onSelectNotification: (String? payload) async {
-      //   fromForeground = true;
-      //   Get.offAllNamed('/blueMap');
-      // });
+      await flutterLocalNotificationsPlugin.initialize(initializationSettings,
+          onSelectNotification: (String? payload) async {
+        fromForeground = true;
+        Get.offAllNamed('/blueMap');
+      });
       _initialized = true;
     }
     // Future onSelectNotification(String payload) async {
     //   Get.off(MapLocation());
     // }
+  }
+
+  static Future<void> setFcmId(String fcmId) async {
+    var pref = await SharedPreferences.getInstance();
+    await pref.setString(fcmId, fcmId);
+  }
+
+  static Future<String> getFcmId(String fcmId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(fcmId) ?? "";
+    // return (await SharedPreferences.getInstance()).getString(fcmId) ?? null;
   }
 
 //   Future<void> initNotifications(
