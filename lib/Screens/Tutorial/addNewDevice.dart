@@ -69,6 +69,7 @@ class AddNewDevice extends StatelessWidget {
             'name': barcodeScanRes,
             'enabled': true,
             'gatewayID': gatewayID,
+            'escaped': false,
           }, SetOptions(merge: true)).then((value) {
             Get.back();
           }).catchError((error) => print("Failed to add user: $error"));

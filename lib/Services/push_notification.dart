@@ -5,11 +5,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_maps/Screens/Devices/device_detail.dart';
+import 'package:flutter_maps/Screens/Devices/gateway_detail.dart';
 import 'package:flutter_maps/Screens/Profile/MapLocation.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'database.dart';
 
 // Define a top-level named handler which background/terminated messages will
 /// call.
@@ -57,71 +63,17 @@ class ReceivedNotification {
 
 String? selectedNotificationPayload;
 
-// print(message.notification!.title);
-// print(message.notification!.body);
-// print(message.data);
-
-// if (message.data != null && message.notification == null) {
-//   flutterLocalNotificationsPlugin.show(
-//       message.data.hashCode,
-//       message.data['title'],
-//       message.data['body'],
-//       NotificationDetails(
-//         android: AndroidNotificationDetails(
-//           channel.id,
-//           channel.name,
-//           channel.description,
-//           icon: 'launch_background',
-//           // TODO add a proper drawable resource to android, for now using
-//           //      one that already exists in example app.
-//           // icon: message.notification!.android?.smallIcon,
-//         ),
-//       ));
-// } else
-// if (message.notification != null) {
-//   print('Message also contained a notification: ${message.notification}');
-//   RemoteNotification notification = message.notification!;
-//   AndroidNotification android = message.notification!.android!;
-//   // if (notification != null && android != null) {
-//   flutterLocalNotificationsPlugin.show(
-//       notification.hashCode,
-//       notification.title,
-//       notification.body,
-//       NotificationDetails(
-//         android: AndroidNotificationDetails(
-//           channel.id,
-//           channel.name,
-//           channel.description,
-//           // TODO add a proper drawable resource to android, for now using
-//           //      one that already exists in example app.
-//           icon: 'launch_background',
-//         ),
-//       ));
-//   // }
-// }
-
-// flutterLocalNotificationsPlugin.show(
-//     message.data.hashCode,
-//     message.data['title'],
-//     message.data['body'],
-//     NotificationDetails(
-//       android: AndroidNotificationDetails(
-//         channel.id,
-//         channel.name,
-//         channel.description,
-//         icon: 'launch_background',
-//         // TODO add a proper drawable resource to android, for now using
-//         //      one that already exists in example app.
-//         // icon: message.notification!.android?.smallIcon,
-//       ),
-//     ));
-// }
-
 class PushNotificationsManager {
   bool _initialized = false;
   RemoteMessage? initialMessage;
+
+  CollectionReference senderCollection =
+      FirebaseFirestore.instance.collection('sender');
+
+  CollectionReference userCollection =
+      FirebaseFirestore.instance.collection('users');
+
   PushNotificationsManager._();
-  bool fromForeground = true;
 
   factory PushNotificationsManager() => _instance;
 
@@ -132,6 +84,7 @@ class PushNotificationsManager {
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   void clear() {
     _initialized = false;
@@ -140,59 +93,6 @@ class PushNotificationsManager {
   Future<void> init() async {
     if (!_initialized) {
       final String firebaseTokenPrefKey = 'firebaseToken';
-      // display a dialog with the notification details, tap ok to go to another page
-      // showDialog(
-      //   context: context,
-      //   builder: (BuildContext context) => CupertinoAlertDialog(
-      //     title: Text(title),
-      //     content: Text(body),
-      //     actions: [
-      //       CupertinoDialogAction(
-      //         isDefaultAction: true,
-      //         child: Text('Ok'),
-      //         onPressed: () async {
-      //           Navigator.of(context, rootNavigator: true).pop();
-      //           await Navigator.push(
-      //             context,
-      //             MaterialPageRoute(
-      //               builder: (context) => SecondScreen(payload),
-      //             ),
-      //           );
-      //         },
-      //       )
-      //     ],
-      //   ),
-      // );
-
-//   /// Note: permissions aren't requested here just to demonstrate that can be
-//   /// done later
-//   final IOSInitializationSettings initializationSettingsIOS =
-//       IOSInitializationSettings(
-//           requestAlertPermission: false,
-//           requestBadgePermission: false,
-//           requestSoundPermission: false,
-      // onDidReceiveLocalNotification:
-      //     (int id, String? title, String? body, String? payload) async {
-      //   didReceiveLocalNotificationSubject.add(ReceivedNotification(
-      //       id: id, title: title, body: body, payload: payload));
-      // });
-//   const MacOSInitializationSettings initializationSettingsMacOS =
-//       MacOSInitializationSettings(
-//           requestAlertPermission: false,
-//           requestBadgePermission: false,
-//           requestSoundPermission: false);
-      // final InitializationSettings initializationSettings =
-      //     InitializationSettings(
-      //   android: AndroidInitializationSettings('app_icon'),
-      // iOS: initializationSettingsIOS,
-      // macOS: initializationSettingsMacOS
-      // );
-
-//    if (notificationAppLaunchDetails?.didNotificationLaunchApp ?? false) {
-//           selectedNotificationPayload = notificationAppLaunchDetails!.payload;
-
-//         }
-
       // Set the background messaging handler early on, as a named top-level function
       FirebaseMessaging.onBackgroundMessage(
           _firebaseMessagingBackgroundHandler);
@@ -225,22 +125,26 @@ class PushNotificationsManager {
         provisional: false,
         sound: true,
       );
-      print('User granted permission: ${settings.authorizationStatus}');
-
-      // final NotificationAppLaunchDetails? notificationAppLaunchDetails =
-      //     await flutterLocalNotificationsPlugin
-      //         .getNotificationAppLaunchDetails();
-
-      // String initialRoute = HomePage.routeName;
-      // if (notificationAppLaunchDetails?.didNotificationLaunchApp ?? false) {
-      //   selectedNotificationPayload = notificationAppLaunchDetails!.payload;
-      //   initialRoute = SecondPage.routeName;
+      await Permission.notification.request().then((PermissionStatus status) {
+        if (status != PermissionStatus.granted) {
+          DatabaseService(uid: _firebaseAuth.currentUser!.uid)
+              .updateNotificationPreference(false, false, false);
+        }
+      });
+      // if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      //   DatabaseService(uid: _firebaseAuth.currentUser!.uid)
+      //       .updateNotificationPreference(true, true, true);
+      // } else if (settings.authorizationStatus ==
+      //     AuthorizationStatus.provisional) {
+      //   print('User granted provisional permission');
+      //   DatabaseService(uid: _firebaseAuth.currentUser!.uid)
+      //       .updateNotificationPreference(false, false, false);
+      // } else {
+      //   print('User declined or has not accepted permission');
+      //   DatabaseService(uid: _firebaseAuth.currentUser!.uid)
+      //       .updateNotificationPreference(false, false, false);
       // }
-
-      // For iOS request permission first.
-      // _firebaseMessaging.requestNotificationPermissions();
-
-      // _firebaseMessaging.configure();
+      // print('User granted permission: ${settings.authorizationStatus}');
 
       // For testing purposes print the Firebase Messaging token
       await _firebaseMessaging.getToken().then((token) async {
@@ -279,51 +183,62 @@ class PushNotificationsManager {
       });
       // Save it to Firestore
 
-      // if (token != null) {
-      //   _db
-      //       .collection('users')
-      //       .doc(FirebaseAuth.instance.currentUser!.uid)
-      //       .set({
-      //     'token': token,
-      //     'createdAt': FieldValue.serverTimestamp(), // optional
-      //     'platform': Platform.operatingSystem // optional
-      //   }, SetOptions(merge: true));
-      // }
-
-      // Get any messages which caused the application to open from
-      // a terminated state.
-      // RemoteMessage? initialMessage =
-      // initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-      // initialMessage =
       await FirebaseMessaging.instance
           .getInitialMessage()
           .then((message) async {
 // If the message also contains a data property with a "type" of "chat",
         // navigate to a chat screen
-          String messageid = await getFcmId(message!.messageId!);
-          if (message != null && messageid.isNotEmpty) {
-            setFcmId(message.messageId!);
-            if (message.data['type'] == 'map') {
-              fromForeground = false;
-              // Get.to(MapLocation());
-              Get.offAllNamed('/blueMap');
-            }
+        String messageid = await getFcmId(message!.messageId!);
+        if (message != null && messageid.isNotEmpty) {
+          setFcmId(message.messageId!);
+          if (message.data['type'] == 'map') {
+            // Get.to(MapLocation());
+            Get.offAllNamed('/blueMap');
+          } else if (message.data['type'] == 'gatewayBatteryLevel') {
+            Get.to(GatewayDetails(
+                title: message.data['gatewayName'],
+                gatewayMAC: message.data['gatewayMAC']));
+          } else if (message.data['type'] == 'trackerBatteryLevel') {
+            String gatewayMAC = message.data['gatewayID'];
+            await getAvailableColors(message.data['senderColor'], gatewayMAC)
+                .then((availableColors) {
+              Get.to(DeviceDetail(), arguments: [
+                message.data['senderMac'],
+                message.data['senderColor'],
+                message.data['batteryLevel'],
+                message.data['senderID'],
+                availableColors
+              ]);
+            });
           }
+        }
       });
-
-      // selectNotificationSubject.stream.listen((String? payload) async {
-      //   Get.off(MapLocation());
-      //   // await Navigator.pushNamed(context, '/secondPage');
-      // });
 
       // Also handle any interaction when the app is in the background via a
       // Stream listener
-      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      FirebaseMessaging.onMessageOpenedApp
+          .listen((RemoteMessage message) async {
         if (message.data['type'] == 'map') {
           // Get.off(MapLocation());
           Get.offAllNamed('/blueMap');
           // Navigator.pushNamed(context, '/chat',
           //   arguments: ChatArguments(message));
+        } else if (message.data['type'] == 'gatewayBatteryLevel') {
+          Get.to(GatewayDetails(
+              title: message.data['gatewayName'],
+              gatewayMAC: message.data['gatewayMAC']));
+        } else if (message.data['type'] == 'trackerBatteryLevel') {
+          String gatewayMAC = message.data['gatewayID'];
+          await getAvailableColors(message.data['senderColor'], gatewayMAC)
+              .then((availableColors) {
+            Get.to(DeviceDetail(), arguments: [
+              message.data['senderMac'],
+              message.data['senderColor'],
+              message.data['batteryLevel'],
+              message.data['senderID'],
+              availableColors
+            ]);
+          });
         }
       });
 
@@ -379,14 +294,10 @@ class PushNotificationsManager {
 
       await flutterLocalNotificationsPlugin.initialize(initializationSettings,
           onSelectNotification: (String? payload) async {
-        fromForeground = true;
         Get.offAllNamed('/blueMap');
       });
       _initialized = true;
     }
-    // Future onSelectNotification(String payload) async {
-    //   Get.off(MapLocation());
-    // }
   }
 
   static Future<void> setFcmId(String fcmId) async {
@@ -400,40 +311,25 @@ class PushNotificationsManager {
     // return (await SharedPreferences.getInstance()).getString(fcmId) ?? null;
   }
 
-//   Future<void> initNotifications(
-//       FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin) async {
-//     var initializationSettingsAndroid =
-//         AndroidInitializationSettings('app_icon');
+  Future<List<Color>> getAvailableColors(
+      Color trackerColor, String gatewayMAC) async {
+    List<Color> _availableColors = [
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.red
+    ];
 
-//   /// Note: permissions aren't requested here just to demonstrate that can be
-//   /// done later
-//   final IOSInitializationSettings initializationSettingsIOS =
-//       IOSInitializationSettings(
-//           requestAlertPermission: false,
-//           requestBadgePermission: false,
-//           requestSoundPermission: false,
-//           onDidReceiveLocalNotification:
-//               (int id, String? title, String? body, String? payload) async {
-//             didReceiveLocalNotificationSubject.add(ReceivedNotification(
-//                 id: id, title: title, body: body, payload: payload));
-//           });
-// const MacOSInitializationSettings initializationSettingsMacOS =
-//       MacOSInitializationSettings(
-//           requestAlertPermission: false,
-//           requestBadgePermission: false,
-//           requestSoundPermission: false);
-
-// final InitializationSettings initializationSettings = InitializationSettings(
-//       android: initializationSettingsAndroid,
-//       iOS: initializationSettingsIOS,
-//       macOS: initializationSettingsMacOS);
-
-//     await flutterLocalNotificationsPlugin.initialize(initializationSettings,
-//       onSelectNotification: (String? payload) async {
-//         if (payload != null) {
-//           debugPrint('notification payload: $payload');
-//         }
-//         selectedNotificationPayload = payload;
-//         selectNotificationSubject.add(payload);
-//       });
+    senderCollection
+        .where('gatewayID', isEqualTo: gatewayMAC)
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        Color devColor = trackerColor;
+        _availableColors
+            .removeWhere((colorAvailable) => devColor == colorAvailable);
+      });
+    });
+    return _availableColors;
+  }
 }

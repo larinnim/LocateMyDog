@@ -8,9 +8,11 @@ import 'package:flutter_maps/Screens/ProfileSettings/languages.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/offline_regions.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/reset_password.dart';
 import 'package:flutter_maps/Services/database.dart';
+import 'package:flutter_maps/Services/permissionChangeBuilder.dart';
 import 'package:flutter_maps/Services/utils.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../loading.dart';
 import 'WiFiSettings/wifi_settings.dart';
@@ -54,333 +56,398 @@ class _SettingsPageState extends State<SettingsPage> {
     final Connectivity _connectivity = Connectivity();
     var platform = Theme.of(context).platform;
 
-    return FutureBuilder(
-        initialData: false,
-        future:
-            mounted ? _connectivity.checkConnectivity() : Future.value(null),
-        builder: (context, connectivitySnap) {
-          if (connectivitySnap.hasData) {
-            return FutureBuilder<DocumentSnapshot>(
-                future: users.doc(_firebaseAuth.currentUser!.uid).get(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<DocumentSnapshot> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    Map<String, dynamic> data = snapshot.data!.data()!;
-                    getUnits(data['units']);
-                    getNotificationSetting(data['Notification']);
-                    var children2 = [
-                      Text(
-                        "settings".tr,
-                        style: TextStyle(
-                            fontSize: 25, fontWeight: FontWeight.w500),
-                      ),
-                      SizedBox(
-                        height: 40,
-                      ),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.person,
-                            color: Colors.red[200],
-                          ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            "account".tr,
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      Divider(
-                        height: 15,
-                        thickness: 2,
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      buildChangeEmail(context, "change_email"),
-                      buildResetPassword(context, "reset_password"),
-                      buildChangeWifiSettings(context, "wifi_settings"),
+    return PermisisonChangeBuilder(
+        permission: Permission.notification,
+        builder: (context, status) {
+          if(status.isGranted){
+                DatabaseService(
+                  uid: _firebaseAuth
+                      .currentUser!
+                      .uid)
+              .setAgreedToNotBeNotified(false);
+          }
+          return FutureBuilder(
+              initialData: false,
+              future: mounted
+                  ? _connectivity.checkConnectivity()
+                  : Future.value(null),
+              builder: (context, connectivitySnap) {
+                if (connectivitySnap.hasData) {
+                  return FutureBuilder<DocumentSnapshot>(
+                      future: users.doc(_firebaseAuth.currentUser!.uid).get(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<DocumentSnapshot> snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          Map<String, dynamic> data = snapshot.data!.data()!;
+                          getUnits(data['units']);
+                          getNotificationSetting(data['Notification']);
+                          var children2 = [
+                            Text(
+                              "settings".tr,
+                              style: TextStyle(
+                                  fontSize: 25, fontWeight: FontWeight.w500),
+                            ),
+                            SizedBox(
+                              height: 40,
+                            ),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.person,
+                                  color: Colors.red[200],
+                                ),
+                                SizedBox(
+                                  width: 8,
+                                ),
+                                Text(
+                                  "account".tr,
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                            Divider(
+                              height: 15,
+                              thickness: 2,
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            buildChangeEmail(context, "change_email"),
+                            buildResetPassword(context, "reset_password"),
+                            buildChangeWifiSettings(context, "wifi_settings"),
 
-                      // Divider(
-                      //   height: 15,
-                      //   thickness: 1,
-                      // ),
+                            // Divider(
+                            //   height: 15,
+                            //   thickness: 1,
+                            // ),
 
-                      // buildUnitSelection(context, "Units"),
+                            // buildUnitSelection(context, "Units"),
 
-                      InkWell(
-                        onTap: () async {
-                          // if (await ConnectivityWrapper.instance.isConnected) {
-                          if (connectivitySnap.data ==
-                              ConnectivityResult.none) {
-                            showCupertinoDialog(
-                                context: context,
-                                builder: (_) => CupertinoAlertDialog(
-                                      title: Text("Error"),
-                                      content: Text(
-                                          "You are offline. Please connect to an active internet connection."),
-                                      actions: [
-                                        // Close the dialog
-                                        // You can use the CupertinoDialogAction widget instead
-                                        CupertinoButton(
-                                            child: Text('Dismiss'),
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            }),
-                                      ],
-                                    ));
-                          } else {
-                            setState(() {
-                              if (_units == "feet") {
-                                _units = "meter";
-                              } else {
-                                _units = "feet";
-                              }
-                            });
-                            _updateUnits(_units);
-                          }
+                            InkWell(
+                              onTap: () async {
+                                // if (await ConnectivityWrapper.instance.isConnected) {
+                                if (connectivitySnap.data ==
+                                    ConnectivityResult.none) {
+                                  showCupertinoDialog(
+                                      context: context,
+                                      builder: (_) => CupertinoAlertDialog(
+                                            title: Text("Error"),
+                                            content: Text(
+                                                "You are offline. Please connect to an active internet connection."),
+                                            actions: [
+                                              // Close the dialog
+                                              // You can use the CupertinoDialogAction widget instead
+                                              CupertinoButton(
+                                                  child: Text('Dismiss'),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  }),
+                                            ],
+                                          ));
+                                } else {
+                                  setState(() {
+                                    if (_units == "feet") {
+                                      _units = "meter";
+                                    } else {
+                                      _units = "feet";
+                                    }
+                                  });
+                                  _updateUnits(_units);
+                                }
 
-                          // } else {
-                          //   showSnackBar(
-                          //     context,
-                          //     title:
-                          //         "You are offline. Please connect to an active internet connection!",
-                          //   );
-                          // }
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'units'.tr,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey[600],
+                                // } else {
+                                //   showSnackBar(
+                                //     context,
+                                //     title:
+                                //         "You are offline. Please connect to an active internet connection!",
+                                //   );
+                                // }
+                              },
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'units'.tr,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    Text(_units != null
+                                        ? _units!.tr.toUpperCase()
+                                        : "meter".tr.toUpperCase()),
+                                  ],
                                 ),
                               ),
-                              Text(_units != null
-                                  ? _units!.tr.toUpperCase()
-                                  : "meter".tr.toUpperCase()),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // Divider(
-                      //   height: 15,
-                      //   thickness: 1,
-                      // ),
-                      buildLanguageSelection(context, "language"),
-                      // Divider(
-                      //   height: 15,
-                      //   thickness: 1,
-                      // ),
-                      // buildAccountOptionRow(context, "Social"),
-                      buildAccountOptionRow(context, "privacy_security"),
-                      buildOfflineMapSelection(context, "offline_map"),
+                            ),
+                            // Divider(
+                            //   height: 15,
+                            //   thickness: 1,
+                            // ),
+                            buildLanguageSelection(context, "language"),
+                            // Divider(
+                            //   height: 15,
+                            //   thickness: 1,
+                            // ),
+                            // buildAccountOptionRow(context, "Social"),
+                            buildAccountOptionRow(context, "privacy_security"),
+                            buildOfflineMapSelection(context, "offline_map"),
 
-                      SizedBox(
-                        height: 40,
-                      ),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.volume_up_outlined,
-                            color: Colors.red[200],
-                          ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            "Notifications",
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      Divider(
-                        height: 15,
-                        thickness: 2,
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      platform == TargetPlatform.android
-                          ? SwitchListTile(
-                              title: Text(
-                                'Escape Notifications',
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey[600]),
-                              ),
-                              // secondary: const Icon(Icons.lightbulb_outline),
-                              value: _notifyEscaped,
-                              onChanged: (bool value) {
-                                setState(
-                                  () {
-                                    _notifyEscaped = value;
-                                    DatabaseService(
-                                            uid: _firebaseAuth.currentUser!.uid)
-                                        .updateNotificationPreference(
-                                            _notifyEscaped,
-                                            _notifyLowGatewayBaterry,
-                                            _notifyLowTrackerBaterry);
-                                  },
-                                );
-                              })
-                          : CupertinoFormRow(
-                              child: CupertinoSwitch(
-                                value: _notifyEscaped,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _notifyEscaped = value;
-                                    DatabaseService(
-                                            uid: _firebaseAuth.currentUser!.uid)
-                                        .updateNotificationPreference(
-                                            _notifyEscaped,
-                                            _notifyLowGatewayBaterry,
-                                            _notifyLowTrackerBaterry);
-                                  });
-                                },
-                              ),
-                              prefix: Text('Escape Notifications',
+                            SizedBox(
+                              height: 40,
+                            ),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.volume_up_outlined,
+                                  color: Colors.red[200],
+                                ),
+                                SizedBox(
+                                  width: 8,
+                                ),
+                                Text(
+                                  "Notifications",
                                   style: TextStyle(
                                       fontSize: 18,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.grey[600])),
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
                             ),
-                      // buildNotificationOptionRow("Dog Escaped", true),
-                      platform == TargetPlatform.android
-                          ? SwitchListTile(
-                              title: Text(
-                                'Gateway Battery Level Notifications',
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey[600]),
-                              ),
-                              value: _notifyLowGatewayBaterry,
-                              onChanged: (bool value) {
-                                setState(() {
-                                  _notifyLowGatewayBaterry = value;
-                                  DatabaseService(
-                                          uid: _firebaseAuth.currentUser!.uid)
-                                      .updateNotificationPreference(
-                                          _notifyEscaped,
-                                          _notifyLowGatewayBaterry,
-                                          _notifyLowTrackerBaterry);
-                                });
-                              },
-                            )
-                          : CupertinoFormRow(
-                              child: CupertinoSwitch(
-                                value: _notifyEscaped,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _notifyEscaped = value;
-                                    DatabaseService(
-                                            uid: _firebaseAuth.currentUser!.uid)
-                                        .updateNotificationPreference(
-                                            _notifyEscaped,
-                                            _notifyLowGatewayBaterry,
-                                            _notifyLowTrackerBaterry);
-                                  });
+                            Divider(
+                              height: 15,
+                              thickness: 2,
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),                
+                            platform == TargetPlatform.android
+                                ? SwitchListTile(
+                                    title: Text(
+                                      'Escape Notifications',
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.grey[600]),
+                                    ),
+                                    // secondary: const Icon(Icons.lightbulb_outline),
+                                    value: _notifyEscaped,
+                                    onChanged:
+                                        status != PermissionStatus.granted
+                                            ? null
+                                            : (bool value) {
+                                                setState(
+                                                  () {
+                                                    _notifyEscaped = value;
+                                                    DatabaseService(
+                                                            uid: _firebaseAuth
+                                                                .currentUser!
+                                                                .uid)
+                                                        .updateNotificationPreference(
+                                                            _notifyEscaped,
+                                                            _notifyLowGatewayBaterry,
+                                                            _notifyLowTrackerBaterry);
+                                                  },
+                                                );
+                                              })
+                                : CupertinoFormRow(
+                                    child: CupertinoSwitch(
+                                      value: _notifyEscaped,
+                                      onChanged:
+                                          status != PermissionStatus.granted
+                                              ? null
+                                              : (value) {
+                                                  setState(() {
+                                                    _notifyEscaped = value;
+                                                    DatabaseService(
+                                                            uid: _firebaseAuth
+                                                                .currentUser!
+                                                                .uid)
+                                                        .updateNotificationPreference(
+                                                            _notifyEscaped,
+                                                            _notifyLowGatewayBaterry,
+                                                            _notifyLowTrackerBaterry);
+                                                  });
+                                                },
+                                    ),
+                                    prefix: Text('Escape Notifications',
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey[600])),
+                                  ),
+                            // buildNotificationOptionRow("Dog Escaped", true),
+                            platform == TargetPlatform.android
+                                ? SwitchListTile(
+                                    title: Text(
+                                      'Gateway Battery Level Notifications',
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.grey[600]),
+                                    ),
+                                    value: _notifyLowGatewayBaterry,
+                                    onChanged: status !=
+                                            PermissionStatus.granted
+                                        ? null
+                                        : (bool value) {
+                                            setState(() {
+                                              _notifyLowGatewayBaterry = value;
+                                              DatabaseService(
+                                                      uid: _firebaseAuth
+                                                          .currentUser!.uid)
+                                                  .updateNotificationPreference(
+                                                      _notifyEscaped,
+                                                      _notifyLowGatewayBaterry,
+                                                      _notifyLowTrackerBaterry);
+                                            });
+                                          },
+                                  )
+                                : CupertinoFormRow(
+                                    child: CupertinoSwitch(
+                                      value: _notifyEscaped,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _notifyEscaped = value;
+                                          DatabaseService(
+                                                  uid: _firebaseAuth
+                                                      .currentUser!.uid)
+                                              .updateNotificationPreference(
+                                                  _notifyEscaped,
+                                                  _notifyLowGatewayBaterry,
+                                                  _notifyLowTrackerBaterry);
+                                        });
+                                      },
+                                    ),
+                                    prefix: Text(
+                                        'Gateway Battery Level Notifications',
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey[600])),
+                                  ),
+                            // buildNotificationOptionRow("Gateway Low Battery", true),
+                            platform == TargetPlatform.android
+                                ? SwitchListTile(
+                                    title: Text(
+                                      'Tracker Battery Level Notifications',
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.grey[600]),
+                                    ),
+                                    value: _notifyLowTrackerBaterry,
+                                    onChanged: status !=
+                                            PermissionStatus.granted
+                                        ? null
+                                        : (value) {
+                                            setState(() {
+                                              _notifyLowTrackerBaterry = value;
+                                              DatabaseService(
+                                                      uid: _firebaseAuth
+                                                          .currentUser!.uid)
+                                                  .updateNotificationPreference(
+                                                      _notifyEscaped,
+                                                      _notifyLowGatewayBaterry,
+                                                      _notifyLowTrackerBaterry);
+                                            });
+                                          },
+                                  )
+                                : CupertinoFormRow(
+                                    child: CupertinoSwitch(
+                                      value: _notifyEscaped,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _notifyEscaped = value;
+                                          DatabaseService(
+                                                  uid: _firebaseAuth
+                                                      .currentUser!.uid)
+                                              .updateNotificationPreference(
+                                                  _notifyEscaped,
+                                                  _notifyLowGatewayBaterry,
+                                                  _notifyLowTrackerBaterry);
+                                        });
+                                      },
+                                    ),
+                                    prefix: Text(
+                                        'Tracker Battery Level Notifications',
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey[600])),
+                                  ),
+                                  SizedBox(
+                                    width: 50
+                                  ),
+                                  // if(!status.isGranted){
+                                    Visibility(
+                                      visible: !status.isGranted,
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                        
+                                          ElevatedButton(
+                                              onPressed: () async {
+                                                openAppSettings();
+                                                // Navigator.of(context).push(MaterialPageRoute(
+                                                //     builder: (context) => TaskRoute(widget.ssid, widget.bssid,
+                                                //         password.text, deviceCount.text, isBroad)));
+                                                // _stream = EsptouchSmartconfig.run(widget.ssid, widget.bssid,
+                                                //     password.text, deviceCount.text, isBroad);
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                primary: Colors.red[300],
+                                                shape: new RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      new BorderRadius.circular(30.0),
+                                                ),
+                                              ),
+                                              child: Text('Enable Notification on the App Settings to configure the Notifications')),
+                                        ],
+                                      ),
+                                    ) 
+                                  // }
+                                 
+                             
+                            // buildNotificationOptionRow("Tracker Low Battery", true),
+                          ];
+                          return Scaffold(
+                            appBar: AppBar(
+                              backgroundColor:
+                                  Theme.of(context).scaffoldBackgroundColor,
+                              elevation: 1,
+                              leading: IconButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
                                 },
+                                icon: Icon(
+                                  Icons.arrow_back,
+                                  color: Colors.red[200],
+                                ),
                               ),
-                              prefix: Text(
-                                  'Gateway Battery Level Notifications',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.grey[600])),
                             ),
-                      // buildNotificationOptionRow("Gateway Low Battery", true),
-                      platform == TargetPlatform.android
-                          ? SwitchListTile(
-                              title: Text(
-                                'Tracker Battery Level Notifications',
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey[600]),
+                            body: Container(
+                              padding:
+                                  EdgeInsets.only(left: 16, top: 25, right: 16),
+                              child: ListView(
+                                children: children2,
                               ),
-                              value: _notifyLowTrackerBaterry,
-                              onChanged: (value) {
-                                setState(() {
-                                  _notifyLowTrackerBaterry = value;
-                                  DatabaseService(
-                                          uid: _firebaseAuth.currentUser!.uid)
-                                      .updateNotificationPreference(
-                                          _notifyEscaped,
-                                          _notifyLowGatewayBaterry,
-                                          _notifyLowTrackerBaterry);
-                                });
-                              },
-                            )
-                          : CupertinoFormRow(
-                              child: CupertinoSwitch(
-                                value: _notifyEscaped,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _notifyEscaped = value;
-                                    DatabaseService(
-                                            uid: _firebaseAuth.currentUser!.uid)
-                                        .updateNotificationPreference(
-                                            _notifyEscaped,
-                                            _notifyLowGatewayBaterry,
-                                            _notifyLowTrackerBaterry);
-                                  });
-                                },
-                              ),
-                              prefix: Text(
-                                  'Tracker Battery Level Notifications',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.grey[600])),
                             ),
-                      // buildNotificationOptionRow("Tracker Low Battery", true),
-                    ];
-                    return Scaffold(
-                      appBar: AppBar(
-                        backgroundColor:
-                            Theme.of(context).scaffoldBackgroundColor,
-                        elevation: 1,
-                        leading: IconButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          icon: Icon(
-                            Icons.arrow_back,
-                            color: Colors.red[200],
-                          ),
-                        ),
-                      ),
-                      body: Container(
-                        padding: EdgeInsets.only(left: 16, top: 25, right: 16),
-                        child: ListView(
-                          children: children2,
-                        ),
-                      ),
-                    );
-                  }
-                  return Container(
-                    color: Colors.white,
-                    child: SpinKitCircle(
-                      color: Colors.red,
-                      size: 30.0,
-                    ),
-                  );
-                });
-          } else {
-            return Loading();
-          }
+                          );
+                        }
+                        return Loading();
+                      });
+                } else {
+                  return Loading();
+                }
+              });
+          //  else {}
         });
   }
 }

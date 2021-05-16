@@ -24,6 +24,8 @@ import 'package:location/location.dart' as localization;
 import 'package:provider/provider.dart';
 import 'package:get/get.dart';
 
+import '../loading.dart';
+
 class Geofence extends StatefulWidget {
   @override
   _GeofenceWidgetState createState() => _GeofenceWidgetState();
@@ -604,13 +606,7 @@ class _GeofenceWidgetState extends State<Geofence> {
                               //     : new Container()
                             ]);
                 } else {
-                  return Container(
-                    color: Colors.white,
-                    child: SpinKitCircle(
-                      color: Colors.red,
-                      size: 30.0,
-                    ),
-                  );
+                  return Loading();
                 }
               });
         }));

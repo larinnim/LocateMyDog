@@ -60,6 +60,14 @@ class DatabaseService {
     }, SetOptions(merge: true));
   }
 
+  Future<void> setAgreedToNotBeNotified(
+      bool agreed) async {
+    await usersCollection.doc(uid).set({
+      'agreedToNotBeNotified': agreed,
+      },
+    SetOptions(merge: true));
+  }
+
   Future<void> addSenderToGateway(String senderMac, String gatewayID) async {
     await gatewayConfigCollection.doc('GW-' + gatewayID).set({
       'senders': FieldValue.arrayUnion([

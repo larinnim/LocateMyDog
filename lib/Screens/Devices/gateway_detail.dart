@@ -24,8 +24,8 @@ import 'package:provider/provider.dart';
 // ignore: must_be_immutable
 class GatewayDetails extends StatefulWidget {
   String? title;
-  String? gatewayID;
-  GatewayDetails({Key? key, required this.title, required this.gatewayID})
+  String? gatewayMAC;
+  GatewayDetails({Key? key, required this.title, required this.gatewayMAC})
       : super(key: key);
 
   @override
@@ -173,10 +173,11 @@ class _GatewayDetailsState extends State<GatewayDetails> {
         'Location': {'Latitude': '', 'Longitude': ''},
         'LocationTimestamp': '',
         'batteryLevel': 0,
-        'escaped': false,
-        'enabled': true,
         'color': AuxFunc().colorNamefromColor(_availableColors[0]),
-        'name': barcodeScanRes
+        'enabled': true,
+        'name': barcodeScanRes,
+        'gatewayID': widget.gatewayMAC,
+        'escaped': false,
       }, SetOptions(merge: true)).then((value) {
         setState(() {
           _devices.add(Device(
@@ -204,7 +205,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
 
   void _getDevices() async {
     senderCollection
-        .where('gatewayID', isEqualTo: widget.gatewayID)
+        .where('gatewayID', isEqualTo: widget.gatewayMAC)
         .get()
         .then((QuerySnapshot querySnapshot) {
       querySnapshot.docs.forEach((doc) {
@@ -559,7 +560,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
 
   Future<void> _displayTextInputDialog(BuildContext context) async {
     gatewayCollection
-        .doc(widget.gatewayID)
+        .doc("GW-" + widget.gatewayMAC!)
         .get()
         .then((DocumentSnapshot documentSnapshot) {
       return showDialog(

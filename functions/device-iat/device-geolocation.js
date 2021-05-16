@@ -9,27 +9,23 @@ module.exports = functions.pubsub
   .topic("geolocation")
   .onPublish(async (message, context) => {
 
-    console.log('The function was triggered at ', context.timestamp);
-    console.log('The unique ID for the event is', context.eventId);
-    // console.log(
-    //     `Message JSONN:  +
-    //       ${message.json}`
-    //   );
-    //   console.log(
-    //     `Message JSONN ESCAPED:  +
-    //       ${message.json.escaped}`
-    //   );
-    //   console.log(
-    //     `Message JSONN Latitude:  +
-    //       ${message.json.latitude}`
-    //   );
-    const deviceId = message.attributes.deviceId;
+    console.log('The function was triggered at: ', context.timestamp);
+    console.log('The unique ID for the event is: ', context.eventId);
+    console.log('Received: Gateway Battery Level: ', message.json.gatewayBatteryLevel);
+    console.log('Received: Tracker Battery Level: ', message.json.trackerBatteryLevel);
+    console.log('Received: GatewayID: ', message.json.gatewayID);
+    console.log('Received: Escaped: ', message.json.escaped);
+
+    const senderMac = message.json.senderID;
+    const senderColor = "";
     const senderID = "SD-" + message.json.senderID;
     var newLat = message.json.latitude;
     var newLng = message.json.longitude;
     var gatewayBatteryLevel = message.json.gatewayBatteryLevel;
     var trackerBatteryLevel = message.json.trackerBatteryLevel;
     var gatewayName = "";
+    var gatewayID = message.attributes.deviceId;
+    var gatewayMAC = "";
     var gatewayStoredBatteryLevel = 0;
     var userToken = "";
     var notificateGeofence = false;
@@ -45,19 +41,40 @@ module.exports = functions.pubsub
     const gatewayRef = firestore
       .collection("gateway")
       .doc("GW-" + message.json.gatewayID);
+
+      gatewayMAC = message.json.gatewayID;
+      gatewayID = "GW-" + message.json.gatewayID;
+
+      await gatewayRef.get().then((gatewayFields) => {
+        gatewayName = gatewayFields.data().name;
+        gatewayStoredBatteryLevel = gatewayFields.data().batteryLevel
+        console.log(`Gateway Stored Name: " ${gatewayName}`);
+        console.log(`Gateway Stored Battery Level: " ${gatewayStoredBatteryLevel}`);
+      });
       
-    await gatewayRef.get().then((gatewayFields) => {
-      gatewayName = gatewayFields.data().name;
-      gatewayStoredBatteryLevel = gatewayFields.data().batteryLevel
-      console.log(`Gateway Name: " ${gatewayName}`);
-    });
+      console.log(`Gateway Ref" ${gatewayRef}`);
+      console.log(`Gateway REF DOC " ${"GW-" + message.json.gatewayID}`);
+      console.log(`Sender Ref" ${deviceRef}`);
+      console.log(`Sender REF DOC " ${senderID}`);
+
+      await gatewayRef.set(
+        {batteryLevel: gatewayBatteryLevel},
+        {merge: true}
+      );
+
+      await deviceRef.set(
+        {batteryLevel: trackerBatteryLevel},
+        {merge: true}
+      )
 
     try {
         console.log(`Going to try now.....`);
 
       await deviceRef.get().then(async (senderFields) => {
-        console.log(`State updated for ${deviceId}`);
-        
+        console.log(`State updated for Sender Mac: ${senderMac}`);
+
+        senderColor = senderFields.data().color;
+
         const userRef = db.collection("users")
         .doc(senderFields.data().userID);
         
@@ -92,18 +109,25 @@ module.exports = functions.pubsub
                   { merge: true }
                 ).then(value => {
                   if (notificateGeofence == true) {
-                    var message = {
+                    var messageEscaped = {
                       data: {
+                        type: `map`
+                      },
+                      notification: {
                         title: `${senderFields.data().name} Escaped!`,
                         body: `${
                           senderFields.data().name
                         } escaped. The last recorded location was ${newLat} / ${newLng}`,
                       },
+                        // Set Android priority to "high"
+                      android: {
+                        priority: "high",
+                      },
                       token: userToken,
                     };
                     admin
                       .messaging()
-                      .send(message)
+                      .send(messageEscaped)
                       .then(async (response) => {
                         console.log("Successfully sent message: ", response);
                         await userRef.set(
@@ -127,17 +151,23 @@ module.exports = functions.pubsub
                   { merge: true }
                 ).then(value => {
                   if (notificateGeofence == true) {
-                    var message = {
+                    var messageReturnedHome = {
                       data: {
+                        type: `map`
+                      },
+                      notification: {
                         title: `${senderFields.data().name} has returned to home!`,
                         body: `${senderFields.data().name} is safely back home.`,
-                        type: `map`,
+                      },
+                        // Set Android priority to "high"
+                      android: {
+                        priority: "high",
                       },
                       token: userToken,
                     };
                     admin
                       .messaging()
-                      .send(message)
+                      .send(messageReturnedHome)
                       .then(async (response) => {
                         console.log("Successfully sent message: ", response);
                         await userRef.set(
@@ -154,21 +184,33 @@ module.exports = functions.pubsub
             }
             if (
               notificateTrackerBatteryLevel == true &&
-              trackerBatteryLevel < 20 && senderFields.data().batteryLevel > 20
+              trackerBatteryLevel < 20 && (senderFields.data().batteryLevel > 20 || senderFields.data().batteryLevel == 0)
             ) {
-              //Less than 20% is considered Low level Battery
-              var message = {
+
+              var messageTrackerBattery = {
                 data: {
+                  type: `trackerBatteryLevel`,
+                  senderMac: senderMac,
+                  senderColor: senderColor,
+                  batteryLevel: trackerBatteryLevel,
+                  senderID: senderID,
+                  gatewayID: gatewayID
+                },
+                notification: {
                   title: `The tracker ${
                     senderFields.data().name
                   } battery level is low!`,
-                  body: `Please charge the tracker ${senderFields.data().name}.`,
+                  body:`Please charge the tracker ${senderFields.data().name}.`,
+                },
+                  // Set Android priority to "high"
+                android: {
+                  priority: "high",
                 },
                 token: userToken,
               };
               admin
                 .messaging()
-                .send(message)
+                .send(messageTrackerBattery)
                 .then(async (response) => {
                   console.log("Successfully sent message: ", response);
                   await userRef.set(
@@ -188,40 +230,27 @@ module.exports = functions.pubsub
             }
             if (
               notificateGatewayBatteryLevel == true &&
-              gatewayBatteryLevel < 20 && gatewayStoredBatteryLevel > 20
+              gatewayBatteryLevel < 20 && (gatewayStoredBatteryLevel > 20 || gatewayStoredBatteryLevel == 0)
             ) {
-              //Less than 20% is considered Low level Battery and the notification has not been sent
-              var message = {
+              var messageGatewayBattery = {
                 data: {
-                  // title: `The gateway ${gatewayName} battery level is low!`,
-                  // body: `Please charge the gateway ${gatewayName}.`,
-                  type: `map`
+                  type: `gatewayBatteryLevel`,
+                  gatewayName: gatewayName,
+                  gatewayMAC: gatewayMAC,
                 },
                 notification: {
                   title: `The gateway ${gatewayName} battery level is low!`,
-                  body: `Please charge the gateway ${gatewayName}.`,
+                  body:`Please charge the gateway ${gatewayName}.`,
                 },
                   // Set Android priority to "high"
                 android: {
                   priority: "high",
                 },
-                 // Add APNS (Apple) config
-              // apns: {
-              //   payload: {
-              //     aps: {
-              //       contentAvailable: true,
-              //     },
-              //   },
-              //   headers: {
-              //     "apns-push-type": "background",
-              //     "apns-priority": "5", // Must be `5` when `contentAvailable` is set to true.
-              //     "apns-topic": "io.flutter.plugins.firebase.messaging", // bundle identifier
-              //   },
                 token: userToken,
               };
               admin
                 .messaging()
-                .send(message)
+                .send(messageGatewayBattery)
                 .then(async (response) => {
                   console.log("Successfully sent message: ", response);
                   await userRef.set(
@@ -259,6 +288,6 @@ module.exports = functions.pubsub
         });
       });
     } catch (error) {
-      console.error(`${deviceId} not yet registered to a user`, error);
+      console.error(`${senderMac} not yet registered to a user`, error);
     }
   });

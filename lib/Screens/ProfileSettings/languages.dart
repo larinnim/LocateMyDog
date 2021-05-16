@@ -195,13 +195,14 @@ class LanguagesPageState extends State<LanguagesPage> {
                   } else if (snapshot.hasError) {
                     // Manage error
                   }
-                  return Container(
-                    color: Colors.white,
-                    child: SpinKitCircle(
-                      color: Colors.red,
-                      size: 30.0,
-                    ),
-                  );
+                  return Loading();
+                  // return Container(
+                  //   color: Colors.white,
+                  //   child: SpinKitCircle(
+                  //     color: Colors.red,
+                  //     size: 30.0,
+                  //   ),
+                  // );
                 });
           } else {
             return Loading();
