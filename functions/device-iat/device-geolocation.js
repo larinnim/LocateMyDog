@@ -46,6 +46,9 @@ module.exports = functions.pubsub
       gatewayID = "GW-" + message.json.gatewayID;
 
       await gatewayRef.get().then((gatewayFields) => {
+        if(!gatewayFields.exist){
+          console.log(`The following document dont exist on Firestore: ${gatewayRef.id}`);
+        }
         gatewayName = gatewayFields.data().name;
         gatewayStoredBatteryLevel = gatewayFields.data().batteryLevel
         console.log(`Gateway Stored Name: " ${gatewayName}`);
@@ -70,10 +73,16 @@ module.exports = functions.pubsub
     try {
         console.log(`Going to try now.....`);
 
-      await deviceRef.get().then(async (senderFields) => {
+      await deviceRef.get().then((senderFields) => {
         console.log(`State updated for Sender Mac: ${senderMac}`);
+        if(!senderFields.exist){
+          console.log(`The following document dont exist on Firestore: ${deviceRef.id}`);
+        }
+        console.log(`Sender Fields: ${ senderFields.data()}`);
 
-        senderColor = senderFields.data().color;
+        senderColor = senderFields.data()['color'];
+        console.log(`Sender Color: ${senderColor}`);
+        console.log(`Sender UserID: ${senderFields.data().userID}`);
 
         const userRef = db.collection("users")
         .doc(senderFields.data().userID);
@@ -182,11 +191,13 @@ module.exports = functions.pubsub
                 }); //milliseconds elapsed since January 1, 1970
               }
             }
+            console.log(`Tracker Notification enabled? " ${notificateTrackerBatteryLevel}`);
+            console.log(`Tracker Battery Level: " ${trackerBatteryLevel}`);
+
             if (
               notificateTrackerBatteryLevel == true &&
               trackerBatteryLevel < 20 && (senderFields.data().batteryLevel > 20 || senderFields.data().batteryLevel == 0)
             ) {
-
               var messageTrackerBattery = {
                 data: {
                   type: `trackerBatteryLevel`,
@@ -228,6 +239,8 @@ module.exports = functions.pubsub
                 { merge: true }
               ); 
             }
+            console.log(`Gateway Notification enabled? " ${notificateGatewayBatteryLevel}`);
+            console.log(`Gateway Battery Level: " ${gatewayBatteryLevel}`);
             if (
               notificateGatewayBatteryLevel == true &&
               gatewayBatteryLevel < 20 && (gatewayStoredBatteryLevel > 20 || gatewayStoredBatteryLevel == 0)
