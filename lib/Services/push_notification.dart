@@ -8,13 +8,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_maps/Screens/Devices/device_detail.dart';
+import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
 import 'package:flutter_maps/Screens/Devices/gateway_detail.dart';
 import 'package:flutter_maps/Screens/Profile/MapLocation.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'dart:convert';
 import 'database.dart';
 
 // Define a top-level named handler which background/terminated messages will
@@ -200,7 +201,7 @@ class PushNotificationsManager {
                 gatewayMAC: message.data['gatewayMAC']));
           } else if (message.data['type'] == 'trackerBatteryLevel') {
             String gatewayMAC = message.data['gatewayID'];
-            await getAvailableColors(message.data['senderColor'], gatewayMAC)
+            await getAvailableColors(AuxFunc().getColor(message.data['senderColor']), gatewayMAC)
                 .then((availableColors) {
               Get.to(DeviceDetail(), arguments: [
                 message.data['senderMac'],
@@ -229,15 +230,16 @@ class PushNotificationsManager {
               gatewayMAC: message.data['gatewayMAC']));
         } else if (message.data['type'] == 'trackerBatteryLevel') {
           String gatewayMAC = message.data['gatewayID'];
-          await getAvailableColors(message.data['senderColor'], gatewayMAC)
+          await getAvailableColors( AuxFunc().getColor(message.data['senderColor']), gatewayMAC)
               .then((availableColors) {
-            Get.to(DeviceDetail(), arguments: [
-              message.data['senderMac'],
-              message.data['senderColor'],
-              message.data['batteryLevel'],
-              message.data['senderID'],
-              availableColors
-            ]);
+            Get.to(DeviceDetail(
+              title: message.data['senderName'],
+              color:
+                 AuxFunc().getColor(message.data['senderColor']),
+              battery: int.parse(message.data['batteryLevel']),
+              senderID: message.data['senderID'],
+              availableColors: availableColors,
+            ),);
           });
         }
       });
@@ -269,7 +271,7 @@ class PushNotificationsManager {
       });
 
       const AndroidInitializationSettings initializationSettingsAndroid =
-          AndroidInitializationSettings('app_icon');
+          AndroidInitializationSettings('@mipmap/ic_launcher');
       final IOSInitializationSettings initializationSettingsIOS =
           IOSInitializationSettings(
               requestSoundPermission: false,
@@ -294,7 +296,33 @@ class PushNotificationsManager {
 
       await flutterLocalNotificationsPlugin.initialize(initializationSettings,
           onSelectNotification: (String? payload) async {
-        Get.offAllNamed('/blueMap');
+          NotificationReceivedTrackerDeviceDetails deviceDetails = NotificationReceivedTrackerDeviceDetails.fromJsonString(payload!);
+             if (deviceDetails.type == 'map') {
+              // Get.off(MapLocation());
+              Get.offAllNamed('/blueMap');
+              // Navigator.pushNamed(context, '/chat',
+              //   arguments: ChatArguments(message));
+            } 
+        //     else if (deviceDetails.type == 'gatewayBatteryLevel') {
+        //   Get.to(GatewayDetails(
+        //       title: message.data['gatewayName'],
+        //       gatewayMAC: message.data['gatewayMAC']));
+        // }
+         else if (deviceDetails.type == 'trackerBatteryLevel') {
+          String gatewayMAC = deviceDetails.gatewayID;
+          await getAvailableColors( AuxFunc().getColor(deviceDetails.senderColor), gatewayMAC)
+              .then((availableColors) {
+            Get.to(DeviceDetail(
+              title: deviceDetails.senderName,
+              color:
+                 AuxFunc().getColor(deviceDetails.senderColor),
+              battery: int.parse(deviceDetails.batteryLevel),
+              senderID: deviceDetails.senderID,
+              availableColors: availableColors,
+            ),);
+          });
+        }
+        // Get.offAllNamed('/blueMap');
       });
       _initialized = true;
     }
@@ -333,3 +361,39 @@ class PushNotificationsManager {
     return _availableColors;
   }
 }
+
+ class NotificationReceivedTrackerDeviceDetails {
+        final String type;    
+        final String gatewayID;
+        final String senderColor;
+        final String senderName;
+        final String batteryLevel;
+        final String senderID;  
+
+        NotificationReceivedTrackerDeviceDetails({required this.type, required this.gatewayID, required this.senderColor, required this.senderName, required this.batteryLevel, required this.senderID});
+
+        //Add these methods below
+
+        factory NotificationReceivedTrackerDeviceDetails.fromJsonString(String str) => NotificationReceivedTrackerDeviceDetails._fromJson(jsonDecode(str));
+
+        String toJsonString() => jsonEncode(_toJson());
+
+        factory NotificationReceivedTrackerDeviceDetails._fromJson(Map<String, dynamic> json) => NotificationReceivedTrackerDeviceDetails(
+           type: json['type'],
+           gatewayID: json['gatewayID'],
+           senderColor: json['senderColor'],
+           senderName: json['senderName'],
+           batteryLevel: json['batteryLevel'],
+           senderID: json['senderID'],
+        );
+
+
+        Map<String, dynamic> _toJson() => {
+            'type': type,
+            'gatewayID': gatewayID,
+            'senderColor': senderColor,
+            'senderName': senderName,
+            'batteryLevel': batteryLevel,
+            'senderID': senderID,
+        };
+    }

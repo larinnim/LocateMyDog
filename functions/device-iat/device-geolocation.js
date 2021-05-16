@@ -16,9 +16,10 @@ module.exports = functions.pubsub
     console.log('Received: GatewayID: ', message.json.gatewayID);
     console.log('Received: Escaped: ', message.json.escaped);
 
-    const senderMac = message.json.senderID;
-    const senderColor = "";
-    const senderID = "SD-" + message.json.senderID;
+    var senderMac = message.json.senderID;
+    var senderName = "";
+    var senderColor = "";
+    var senderID = "SD-" + message.json.senderID;
     var newLat = message.json.latitude;
     var newLng = message.json.longitude;
     var gatewayBatteryLevel = message.json.gatewayBatteryLevel;
@@ -36,9 +37,9 @@ module.exports = functions.pubsub
     console.log(`Started code...`);
 
     // Write the device geolocation into firestore
-    const deviceRef = firestore.doc(`sender/${senderID}`);
+    var deviceRef = firestore.doc(`sender/${senderID}`);
 
-    const gatewayRef = firestore
+    var gatewayRef = firestore
       .collection("gateway")
       .doc("GW-" + message.json.gatewayID);
 
@@ -60,16 +61,6 @@ module.exports = functions.pubsub
       console.log(`Sender Ref" ${deviceRef}`);
       console.log(`Sender REF DOC " ${senderID}`);
 
-      await gatewayRef.set(
-        {batteryLevel: gatewayBatteryLevel},
-        {merge: true}
-      );
-
-      await deviceRef.set(
-        {batteryLevel: trackerBatteryLevel},
-        {merge: true}
-      )
-
     try {
         console.log(`Going to try now.....`);
 
@@ -81,10 +72,11 @@ module.exports = functions.pubsub
         console.log(`Sender Fields: ${ senderFields.data()}`);
 
         senderColor = senderFields.data()['color'];
+        senderName = senderFields.data()['name'];
         console.log(`Sender Color: ${senderColor}`);
         console.log(`Sender UserID: ${senderFields.data().userID}`);
 
-        const userRef = db.collection("users")
+        var userRef = db.collection("users")
         .doc(senderFields.data().userID);
         
           userRef
@@ -193,7 +185,7 @@ module.exports = functions.pubsub
             }
             console.log(`Tracker Notification enabled? " ${notificateTrackerBatteryLevel}`);
             console.log(`Tracker Battery Level: " ${trackerBatteryLevel}`);
-
+            console.log(`Tracker Sender Fields Battery Level: " ${senderFields.data().batteryLevel}`);
             if (
               notificateTrackerBatteryLevel == true &&
               trackerBatteryLevel < 20 && (senderFields.data().batteryLevel > 20 || senderFields.data().batteryLevel == 0)
@@ -201,11 +193,11 @@ module.exports = functions.pubsub
               var messageTrackerBattery = {
                 data: {
                   type: `trackerBatteryLevel`,
-                  senderMac: senderMac,
-                  senderColor: senderColor,
-                  batteryLevel: trackerBatteryLevel,
-                  senderID: senderID,
-                  gatewayID: gatewayID
+                  senderName: String(senderName),
+                  senderColor: String(senderColor),
+                  batteryLevel: String(trackerBatteryLevel),
+                  senderID: String(senderID),
+                  gatewayID: String(gatewayID)
                 },
                 notification: {
                   title: `The tracker ${
@@ -227,18 +219,20 @@ module.exports = functions.pubsub
                   await userRef.set(
                     { "Notification": {"trackerBattery": {'timestamp': Date.now()}}},
                     { merge: true }
-                  ); 
+                  ).then(function() {
+                    console.log("Notification Tracker timestamp successfully added");
+                  });
                 })
                 .catch((error) => {
                   console.log("Error sending message", error);
                 });
             }
-            else{
-              await userRef.set(
-                {"Notification" : {"trackerBattery": {'timestamp': 0}}},
-                { merge: true }
-              ); 
-            }
+            // else{
+            //   await userRef.set(
+            //     {"Notification" : {"trackerBattery": {'timestamp': 0}}},
+            //     { merge: true }
+            //   ); 
+            // }
             console.log(`Gateway Notification enabled? " ${notificateGatewayBatteryLevel}`);
             console.log(`Gateway Battery Level: " ${gatewayBatteryLevel}`);
             if (
