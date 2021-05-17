@@ -93,10 +93,7 @@ class _DeviceListState extends State<DeviceList> {
                                                         title: snapshot.data!
                                                                 .docs[index]
                                                             ['name'],
-                                                        gatewayMAC: snapshot
-                                                            .data!
-                                                            .docs[index]
-                                                            .id)));
+                                                        gatewayMAC: snapshot.data!.docs[index]['gatewayMAC'])));
                                       },
                                     ),
                                   )

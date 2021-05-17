@@ -201,7 +201,8 @@ class PushNotificationsManager {
                 gatewayMAC: message.data['gatewayMAC']));
           } else if (message.data['type'] == 'trackerBatteryLevel') {
             String gatewayMAC = message.data['gatewayID'];
-            await getAvailableColors(AuxFunc().getColor(message.data['senderColor']), gatewayMAC)
+            await getAvailableColors(
+                    AuxFunc().getColor(message.data['senderColor']), gatewayMAC)
                 .then((availableColors) {
               Get.to(DeviceDetail(), arguments: [
                 message.data['senderMac'],
@@ -230,16 +231,18 @@ class PushNotificationsManager {
               gatewayMAC: message.data['gatewayMAC']));
         } else if (message.data['type'] == 'trackerBatteryLevel') {
           String gatewayMAC = message.data['gatewayID'];
-          await getAvailableColors( AuxFunc().getColor(message.data['senderColor']), gatewayMAC)
+          await getAvailableColors(
+                  AuxFunc().getColor(message.data['senderColor']), gatewayMAC)
               .then((availableColors) {
-            Get.to(DeviceDetail(
-              title: message.data['senderName'],
-              color:
-                 AuxFunc().getColor(message.data['senderColor']),
-              battery: int.parse(message.data['batteryLevel']),
-              senderID: message.data['senderID'],
-              availableColors: availableColors,
-            ),);
+            Get.to(
+              DeviceDetail(
+                title: message.data['senderName'],
+                color: AuxFunc().getColor(message.data['senderColor']),
+                battery: int.parse(message.data['batteryLevel']),
+                senderID: message.data['senderID'],
+                availableColors: availableColors,
+              ),
+            );
           });
         }
       });
@@ -247,6 +250,10 @@ class PushNotificationsManager {
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         print('Got a message whilst in the foreground!');
         print('Message data: ${message.data}');
+
+        // setForegroundNotificationPayload(message.data.toString());
+        setForegroundNotificationPayload(jsonEncode(message.data));
+
         if (message.notification != null) {
           print(
               'Message also contained a notification: ${message.notification}');
@@ -296,32 +303,37 @@ class PushNotificationsManager {
 
       await flutterLocalNotificationsPlugin.initialize(initializationSettings,
           onSelectNotification: (String? payload) async {
-          NotificationReceivedTrackerDeviceDetails deviceDetails = NotificationReceivedTrackerDeviceDetails.fromJsonString(payload!);
-             if (deviceDetails.type == 'map') {
-              // Get.off(MapLocation());
-              Get.offAllNamed('/blueMap');
-              // Navigator.pushNamed(context, '/chat',
-              //   arguments: ChatArguments(message));
-            } 
-        //     else if (deviceDetails.type == 'gatewayBatteryLevel') {
-        //   Get.to(GatewayDetails(
-        //       title: message.data['gatewayName'],
-        //       gatewayMAC: message.data['gatewayMAC']));
-        // }
-         else if (deviceDetails.type == 'trackerBatteryLevel') {
-          String gatewayMAC = deviceDetails.gatewayID;
-          await getAvailableColors( AuxFunc().getColor(deviceDetails.senderColor), gatewayMAC)
-              .then((availableColors) {
-            Get.to(DeviceDetail(
-              title: deviceDetails.senderName,
-              color:
-                 AuxFunc().getColor(deviceDetails.senderColor),
-              battery: int.parse(deviceDetails.batteryLevel),
-              senderID: deviceDetails.senderID,
-              availableColors: availableColors,
-            ),);
-          });
-        }
+        getForegroundNotificationPayload('foregroundPayload')
+            .then((receivedPayload) async {
+          NotificationReceivedTrackerDeviceDetails deviceDetails =
+              NotificationReceivedTrackerDeviceDetails.fromJsonString(
+                  receivedPayload);
+          if (deviceDetails.type == 'map') {
+            // Get.off(MapLocation());
+            Get.offAllNamed('/blueMap');
+            // Navigator.pushNamed(context, '/chat',
+            //   arguments: ChatArguments(message));
+          }else if (deviceDetails.type == 'gatewayBatteryLevel') {
+            Get.to(GatewayDetails(
+                title: deviceDetails.gatewayName,
+                gatewayMAC: deviceDetails.gatewayMAC));
+          }  else if (deviceDetails.type == 'trackerBatteryLevel') {
+            String gatewayMAC = deviceDetails.gatewayID;
+            await getAvailableColors(
+                    AuxFunc().getColor(deviceDetails.senderColor), gatewayMAC)
+                .then((availableColors) {
+              Get.to(
+                DeviceDetail(
+                  title: deviceDetails.senderName,
+                  color: AuxFunc().getColor(deviceDetails.senderColor),
+                  battery: int.parse(deviceDetails.batteryLevel),
+                  senderID: deviceDetails.senderID,
+                  availableColors: availableColors,
+                ),
+              );
+            });
+          }
+        });
         // Get.offAllNamed('/blueMap');
       });
       _initialized = true;
@@ -336,6 +348,20 @@ class PushNotificationsManager {
   static Future<String> getFcmId(String fcmId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString(fcmId) ?? "";
+    // return (await SharedPreferences.getInstance()).getString(fcmId) ?? null;
+  }
+
+  static Future<void> setForegroundNotificationPayload(
+      String foregroundPayload) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('foregroundPayload', foregroundPayload);
+    // return (await SharedPreferences.getInstance()).getString(fcmId) ?? null;
+  }
+
+  static Future<String> getForegroundNotificationPayload(
+      String foregroundPayload) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(foregroundPayload) ?? "";
     // return (await SharedPreferences.getInstance()).getString(fcmId) ?? null;
   }
 
@@ -362,38 +388,55 @@ class PushNotificationsManager {
   }
 }
 
- class NotificationReceivedTrackerDeviceDetails {
-        final String type;    
-        final String gatewayID;
-        final String senderColor;
-        final String senderName;
-        final String batteryLevel;
-        final String senderID;  
+class NotificationReceivedTrackerDeviceDetails {
+  final String type;
+  final String gatewayID;
+  final String senderColor;
+  final String senderName;
+  final String batteryLevel;
+  final String senderID;
+  final String gatewayName;
+  final String gatewayMAC;
 
-        NotificationReceivedTrackerDeviceDetails({required this.type, required this.gatewayID, required this.senderColor, required this.senderName, required this.batteryLevel, required this.senderID});
+  NotificationReceivedTrackerDeviceDetails({
+    required this.type,
+    this.gatewayID = "",
+    this.senderColor = "",
+    this.senderName = "",
+    required this.batteryLevel,
+    this.senderID = "",
+    this.gatewayMAC = "",
+    this.gatewayName = "",
+  });
 
-        //Add these methods below
+  //Add these methods below
 
-        factory NotificationReceivedTrackerDeviceDetails.fromJsonString(String str) => NotificationReceivedTrackerDeviceDetails._fromJson(jsonDecode(str));
+  factory NotificationReceivedTrackerDeviceDetails.fromJsonString(String str) =>
+      NotificationReceivedTrackerDeviceDetails._fromJson(jsonDecode(str));
 
-        String toJsonString() => jsonEncode(_toJson());
+  String toJsonString() => jsonEncode(_toJson());
 
-        factory NotificationReceivedTrackerDeviceDetails._fromJson(Map<String, dynamic> json) => NotificationReceivedTrackerDeviceDetails(
-           type: json['type'],
-           gatewayID: json['gatewayID'],
-           senderColor: json['senderColor'],
-           senderName: json['senderName'],
-           batteryLevel: json['batteryLevel'],
-           senderID: json['senderID'],
-        );
+  factory NotificationReceivedTrackerDeviceDetails._fromJson(
+          Map<String, dynamic> json) =>
+      NotificationReceivedTrackerDeviceDetails(
+        type: json['type'],
+        gatewayID: json['gatewayID'] ?? "",
+        senderColor: json['senderColor'] ?? "",
+        senderName: json['senderName'] ?? "",
+        batteryLevel: json['batteryLevel'] ?? "",
+        senderID: json['senderID'] ?? "",
+        gatewayMAC: json['gatewayMAC'] ?? "",
+        gatewayName: json['gatewayName'] ?? "",
+      );
 
-
-        Map<String, dynamic> _toJson() => {
-            'type': type,
-            'gatewayID': gatewayID,
-            'senderColor': senderColor,
-            'senderName': senderName,
-            'batteryLevel': batteryLevel,
-            'senderID': senderID,
-        };
-    }
+  Map<String, dynamic> _toJson() => {
+        'type': type,
+        'gatewayID': gatewayID,
+        'senderColor': senderColor,
+        'senderName': senderName,
+        'batteryLevel': batteryLevel,
+        'senderID': senderID,
+        'gatewayMAC': gatewayMAC,
+        'gatewayName': gatewayName,
+  };
+}

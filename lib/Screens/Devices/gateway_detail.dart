@@ -217,8 +217,8 @@ class _GatewayDetailsState extends State<GatewayDetails> {
             id: doc.id,
             name: doc['name'],
             batteryLevel: doc['batteryLevel'],
-            latitude: doc['Location']["Latitude"],
-            longitude: doc['Location']["Longitude"],
+            latitude: (doc['Location']["Latitude"]).toString(),
+            longitude: (doc['Location']["Longitude"]).toString(),
             color: doc['color'],
           ));
         });
