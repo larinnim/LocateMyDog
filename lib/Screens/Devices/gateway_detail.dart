@@ -206,6 +206,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
   void _getDevices() async {
     senderCollection
         .where('gatewayID', isEqualTo: widget.gatewayMAC)
+        .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
         .get()
         .then((QuerySnapshot querySnapshot) {
       querySnapshot.docs.forEach((doc) {
