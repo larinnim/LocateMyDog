@@ -56,7 +56,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
   @override
   void initState() {
     super.initState();
-    _getDevices();
+    // _getDevices();
   }
 
   void updateName() async {
@@ -203,6 +203,53 @@ class _GatewayDetailsState extends State<GatewayDetails> {
     if (!mounted) return;
   }
 
+  Stream<QuerySnapshot> _getDataStreamSnapshots() async* {
+    senderCollection
+        .where('gatewayID', isEqualTo: widget.gatewayMAC)
+        .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
+        .snapshots()
+        .listen(
+      (querySnapshot) {
+        querySnapshot.docChanges.forEach((docChange) => {
+              // print(docChange.doc.data()),
+              // Color devColor = AuxFunc().getColor(docChange['color']),
+              _availableColors.removeWhere((colorAvailable) =>
+                  AuxFunc().getColor(docChange.doc['color']) == colorAvailable),
+              // setState(() {
+                _devices.add(Device(
+                    id: docChange.doc.id,
+                    name: docChange.doc['name'],
+                    batteryLevel: docChange.doc['batteryLevel'],
+                    latitude:
+                        (docChange.doc['Location']["Latitude"]).toString(),
+                    longitude:
+                        (docChange.doc['Location']["Longitude"]).toString(),
+                    color: docChange.doc['color'],
+                    enabled: docChange.doc['enabled']))
+              // })
+            });
+      },
+    );
+
+    //     .then((QuerySnapshot querySnapshot) {
+    //   querySnapshot.docs.forEach((doc) {
+    //     Color devColor = AuxFunc().getColor(doc['color']);
+    //     _availableColors
+    //         .removeWhere((colorAvailable) => devColor == colorAvailable);
+    //     // setState(() {
+    //       _devices.add(Device(
+    //           id: doc.id,
+    //           name: doc['name'],
+    //           batteryLevel: doc['batteryLevel'],
+    //           latitude: (doc['Location']["Latitude"]).toString(),
+    //           longitude: (doc['Location']["Longitude"]).toString(),
+    //           color: doc['color'],
+    //           enabled: doc['enabled']));
+    //     // });
+    //   });
+    // });
+  }
+
   void _getDevices() async {
     senderCollection
         .where('gatewayID', isEqualTo: widget.gatewayMAC)
@@ -210,21 +257,26 @@ class _GatewayDetailsState extends State<GatewayDetails> {
         .get()
         .then((QuerySnapshot querySnapshot) {
       querySnapshot.docs.forEach((doc) {
-        Color devColor = AuxFunc().getColor(doc['color']);
+        if(_devices.length == 0){
+Color devColor = AuxFunc().getColor(doc['color']);
         _availableColors
             .removeWhere((colorAvailable) => devColor == colorAvailable);
-        setState(() {
-          _devices.add(Device(
+        // setState(() {
+        _devices.add(Device(
             id: doc.id,
             name: doc['name'],
             batteryLevel: doc['batteryLevel'],
             latitude: (doc['Location']["Latitude"]).toString(),
             longitude: (doc['Location']["Longitude"]).toString(),
             color: doc['color'],
-          ));
-        });
+            enabled: doc['enabled']));
+            }}
+        );
       });
-    });
+        // }
+        
+    // });
+    // return _devices;
   }
 
   @override
@@ -254,224 +306,235 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                 if (docsnapshot.connectionState == ConnectionState.waiting) {
                   return Loading();
                 }
-                return Center(
-                  child: _isScanning
-                      ? Container(
-                          color: Colors.red[300],
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SpinKitFoldingCube(
-                                  color: Colors.white,
-                                  size: 50.0,
-                                ),
-                                SizedBox(
-                                  height: 30.0,
-                                ),
-                                Text(
-                                  'Scanning...',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 28.0),
-                                )
-                              ]),
-                        )
-                      : Column(
-                          children: [
-                            SizedBox(
-                              height: 30.0,
-                            ),
-                            Icon(
-                              Icons.router_outlined,
-                              color: Colors.green,
-                              size: 100.0,
-                            ),
-                            SizedBox(
-                              height: 10.0,
-                            ),
-                            ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all(Colors.black),
-                                  shape: MaterialStateProperty.all<
-                                          RoundedRectangleBorder>(
-                                      RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(18.0),
-                                  ))),
-                              child: Text(
-                                'Rename'.toUpperCase(),
-                                style: TextStyle(
-                                    fontSize: 16, color: Colors.white),
-                              ),
-                              onPressed: () {
-                                _displayTextInputDialog(context);
-                              },
-                            ),
-                            SizedBox(
-                              height: 30.0,
-                            ),
-                            Expanded(
-                              child: ListView(
-                                children: <Widget>[
-                                  ListTile(
-                                    tileColor: Colors.white70,
-                                    leading: Icon(LineAwesomeIcons.wifi),
-                                    title: Text('Wifi Connection Status'),
-                                    trailing: ElevatedButton(
-                                      style: ButtonStyle(
-                                          backgroundColor:
-                                              MaterialStateProperty.all(
-                                                  Colors.red),
-                                          shape: MaterialStateProperty.all<
-                                                  RoundedRectangleBorder>(
-                                              RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(18.0),
-                                          ))),
-                                      child: Text(
-                                        'connect'.toUpperCase(),
-                                        style: TextStyle(fontSize: 16),
+                      return Center(
+                        child: _isScanning
+                            ? Container(
+                                color: Colors.red[300],
+                                child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SpinKitFoldingCube(
+                                        color: Colors.white,
+                                        size: 50.0,
                                       ),
-                                      onPressed: () {},
-                                    ),
+                                      SizedBox(
+                                        height: 30.0,
+                                      ),
+                                      Text(
+                                        'Scanning...',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 28.0),
+                                      )
+                                    ]),
+                              )
+                            : Column(
+                                children: [
+                                  SizedBox(
+                                    height: 30.0,
                                   ),
-                                  ListTile(
-                                      tileColor: Colors.white70,
-                                      leading: Icon(LineAwesomeIcons.bluetooth),
-                                      title:
-                                          Text('Bluetooth Connection Status'),
-                                      trailing: ElevatedButton(
-                                        style: ButtonStyle(
-                                            backgroundColor: bleProvider
-                                                            .deviceList
-                                                            .length ==
-                                                        0 &&
-                                                    !_isScanning
-                                                ? MaterialStateProperty.all(
-                                                    Colors.red[300])
-                                                : bleProvider.deviceList.length >
-                                                            0 &&
-                                                        bleProvider
-                                                                .connectedDevices
-                                                                .length ==
-                                                            0
-                                                    ? MaterialStateProperty.all(
-                                                        Colors.green[300])
-                                                    : MaterialStateProperty.all(
-                                                        Colors.red),
-                                            shape: MaterialStateProperty.all<
-                                                    RoundedRectangleBorder>(
-                                                RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(18.0),
-                                            ))),
-                                        child: Text(
-                                          bleProvider.deviceList.length == 0 &&
-                                                  !_isScanning
-                                              ? 'scan'.tr.toUpperCase()
-                                              : bleProvider.deviceList.length >
-                                                          0 &&
-                                                      bleProvider
-                                                              .connectedDevices
-                                                              .length ==
-                                                          0
-                                                  ? 'connect'.tr.toUpperCase()
-                                                  : 'disconnect'
-                                                      .tr
-                                                      .toUpperCase(),
-                                          style: TextStyle(fontSize: 16),
-                                        ),
-                                        onPressed: () {
-                                          bleProvider.deviceList.length == 0 &&
-                                                  !_isScanning
-                                              ? scan()
-                                              : bleProvider.deviceList.length >
-                                                          0 &&
-                                                      bleProvider
-                                                              .connectedDevices
-                                                              .length ==
-                                                          0
-                                                  ? connectDev(bleProvider
-                                                      .deviceList[0]
-                                                      .device) //Connects to only one gateway
-                                                  // ignore: unnecessary_statements
-                                                  : bleProvider
-                                                      .deviceList[0].device
-                                                      .disconnect()
-                                                      .then((status) async => {
-                                                            context
-                                                                .read<
-                                                                    BleModel>()
-                                                                .removeConnectedDevice(
-                                                                    bleProvider
-                                                                        .deviceList[
-                                                                            0]
-                                                                        .device),
-                                                          });
-                                        },
-                                      )),
-                                  ListTile(
-                                    tileColor: Colors.white70,
-                                    leading: docsnapshot.data!['batteryLevel'] <
-                                            20
-                                        ? Icon(
-                                            LineAwesomeIcons.battery_1_4_full)
-                                        : 20 <
-                                                    docsnapshot.data![
-                                                        'batteryLevel'] &&
-                                                docsnapshot
-                                                        .data!['batteryLevel'] <
-                                                    50
-                                            ? Icon(LineAwesomeIcons
-                                                .battery_1_2_full)
-                                            : 50 <
-                                                        docsnapshot.data![
-                                                            'batteryLevel'] &&
-                                                    docsnapshot.data![
-                                                            'batteryLevel'] <
-                                                        80
-                                                ? Icon(LineAwesomeIcons
-                                                    .battery_3_4_full)
-                                                : docsnapshot.data![
-                                                            'batteryLevel'] >
-                                                        80
-                                                    ? Icon(LineAwesomeIcons
-                                                        .battery_full)
-                                                    : Icon(LineAwesomeIcons
-                                                        .battery_empty),
-                                    title: Text('Baterry Level'),
-                                    trailing: Text(docsnapshot
-                                            .data!['batteryLevel']
-                                            .toString() +
-                                        '%'),
+                                  Icon(
+                                    Icons.router_outlined,
+                                    color: Colors.green,
+                                    size: 100.0,
+                                  ),
+                                  SizedBox(
+                                    height: 10.0,
+                                  ),
+                                  ElevatedButton(
+                                    style: ButtonStyle(
+                                        backgroundColor:
+                                            MaterialStateProperty.all(
+                                                Colors.black),
+                                        shape: MaterialStateProperty.all<
+                                                RoundedRectangleBorder>(
+                                            RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(18.0),
+                                        ))),
+                                    child: Text(
+                                      'Rename'.toUpperCase(),
+                                      style: TextStyle(
+                                          fontSize: 16, color: Colors.white),
+                                    ),
+                                    onPressed: () {
+                                      _displayTextInputDialog(context);
+                                    },
                                   ),
                                   SizedBox(
                                     height: 30.0,
                                   ),
-                                  ListTile(
-                                    tileColor: Colors.white70,
-                                    title: Text('Manufacturer'),
-                                    trailing: Text('Majel Tecnologies'),
-                                  ),
-                                  ListTile(
-                                    tileColor: Colors.white70,
-                                    title: Text('Model'),
-                                    trailing:
-                                        Text(docsnapshot.data!['version']),
-                                  ),
-                                  ListTile(
-                                    tileColor: Colors.white70,
-                                    title: Text('Serial Number'),
-                                    trailing:
-                                        Text(docsnapshot.data!['gatewayMAC']),
+                                  Expanded(
+                                    child: ListView(
+                                      children: <Widget>[
+                                        ListTile(
+                                          tileColor: Colors.white70,
+                                          leading: Icon(LineAwesomeIcons.wifi),
+                                          title: Text('Wifi Connection Status'),
+                                          trailing: ElevatedButton(
+                                            style: ButtonStyle(
+                                                backgroundColor:
+                                                    MaterialStateProperty.all(
+                                                        Colors.red),
+                                                shape: MaterialStateProperty.all<
+                                                        RoundedRectangleBorder>(
+                                                    RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          18.0),
+                                                ))),
+                                            child: Text(
+                                              'connect'.toUpperCase(),
+                                              style: TextStyle(fontSize: 16),
+                                            ),
+                                            onPressed: () {},
+                                          ),
+                                        ),
+                                        ListTile(
+                                            tileColor: Colors.white70,
+                                            leading: Icon(
+                                                LineAwesomeIcons.bluetooth),
+                                            title: Text(
+                                                'Bluetooth Connection Status'),
+                                            trailing: ElevatedButton(
+                                              style: ButtonStyle(
+                                                  backgroundColor: bleProvider
+                                                                  .deviceList
+                                                                  .length ==
+                                                              0 &&
+                                                          !_isScanning
+                                                      ? MaterialStateProperty.all(
+                                                          Colors.red[300])
+                                                      : bleProvider.deviceList.length > 0 &&
+                                                              bleProvider
+                                                                      .connectedDevices
+                                                                      .length ==
+                                                                  0
+                                                          ? MaterialStateProperty.all(
+                                                              Colors.green[300])
+                                                          : MaterialStateProperty.all(
+                                                              Colors.red),
+                                                  shape: MaterialStateProperty
+                                                      .all<RoundedRectangleBorder>(
+                                                          RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            18.0),
+                                                  ))),
+                                              child: Text(
+                                                bleProvider.deviceList.length ==
+                                                            0 &&
+                                                        !_isScanning
+                                                    ? 'scan'.tr.toUpperCase()
+                                                    : bleProvider.deviceList
+                                                                    .length >
+                                                                0 &&
+                                                            bleProvider
+                                                                    .connectedDevices
+                                                                    .length ==
+                                                                0
+                                                        ? 'connect'
+                                                            .tr
+                                                            .toUpperCase()
+                                                        : 'disconnect'
+                                                            .tr
+                                                            .toUpperCase(),
+                                                style: TextStyle(fontSize: 16),
+                                              ),
+                                              onPressed: () {
+                                                bleProvider.deviceList.length ==
+                                                            0 &&
+                                                        !_isScanning
+                                                    ? scan()
+                                                    : bleProvider.deviceList
+                                                                    .length >
+                                                                0 &&
+                                                            bleProvider
+                                                                    .connectedDevices
+                                                                    .length ==
+                                                                0
+                                                        ? connectDev(bleProvider
+                                                            .deviceList[0]
+                                                            .device) //Connects to only one gateway
+                                                        // ignore: unnecessary_statements
+                                                        : bleProvider
+                                                            .deviceList[0]
+                                                            .device
+                                                            .disconnect()
+                                                            .then(
+                                                                (status) async =>
+                                                                    {
+                                                                      context
+                                                                          .read<
+                                                                              BleModel>()
+                                                                          .removeConnectedDevice(bleProvider
+                                                                              .deviceList[0]
+                                                                              .device),
+                                                                    });
+                                              },
+                                            )),
+                                        ListTile(
+                                          tileColor: Colors.white70,
+                                          leading: docsnapshot.data!['batteryLevel'] <
+                                                  20
+                                              ? Icon(LineAwesomeIcons
+                                                  .battery_1_4_full)
+                                              : 20 < docsnapshot.data!['batteryLevel'] &&
+                                                      docsnapshot.data![
+                                                              'batteryLevel'] <
+                                                          50
+                                                  ? Icon(LineAwesomeIcons
+                                                      .battery_1_2_full)
+                                                  : 50 <
+                                                              docsnapshot.data![
+                                                                  'batteryLevel'] &&
+                                                          docsnapshot.data![
+                                                                  'batteryLevel'] <
+                                                              80
+                                                      ? Icon(LineAwesomeIcons
+                                                          .battery_3_4_full)
+                                                      : docsnapshot.data![
+                                                                  'batteryLevel'] >
+                                                              80
+                                                          ? Icon(
+                                                              LineAwesomeIcons
+                                                                  .battery_full)
+                                                          : Icon(LineAwesomeIcons
+                                                              .battery_empty),
+                                          title: Text('Baterry Level'),
+                                          trailing: Text(docsnapshot
+                                                  .data!['batteryLevel']
+                                                  .toString() +
+                                              '%'),
+                                        ),
+                                        SizedBox(
+                                          height: 30.0,
+                                        ),
+                                        ListTile(
+                                          tileColor: Colors.white70,
+                                          title: Text('Manufacturer'),
+                                          trailing: Text('Majel Tecnologies'),
+                                        ),
+                                        ListTile(
+                                          tileColor: Colors.white70,
+                                          title: Text('Model'),
+                                          trailing: Text(
+                                              docsnapshot.data!['version']),
+                                        ),
+                                        ListTile(
+                                          tileColor: Colors.white70,
+                                          title: Text('Serial Number'),
+                                          trailing: Text(
+                                              docsnapshot.data!['gatewayMAC']),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ],
                               ),
-                            ),
-                          ],
-                        ),
-                );
+                      );
+          
               }),
           endDrawer: SafeArea(
               child: Drawer(
@@ -495,45 +558,67 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                     Navigator.pop(context);
                   },
                 ),
-                new ListView.builder(
-                    itemCount: _devices.length,
-                    // padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    scrollDirection: Axis.vertical,
-                    itemBuilder: (context, index) {
-                      // children:
-                      // <Widget>[
-                      return new Column(
-                        children: <Widget>[
-                          new ListTile(
-                            title: Text(_devices[index].name!.toUpperCase(),
-                                style: TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.w300)),
-                            leading: Padding(
-                              // change left :
-                              padding: const EdgeInsets.only(left: 60),
-                              child: Icon(
-                                LineAwesomeIcons.mobile_phone,
+                 StreamBuilder<QuerySnapshot>(
+                    stream: _getDataStreamSnapshots(),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<QuerySnapshot> querysnapshot) {
+                      if (querysnapshot.hasError) {
+                        return Text('Something went wrong');
+                      }
+
+                      if (querysnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return Loading();
+                      }
+                      return new  ListView.builder(
+                      itemCount: _devices.length,
+                      // padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      scrollDirection: Axis.vertical,
+                      itemBuilder: (context, index) {
+                        // children:
+                        // <Widget>[
+                        return new Column(
+                          children: <Widget>[
+                            new ListTile(
+                              title: _devices[index].enabled == true
+                                  ? Text(_devices[index].name!.toUpperCase(),
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w300))
+                                  : Text(
+                                      _devices[index].name!.toUpperCase() +
+                                          ' - (disabled)',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w100),
+                                    ),
+                              leading: Padding(
+                                // change left :
+                                padding: const EdgeInsets.only(left: 60),
+                                child: Icon(
+                                  LineAwesomeIcons.mobile_phone,
+                                ),
                               ),
+                              onTap: () {
+                                Navigator.pushReplacement(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return Material(
+                                      child: DeviceDetail(
+                                    title: _devices[index].name,
+                                    color:
+                                        AuxFunc().getColor(_devices[index].color),
+                                    battery: _devices[index].batteryLevel,
+                                    senderID: _devices[index].id,
+                                    availableColors: _availableColors,
+                                  ));
+                                }));
+                              },
                             ),
-                            onTap: () {
-                              Navigator.pushReplacement(context,
-                                  MaterialPageRoute(builder: (context) {
-                                return Material(
-                                    child: DeviceDetail(
-                                  title: _devices[index].name,
-                                  color:
-                                      AuxFunc().getColor(_devices[index].color),
-                                  battery: _devices[index].batteryLevel,
-                                  senderID: _devices[index].id,
-                                  availableColors: _availableColors,
-                                ));
-                              }));
-                            },
-                          ),
-                        ],
-                      );
-                    }),
+                          ],
+                        );
+                      });
+                        }),
                 FutureBuilder(
                     initialData: false,
                     future: mounted
@@ -582,30 +667,39 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                               if (_devices.length < 4) {
                                 scanQR(); //Maximum 4 devices
                               } else {
-                                Get.dialog(SimpleDialog(
-                                  title: Text(
-                                    "Error",
-                                    textAlign: TextAlign.center,
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  titlePadding: EdgeInsets.symmetric(
-                                    horizontal: 30,
-                                    vertical: 20,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          new BorderRadius.circular(10.0)),
-                                  children: [
-                                    Text("Maximum number of devices paired",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(fontSize: 20.0)),
-                                  ],
-                                  contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 40,
-                                    vertical: 20,
-                                  ),
-                                ));
+                                showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text(
+                                            'You have reach the maximum number of trackers that can be paired. Please choose one tracker that you would like to replace.'),
+                                        content: setupAlertDialoadContainer(),
+                                      );
+                                    });
+                                // Get.dialog(SimpleDialog(
+                                //   title: Text(
+                                //     "Whoops",
+                                //     textAlign: TextAlign.center,
+                                //     style:
+                                //         TextStyle(fontWeight: FontWeight.bold),
+                                //   ),
+                                //   titlePadding: EdgeInsets.symmetric(
+                                //     horizontal: 30,
+                                //     vertical: 20,
+                                //   ),
+                                //   shape: RoundedRectangleBorder(
+                                //       borderRadius:
+                                //           new BorderRadius.circular(10.0)),
+                                //   children: [
+                                //     Text("You have reach the maximum number of trackers that can be paired. Please choose one tracker that you would like to replace.",
+                                //         textAlign: TextAlign.center,
+                                //         style: TextStyle(fontSize: 20.0)),
+                                //   ],
+                                //   contentPadding: EdgeInsets.symmetric(
+                                //     horizontal: 40,
+                                //     vertical: 20,
+                                //   ),
+                                // ));
                               }
                             }
                           },
@@ -618,6 +712,42 @@ class _GatewayDetailsState extends State<GatewayDetails> {
             ),
           )));
     });
+  }
+
+  Widget setupAlertDialoadContainer() {
+    return Container(
+      height: 300.0, // Change as per your requirement
+      width: 300.0, // Change as per your requirement
+      child: ListView.separated(
+        shrinkWrap: true,
+        itemCount: _devices.length,
+        separatorBuilder: (context, index) {
+          return Divider();
+        },
+        itemBuilder: (BuildContext context, int index) {
+          return ListTile(
+            leading: Icon(LineAwesomeIcons.mobile_phone),
+            // leading: CircleAvatar(
+            //     backgroundImage: NetworkImage(movie.imageUrl),
+            //   ),
+            title: Text(_devices[index].name!.toUpperCase(),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300)),
+            onTap: () {
+              MaterialPageRoute(builder: (context) {
+                return Material(
+                    child: DeviceDetail(
+                  title: _devices[index].name,
+                  color: AuxFunc().getColor(_devices[index].color),
+                  battery: _devices[index].batteryLevel,
+                  senderID: _devices[index].id,
+                  availableColors: _availableColors,
+                ));
+              });
+            },
+          );
+        },
+      ),
+    );
   }
 
   Future<void> _displayTextInputDialog(BuildContext context) async {
