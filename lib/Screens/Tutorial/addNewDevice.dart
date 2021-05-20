@@ -70,7 +70,7 @@ class AddNewDevice extends StatelessWidget {
             'enabled': true,
             'gatewayID': gatewayID,
             'escaped': false,
-            'version': 1.0 // Change this version to come from QR Code and gateway later on
+            'version': '1.0' // Change this version to come from QR Code and gateway later on
           }, SetOptions(merge: true)).then((value) {
             Get.back();
           }).catchError((error) => print("Failed to add user: $error"));

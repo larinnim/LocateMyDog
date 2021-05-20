@@ -6,8 +6,8 @@ class Device {
   final String? longitude;
   final String? color;
   final String? senderNumber;
-  final bool? enabled;
-
+  final String? mac;
+  bool? enabled;
   Device(
       {this.id,
       this.name,
@@ -16,5 +16,6 @@ class Device {
       this.longitude,
       this.color,
       this.senderNumber,
+      this.mac,
       this.enabled});
 }
