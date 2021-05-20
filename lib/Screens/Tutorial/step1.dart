@@ -1,17 +1,12 @@
 import 'dart:async';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:app_settings/app_settings.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/permissionChangeBuilder.dart';
 import 'package:flutter_maps/Screens/Tutorial/step2.dart';
-import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
 
-import '../loading.dart';
-import '../../Services/appLifecycleObserver.dart';
 
 class Step1 extends StatefulWidget {
   @override

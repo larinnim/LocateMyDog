@@ -1,20 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Providers/SocialSignin.dart';
-import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
-import 'package:flutter_maps/Screens/Authenticate/background_painter.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
-import 'package:flutter_maps/Screens/Profile/profile.dart';
-import 'package:flutter_maps/Screens/loading.dart';
-import 'package:flutter_maps/Services/user_controller.dart';
-import 'package:flutter_maps/locator.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:http/http.dart' as http;
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 
 class HomeSignInWidget extends StatelessWidget {
@@ -29,15 +18,7 @@ class HomeSignInWidget extends StatelessWidget {
   //   ],
   // );
 
-  void _signInFacebook() async {
-    await locator
-        .get<UserController>()
-        .signInWithFacebook()
-        .catchError((error, stackTrace) async {
-      print("outer: $error");
-    });
-  }
-
+ 
   // void _signInGoogle() async {
 
   //   await locator.get<UserController>().signInWithGoogle().then((value) {

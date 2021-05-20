@@ -8,9 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Models/user.dart';
-import 'package:flutter_maps/Screens/Fence/Geofence.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
-import 'package:flutter_maps/Screens/Tutorial/step3.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -51,6 +49,7 @@ class _Step5State extends State<Step5> {
   CollectionReference userInstance =
       FirebaseFirestore.instance.collection('users');
   localization.Location _locationTracker = localization.Location();
+  // ignore: cancel_subscriptions
   StreamSubscription? _locationSubscription;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;

@@ -1,12 +1,9 @@
 import 'dart:ui';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
-import 'package:flutter_maps/Screens/Tutorial/step1.dart';
-import 'package:flutter_maps/Screens/Tutorial/step4.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/push_notification.dart';
 

@@ -5,7 +5,6 @@ import 'package:flutter_maps/Firebase_Repository/auth_repo.dart';
 import 'package:flutter_maps/Firebase_Repository/storage_repo.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/locator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 
 class UserController {

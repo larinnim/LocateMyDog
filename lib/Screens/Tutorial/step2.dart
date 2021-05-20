@@ -1,21 +1,14 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:app_settings/app_settings.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
-import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Tutorial/step3.dart';
-import 'package:flutter_maps/Screens/Tutorial/step4.dart';
-import 'package:flutter_maps/Screens/Tutorial/step5.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/permissionChangeBuilder.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
-import '../../Services/bluetooth_conect.dart';
 
 class Step2 extends StatefulWidget {
   @override

@@ -4,13 +4,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_maps/Screens/Devices/device_detail.dart';
 import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
 import 'package:flutter_maps/Screens/Devices/gateway_detail.dart';
-import 'package:flutter_maps/Screens/Profile/MapLocation.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
@@ -116,16 +114,16 @@ class PushNotificationsManager {
         sound: true,
       );
 
-      NotificationSettings settings =
-          await _firebaseMessaging.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
+      // NotificationSettings settings =
+      //     await _firebaseMessaging.requestPermission(
+      //   alert: true,
+      //   announcement: false,
+      //   badge: true,
+      //   carPlay: false,
+      //   criticalAlert: false,
+      //   provisional: false,
+      //   sound: true,
+      // );
       await Permission.notification.request().then((PermissionStatus status) {
         if (status != PermissionStatus.granted) {
           DatabaseService(uid: _firebaseAuth.currentUser!.uid)
@@ -189,8 +187,10 @@ class PushNotificationsManager {
           .then((message) async {
 // If the message also contains a data property with a "type" of "chat",
         // navigate to a chat screen
+        message ?? print('Push message is null');
         String messageid = await getFcmId(message!.messageId!);
-        if (message != null && messageid.isNotEmpty) {
+        // if (message != null && messageid.isNotEmpty) {
+        if (messageid.isNotEmpty) {
           setFcmId(message.messageId!);
           if (message.data['type'] == 'map') {
             // Get.to(MapLocation());
@@ -258,7 +258,7 @@ class PushNotificationsManager {
           print(
               'Message also contained a notification: ${message.notification}');
           RemoteNotification notification = message.notification!;
-          AndroidNotification android = message.notification!.android!;
+          // AndroidNotification android = message.notification!.android!;
           // if (notification != null && android != null) {
           flutterLocalNotificationsPlugin.show(
               notification.hashCode,
@@ -313,11 +313,11 @@ class PushNotificationsManager {
             Get.offAllNamed('/blueMap');
             // Navigator.pushNamed(context, '/chat',
             //   arguments: ChatArguments(message));
-          }else if (deviceDetails.type == 'gatewayBatteryLevel') {
+          } else if (deviceDetails.type == 'gatewayBatteryLevel') {
             Get.to(GatewayDetails(
                 title: deviceDetails.gatewayName,
                 gatewayMAC: deviceDetails.gatewayMAC));
-          }  else if (deviceDetails.type == 'trackerBatteryLevel') {
+          } else if (deviceDetails.type == 'trackerBatteryLevel') {
             String gatewayMAC = deviceDetails.gatewayID;
             await getAvailableColors(
                     AuxFunc().getColor(deviceDetails.senderColor), gatewayMAC)
@@ -438,5 +438,5 @@ class NotificationReceivedTrackerDeviceDetails {
         'senderID': senderID,
         'gatewayMAC': gatewayMAC,
         'gatewayName': gatewayName,
-  };
+      };
 }

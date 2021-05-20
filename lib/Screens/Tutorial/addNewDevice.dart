@@ -4,8 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart'
     as barcode;
 import 'package:flutter_maps/Screens/Tutorial/step3.dart';
@@ -40,9 +38,9 @@ class AddNewDevice extends StatelessWidget {
       print('Going to check DOC: ' + 'SD-' + barcodeScanRes);
       if (barcodeScanRes != '-1') {
         final checkIfAlredySetup = await senderCollection
-          .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
-          .where('senderMac', isEqualTo: barcodeScanRes)
-          .get();
+            .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
+            .where('senderMac', isEqualTo: barcodeScanRes)
+            .get();
 
         if (checkIfAlredySetup.docs.length.isGreaterThan(0)) {
           Get.dialog(AlertDialog(
@@ -70,10 +68,13 @@ class AddNewDevice extends StatelessWidget {
             'enabled': true,
             'gatewayID': gatewayID,
             'escaped': false,
-            'version': '1.0' // Change this version to come from QR Code and gateway later on
+            'version':
+                '1.0' // Change this version to come from QR Code and gateway later on
           }, SetOptions(merge: true)).then((value) {
             Get.back();
-          }).catchError((error) => print("Failed to add user: $error"));
+          }).catchError((error) {
+            print("Failed to add user: $error");
+          });
           print(barcodeScanRes);
           await DatabaseService(uid: _firebaseAuth.currentUser!.uid)
               .addSenderToGateway(barcodeScanRes, gatewayID);

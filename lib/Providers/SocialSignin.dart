@@ -2,14 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
-import 'package:flutter_maps/Screens/Authenticate/sign_in.dart';
-import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 class SocialSignInSingleton {
   SocialSignInSingleton._privateConstructor();

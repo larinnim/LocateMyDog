@@ -2,28 +2,12 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-// import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
-import 'package:flutter_maps/Models/user.dart';
-import 'package:flutter_maps/Screens/Devices/device.dart';
-import 'package:flutter_maps/Screens/Devices/device_detail.dart';
 import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
-import 'package:flutter_maps/Screens/Home/wrapper.dart';
-import 'package:flutter_maps/Screens/Profile/profile.dart';
-import 'package:flutter_maps/Services/database.dart';
-import 'package:flutter_maps/Services/user_controller.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:get/get.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../loading.dart';
 import 'addNewDevice.dart';
 import 'step4.dart';
-import '../../locator.dart';
-
-import 'package:flutter_maps/Services/database.dart';
-
 class Step3 extends StatefulWidget {
   Step3(this.gatewayID);
 

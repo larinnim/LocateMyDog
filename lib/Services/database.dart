@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -7,8 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 class DatabaseService {
   final String? uid;
   DatabaseService({this.uid});
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
-
+  
   // collection reference
   final CollectionReference locateCollection =
       FirebaseFirestore.instance.collection('locateDog');

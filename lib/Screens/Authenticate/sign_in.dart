@@ -7,9 +7,6 @@ import 'package:flutter_maps/Screens/Authenticate/home_sigin_widget.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:flutter/gestures.dart';
-
-import "dart:ui" as ui;
-
 import 'package:google_fonts/google_fonts.dart';
 
 class SignIn extends StatefulWidget {
@@ -170,19 +167,21 @@ class _State extends State<SignIn> {
                                                         .size
                                                         .width *
                                                     0.20,
-                                                child: RaisedButton(
+                                                child: ElevatedButton(
+                                                  style:ButtonStyle(
+                                                  backgroundColor:
+                                                      MaterialStateProperty.all(Color(0xFF121A21)),
+                                                  shape:
+                                                      MaterialStateProperty.all<RoundedRectangleBorder>(
+                                                          RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(30.0),
+                                                  ))),
                                                   child: new Text(
                                                     'Close',
                                                     style: TextStyle(
                                                         color: Colors.white),
                                                   ),
-                                                  color: Color(0xFF121A21),
-                                                  shape:
-                                                      new RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        new BorderRadius
-                                                            .circular(30.0),
-                                                  ),
+                                            
                                                   onPressed: () {
                                                     Navigator.of(context).pop();
                                                   },
@@ -251,18 +250,19 @@ class _State extends State<SignIn> {
                                                         .size
                                                         .width *
                                                     0.20,
-                                                child: RaisedButton(
+                                                child: ElevatedButton(
+                                                  style:ButtonStyle(
+                                                  backgroundColor:
+                                                      MaterialStateProperty.all(Color(0xFF121A21)),
+                                                  shape:
+                                                      MaterialStateProperty.all<RoundedRectangleBorder>(
+                                                          RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(30.0),
+                                                  ))),
                                                   child: new Text(
                                                     'Close',
                                                     style: TextStyle(
                                                         color: Colors.white),
-                                                  ),
-                                                  color: Color(0xFF121A21),
-                                                  shape:
-                                                      new RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        new BorderRadius
-                                                            .circular(30.0),
                                                   ),
                                                   onPressed: () {
                                                     Navigator.of(context).pop();

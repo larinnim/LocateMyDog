@@ -1,12 +1,9 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
@@ -15,8 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -32,6 +27,7 @@ class Geofence extends StatefulWidget {
 }
 
 class _GeofenceWidgetState extends State<Geofence> {
+  // ignore: cancel_subscriptions
   StreamSubscription? _locationSubscription;
   localization.Location _locationTracker = localization.Location();
   Circle? circle;
@@ -54,7 +50,6 @@ class _GeofenceWidgetState extends State<Geofence> {
   CollectionReference gatewayConfigCollection =
       FirebaseFirestore.instance.collection('gateway-config');
 
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   bool _isPolygonFence = false;
   bool _isDoNotEnterFence = false;

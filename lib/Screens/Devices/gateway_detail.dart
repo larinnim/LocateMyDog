@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -157,7 +155,9 @@ class _GatewayDetailsState extends State<GatewayDetails> {
         }
         print("Connected");
         setState(() {});
-      }).catchError((e) => print("Connection Error $e"));
+      }).catchError((e) {
+        print("Connection Error $e");
+      });
     }
   }
 
@@ -184,14 +184,14 @@ class _GatewayDetailsState extends State<GatewayDetails> {
         }, SetOptions(merge: true)).then((value) {
           setState(() {
             _devices.add(Device(
-              id: 'SD-' + barcodeScanRes,
-              name: 'SD-' + barcodeScanRes,
-              mac: barcodeScanRes,
-              batteryLevel: 0,
-              latitude: null,
-              longitude: null,
-              color: AuxFunc().colorNamefromColor(_availableColors[0]),
-              enabled: true));
+                id: 'SD-' + barcodeScanRes,
+                name: 'SD-' + barcodeScanRes,
+                mac: barcodeScanRes,
+                batteryLevel: 0,
+                latitude: null,
+                longitude: null,
+                color: AuxFunc().colorNamefromColor(_availableColors[0]),
+                enabled: true));
             // _devices.add(Device(
             //   id: 'SD-' + barcodeScanRes,
             //   name: 'SD-' + barcodeScanRes,
@@ -202,7 +202,9 @@ class _GatewayDetailsState extends State<GatewayDetails> {
             // ));
             _availableColors.removeAt(0);
           });
-        }).catchError((error) => print("Failed to add user: $error"));
+        }).catchError((error) {
+          print("Failed to add user: $error");
+        });
         print(barcodeScanRes);
       }
     } on PlatformException {
@@ -213,52 +215,6 @@ class _GatewayDetailsState extends State<GatewayDetails> {
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
     if (!mounted) return;
-  }
-
-  Stream<QuerySnapshot> _getDataStreamSnapshots() async* {
-    senderCollection
-        .where('gatewayID', isEqualTo: widget.gatewayMAC)
-        .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
-        .snapshots()
-        .listen(
-      (querySnapshot) {
-        querySnapshot.docChanges.forEach((docChange) => {
-              // print(docChange.doc.data()),
-              // Color devColor = AuxFunc().getColor(docChange['color']),
-              _availableColors.removeWhere((colorAvailable) =>
-                  AuxFunc().getColor(docChange.doc['color']) == colorAvailable),
-              // setState(() {
-              _devices.add(Device(
-                  id: docChange.doc.id,
-                  name: docChange.doc['name'],
-                  batteryLevel: docChange.doc['batteryLevel'],
-                  latitude: (docChange.doc['Location']["Latitude"]).toString(),
-                  longitude:
-                      (docChange.doc['Location']["Longitude"]).toString(),
-                  color: docChange.doc['color'],
-                  enabled: docChange.doc['enabled']))
-              // })
-            });
-      },
-    );
-
-    //     .then((QuerySnapshot querySnapshot) {
-    //   querySnapshot.docs.forEach((doc) {
-    //     Color devColor = AuxFunc().getColor(doc['color']);
-    //     _availableColors
-    //         .removeWhere((colorAvailable) => devColor == colorAvailable);
-    //     // setState(() {
-    //       _devices.add(Device(
-    //           id: doc.id,
-    //           name: doc['name'],
-    //           batteryLevel: doc['batteryLevel'],
-    //           latitude: (doc['Location']["Latitude"]).toString(),
-    //           longitude: (doc['Location']["Longitude"]).toString(),
-    //           color: doc['color'],
-    //           enabled: doc['enabled']));
-    //     // });
-    //   });
-    // });
   }
 
   void _getDevices() async {
@@ -761,14 +717,17 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                         _devices[index].enabled == true ? false : true;
                     if (_devices[index].enabled == false) {
                       _devicesDisabled.add(_devices[index]);
-                    }else{
-                      _devicesDisabled.removeWhere((element) => element.id == _devices[index].id);
+                    } else {
+                      _devicesDisabled.removeWhere(
+                          (element) => element.id == _devices[index].id);
                     }
                     _availableColors
                         .add(AuxFunc().getColor(_devices[index].color));
                   });
                   Navigator.pop(context);
-                }).catchError((error) => print("Failed to add user: $error"));
+                }).catchError((error) {
+                  print("Failed to add user: $error");
+                });
               });
         },
       ),

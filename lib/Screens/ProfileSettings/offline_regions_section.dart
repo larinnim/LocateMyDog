@@ -4,6 +4,7 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 import './offline_regions.dart';
 
 class OfflineMapRegion {
+  // ignore: non_constant_identifier_names
   final LatLng latitude_longitude;
 
   OfflineMapRegion(this.latitude_longitude);
@@ -22,8 +23,10 @@ class OfflineRegionMapSelection extends StatefulWidget {
 
 class _OfflineRegionMapSelectionState extends State<OfflineRegionMapSelection> {
   late MapboxMapController mapController;
+  // ignore: unused_field
   int _numberOfRegions = 0;
   LatLngBounds? mapBounds;
+  // ignore: unused_field
   CameraPosition? _position;
 
   @override
@@ -134,21 +137,21 @@ class _OfflineRegionMapSelectionState extends State<OfflineRegionMapSelection> {
         mapBounds = await mapController.getVisibleRegion();
       }
 
-      final downloadingRegion = await downloadOfflineRegion(
-        OfflineRegionDefinition(
-          bounds: mapBounds!,
-          minZoom: _position!.zoom - 1,
-          maxZoom: _position!.zoom + 1,
-          mapStyleUrl: MapboxStyles.MAPBOX_STREETS,
-        ),
-        metadata: {
-          'name': 'Map ' + _numberOfRegions.toString(),
+      // final downloadingRegion = await downloadOfflineRegion(
+      //   OfflineRegionDefinition(
+      //     bounds: mapBounds!,
+      //     minZoom: _position!.zoom - 1,
+      //     maxZoom: _position!.zoom + 1,
+      //     mapStyleUrl: MapboxStyles.MAPBOX_STREETS,
+      //   ),
+      //   metadata: {
+      //     'name': 'Map ' + _numberOfRegions.toString(),
 
-          // 'name': 'Map ' + _numberOfRegions.toString(),
-        },
-        accessToken:
-            "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w",
-      );
+      //     // 'name': 'Map ' + _numberOfRegions.toString(),
+      //   },
+      //   accessToken:
+      //       "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w",
+      // );
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (_) => OfflineRegionBody(),

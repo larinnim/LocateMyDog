@@ -5,13 +5,10 @@ import 'package:esptouch_smartconfig/esptouch_smartconfig.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/task_route.dart';
-import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/wifi_settings.dart';
-import 'package:flutter_maps/Screens/Tutorial/step4.dart';
 import 'package:flutter_maps/Screens/Tutorial/step5.dart';
 import 'package:get/get.dart';
+// ignore: unused_import
 import 'package:permission_handler/permission_handler.dart';
-
-import '../loading.dart';
 
 class Step4 extends StatefulWidget {
   @override
@@ -29,7 +26,7 @@ class _Step4State extends State<Step4> {
   bool _obscureText = false;
   String _espIP = "";
   bool _isDisconnected = true;
-  late PermissionStatus _locationPermissionStatus;
+  // late PermissionStatus _locationPermissionStatus;
 
   void espIPReceived(String receivedIP) {
     setState(() {

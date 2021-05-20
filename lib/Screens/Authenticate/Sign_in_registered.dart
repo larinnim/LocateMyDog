@@ -1,19 +1,13 @@
 import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Providers/SocialSignin.dart';
-import 'package:flutter_maps/Screens/Authenticate/signed.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
-import 'package:flutter_maps/Screens/Tutorial/step1.dart';
-import 'package:flutter_maps/Screens/Tutorial/step4.dart';
 import 'package:flutter_maps/Screens/loading.dart';
-import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -67,11 +61,16 @@ class _SignInRegisteredState extends State<SignInRegistered> {
         if (availableBiometrics.contains(BiometricType.face)) {
           //Face ID
           try {
-            final authenticated = await auth.authenticateWithBiometrics(
-              localizedReason: 'Use faceID to authenticate',
-              useErrorDialogs: true,
-              stickyAuth: true,
-            );
+            final authenticated = await auth.authenticate(
+                localizedReason: 'Use faceID to authenticate',
+                stickyAuth: true,
+                useErrorDialogs: true,
+                biometricOnly: true);
+            // .authenticateWithBiometrics(
+            //   localizedReason: 'Use faceID to authenticate',
+            //   useErrorDialogs: true,
+            //   stickyAuth: true,
+            // );
 
             if (authenticated) {
               final userStoredEmail = await storage.read(key: 'email');
@@ -95,11 +94,12 @@ class _SignInRegisteredState extends State<SignInRegistered> {
         } else if (availableBiometrics.contains(BiometricType.fingerprint)) {
           //Touch ID
           try {
-            final authenticated = await auth.authenticateWithBiometrics(
-              localizedReason: 'Scan your fingerprint to authenticate',
-              useErrorDialogs: true,
-              stickyAuth: true,
-            );
+            final authenticated = await auth.authenticate(localizedReason: 'Scan your fingerprint to authenticate', useErrorDialogs: true, stickyAuth:true, biometricOnly: true);
+            // .authenticateWithBiometrics(
+            //   localizedReason: 'Scan your fingerprint to authenticate',
+            //   useErrorDialogs: true,
+            //   stickyAuth: true,
+            // );
 
             if (authenticated) {
               final userStoredEmail = await storage.read(key: 'email');
@@ -192,9 +192,9 @@ class _SignInRegisteredState extends State<SignInRegistered> {
       print("_signIn: $error");
     });
 
-    if (FirebaseAuth.instance.currentUser != null) {
-      final prefs = await SharedPreferences.getInstance();
-    }
+    // if (FirebaseAuth.instance.currentUser != null) {
+    //   final prefs = await SharedPreferences.getInstance();
+    // }
   }
 
   @override

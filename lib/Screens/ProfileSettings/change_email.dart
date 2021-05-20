@@ -4,15 +4,14 @@ import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_maps/Services/checkWiFiConnection.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
-import 'package:provider/provider.dart';
 
 import '../loading.dart';
 
 class LanguageValue {
+  // ignore: unused_field
   final int _key;
+  // ignore: unused_field
   final String _value;
   LanguageValue(this._key, this._value);
 }
@@ -33,6 +32,7 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
   String? emailEntry, passwordEntry;
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  // ignore: non_constant_identifier_names
   String? user_email = "";
   // String _connectionStatus = 'Unknown';
   final Connectivity _connectivity = Connectivity();
@@ -293,10 +293,14 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        OutlineButton(
-                          padding: EdgeInsets.symmetric(horizontal: 50),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20)),
+                        OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(horizontal: 30.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                            ),
+                            side: BorderSide(width: 2, color: Colors.green),
+                          ),
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
@@ -306,24 +310,45 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
                                   letterSpacing: 2.2,
                                   color: Colors.black)),
                         ),
-                        RaisedButton(
-                          onPressed: () {
-                            if (formKey.currentState!.validate()) {
-                              formKey.currentState!.save();
-                              if (snapshot.data == ConnectivityResult.none) {
-                                showCupertinoDialog(
-                                    context: context,
-                                    builder: (_) => CupertinoAlertDialog(
-                                          title: Text("Error"),
-                                          content: Text("You are offline. Please connect to an active internet connection."),
-                                          actions: [
-                                            // Close the dialog
-                                            // You can use the CupertinoDialogAction widget instead
-                                            CupertinoButton(
-                                                child: Text('Dismiss'),
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                }),
+                        ElevatedButton(
+                          style: ButtonStyle(
+                              elevation:
+                                  MaterialStateProperty.resolveWith<double>(
+                                // As you said you dont need elevation. I'm returning 0 in both case
+                                (Set<MaterialState> states) {
+                                  return 2;
+                                },
+                              ),
+                              padding: MaterialStateProperty.resolveWith<EdgeInsetsGeometry>(
+                                // As you said you dont need elevation. I'm returning 0 in both case
+                                (Set<MaterialState> states) {
+                                  return EdgeInsets.symmetric(horizontal: 30.0) ;
+                                },),
+                                backgroundColor:
+                                      MaterialStateProperty.all(Colors.red[200]),
+                                  shape:
+                                      MaterialStateProperty.all<RoundedRectangleBorder>(
+                                          RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30.0),
+                                  ))),                       
+                            onPressed: () {
+                              if (formKey.currentState!.validate()) {
+                                formKey.currentState!.save();
+                                if (snapshot.data == ConnectivityResult.none) {
+                                  showCupertinoDialog(
+                                      context: context,
+                                      builder: (_) => CupertinoAlertDialog(
+                                            title: Text("Error"),
+                                            content: Text(
+                                                "You are offline. Please connect to an active internet connection."),
+                                            actions: [
+                                              // Close the dialog
+                                              // You can use the CupertinoDialogAction widget instead
+                                              CupertinoButton(
+                                                  child: Text('Dismiss'),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  }),
                                             // CupertinoButton(
                                             //   child: Text('I agree'),
                                             //   onPressed: () {
@@ -357,11 +382,6 @@ class ChangeEmailPageState extends State<ChangeEmailPage> {
                               }
                             }
                           },
-                          color: Colors.red[200],
-                          padding: EdgeInsets.symmetric(horizontal: 50),
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20)),
                           child: Text(
                             "save".tr,
                             style: TextStyle(

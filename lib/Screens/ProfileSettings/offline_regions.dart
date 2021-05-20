@@ -9,7 +9,6 @@ import 'package:geocoding/geocoding.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
 import 'dart:async';
 import 'package:google_maps_webservice/places.dart' as places;
-import 'dart:io';
 
 const kGoogleApiKey = 'AIzaSyA7Rxja6yV7o3YdM8O8bPbQV8r3QcNepdY';
 places.GoogleMapsPlaces _places =
@@ -133,7 +132,7 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
       places.PlacesDetailsResponse detail =
           await _places.getDetailsByPlaceId(p.placeId!);
 
-      var placeId = p.placeId;
+      // var placeId = p.placeId;
       double lat = detail.result.geometry!.location.lat;
       double lng = detail.result.geometry!.location.lng;
 

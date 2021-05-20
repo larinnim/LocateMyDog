@@ -7,7 +7,9 @@ import 'package:get/get.dart';
 import '../loading.dart';
 
 class LanguageValue {
+  // ignore: unused_field
   final int _key;
+  // ignore: unused_field
   final String _value;
   LanguageValue(this._key, this._value);
 }
@@ -340,10 +342,14 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        OutlineButton(
-                          padding: EdgeInsets.symmetric(horizontal: 50),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20)),
+                        OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(horizontal: 50.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20.0),
+                            ),
+                            side: BorderSide(width: 2, color: Colors.green),
+                          ),
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
@@ -353,7 +359,27 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                                   letterSpacing: 2.2,
                                   color: Colors.black)),
                         ),
-                        RaisedButton(
+                        ElevatedButton(
+                          style: ButtonStyle(
+                            elevation:
+                                MaterialStateProperty.resolveWith<double>(
+                              // As you said you dont need elevation. I'm returning 0 in both case
+                              (Set<MaterialState> states) {
+                                return 2;
+                              },),
+                            padding: MaterialStateProperty.resolveWith<EdgeInsetsGeometry>(
+                                // As you said you dont need elevation. I'm returning 0 in both case
+                                (Set<MaterialState> states) {
+                                  return EdgeInsets.symmetric(horizontal: 50.0) ;}),
+      
+                            backgroundColor:
+                                MaterialStateProperty.all(Colors.red[200]),
+                                
+                            shape:
+                                MaterialStateProperty.all<RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20.0),
+                          ))),
                           onPressed: () {
                             if (formKey.currentState!.validate()) {
                               formKey.currentState!.save();
@@ -387,11 +413,6 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                               }
                             }
                           },
-                          color: Colors.red[200],
-                          padding: EdgeInsets.symmetric(horizontal: 50),
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20)),
                           child: Text(
                             "save".tr,
                             style: TextStyle(

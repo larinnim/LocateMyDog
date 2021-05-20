@@ -1,11 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import '../loading.dart';
-import './gateway_detail.dart';
 import 'functions_aux.dart';
 
 // ignore: must_be_immutable
@@ -33,15 +31,10 @@ class DeviceDetail extends StatefulWidget {
 class _DeviceDetailState extends State<DeviceDetail> {
   CollectionReference senderCollection =
       FirebaseFirestore.instance.collection('sender');
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   TextEditingController _renameController = TextEditingController();
 
   Color? currentColor = Color(0xff443a49);
   Color? _pickerColor = Color(0xff443a49);
-
-  int _batteryLevel = 0;
-  String _senderVersion = "";
-  String _senderSerialNumber = "";
 
   @override
   void initState() {

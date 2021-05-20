@@ -3,7 +3,6 @@ import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -21,6 +20,7 @@ class LanguagesPage extends StatefulWidget {
 }
 
 class LanguagesPageState extends State<LanguagesPage> {
+  // ignore: unused_field
   String _currentLang = "english";
   int? lang = 1;
   final Connectivity _connectivity = Connectivity();

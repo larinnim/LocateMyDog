@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
@@ -9,13 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
-import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
-import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/offline_regions.dart';
 import 'package:flutter_maps/Screens/loading.dart';
-import 'package:flutter_maps/Services/Radar.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -44,7 +39,6 @@ class _MapLocationState extends State<MapLocation> {
   Circle? circle;
   late GoogleMapController _controller;
   // Map<PolylineId, Polyline> _mapPolylines = {};
-  int _polylineIdCounter = 1;
   final List<LatLng> points = <LatLng>[];
   // FirebaseStorage firestore = FirebaseStorage.instance;
   Geoflutterfire geo = Geoflutterfire();
@@ -55,7 +49,6 @@ class _MapLocationState extends State<MapLocation> {
   Uint8List? imageData;
   // BitmapDescriptor icon;
   late Marker marker;
-  int _markerId = 1;
   Timer? timer;
   // List<Marker> markers = [];
   Set<Marker> markers = Set();
@@ -336,15 +329,8 @@ class _MapLocationState extends State<MapLocation> {
   // }
   GoogleMapController? mapController;
 
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-    final currentPositionBle = Provider.of<BleModel>(context, listen: false);
-    final currentPositionWiFi = Provider.of<WiFiModel>(context, listen: false);
     final connectionStatus =
         Provider.of<ConnectionStatusModel>(context, listen: false);
     connectionStatus.initConnectionListen();

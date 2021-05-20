@@ -3,18 +3,11 @@ import 'dart:collection';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
-import 'package:flutter_maps/Screens/Devices/gateway_detail.dart';
-import 'package:flutter_maps/Services/constants.dart';
-import 'package:intl/intl.dart';
-import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
 import 'package:vector_math/vector_math.dart' as vec;
-import 'custom_expansion_tile.dart' as custom;
-import 'dart:ui' as ui;
 
 class LocationValues {
   /// Latitude in degrees
@@ -90,10 +83,10 @@ class BleModel extends ChangeNotifier {
   /// cart from the outside.
   void addDeviceList(BleDeviceItem item) {
     print("addDeviceList - Line 138");
-    if (item != null) {
-      deviceList.add(item);
-      notifyListeners();
-    }
+    // if (item != null) {
+    deviceList.add(item);
+    notifyListeners();
+    // }
     // This call tells the widgets that are listening to this model to rebuild.
   }
 
@@ -201,7 +194,9 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
         });
         print("Connected");
         setState(() {});
-      }).catchError((e) => print("Connection Error $e"));
+      }).catchError((e) {
+        print("Connection Error $e");
+      });
     }
   }
 
