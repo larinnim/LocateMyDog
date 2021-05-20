@@ -270,7 +270,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             })
                       ],
                     ));
-                  } else {
+                  } 
+                  else {
                     return Builder(
                       builder: (context) {
                         return Stack(
@@ -336,8 +337,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             ],
                                           ),
                                           SizedBox(height: kSpacingUnit.w * 3),
-                                          Expanded(
-                                            child: ListView(
+                                          Column(
+                                            children: <Widget>[ 
+                                            ListView(
+                                              shrinkWrap: true,
                                               children: <Widget>[
                                                 // ProfileListItem(
                                                 //   icon: LineAwesomeIcons.user_shield,
@@ -510,7 +513,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                 //     )))
                                               ],
                                             ),
-                                          ),
+                                            ]),
                                           Align(
                                               alignment: Alignment.bottomCenter,
                                               child: Text.rich(TextSpan(
