@@ -181,8 +181,11 @@ class _GatewayDetailsState extends State<GatewayDetails> {
           'gatewayID': widget.gatewayMAC,
           'escaped': false,
           'version': '1.0', // Needs to change this later
-        }, SetOptions(merge: true)).then((value) {
-          setState(() {
+        }, SetOptions(merge: true)).then((value) async {
+             await DatabaseService(uid: _firebaseAuth.currentUser!.uid)
+                .addSenderToGateway(barcodeScanRes, widget.gatewayMAC!)
+                .then((value) {
+                  setState(() {
             _devices.add(Device(
                 id: 'SD-' + barcodeScanRes,
                 name: 'SD-' + barcodeScanRes,
@@ -192,16 +195,18 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                 longitude: null,
                 color: AuxFunc().colorNamefromColor(_availableColors[0]),
                 enabled: true));
-            // _devices.add(Device(
-            //   id: 'SD-' + barcodeScanRes,
-            //   name: 'SD-' + barcodeScanRes,
-            //   batteryLevel: 0,
-            //   latitude: null,
-            //   longitude: null,
-            //   color: AuxFunc().colorNamefromColor(_availableColors[0]),
-            // ));
-            _availableColors.removeAt(0);
+                // _devices.add(Device(
+                //   id: 'SD-' + barcodeScanRes,
+                //   name: 'SD-' + barcodeScanRes,
+                //   batteryLevel: 0,
+                //   latitude: null,
+                //   longitude: null,
+                //   color: AuxFunc().colorNamefromColor(_availableColors[0]),
+                // ));
+                _availableColors.removeAt(0);
           });
+                });
+          
         }).catchError((error) {
           print("Failed to add user: $error");
         });
