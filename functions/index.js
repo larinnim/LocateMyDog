@@ -4,6 +4,8 @@
   deviceConfiguration: require('./device-iat/device-configuration'),
   deviceState: require('./device-iat/device-state'),
   deviceGeolocation: require('./device-iat/device-geolocation'),
+  deviceConnectionStatus: require('./device-iat/device-connection-status'),
+
   // escapedNotification: require('./escaped-notification.js'),
 
   // onlineState: require('./device-cloud/online-state'),
