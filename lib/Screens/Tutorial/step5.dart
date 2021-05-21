@@ -82,7 +82,11 @@ class _Step5State extends State<Step5> {
   void completedSetup(bool completed) async {
     await DatabaseService(uid: _firebaseAuth.currentUser!.uid)
         .completedSetup(completed)
-        .then((value) => Get.off(() => Wrapper()));
+        .then((value) async {
+      await DatabaseService(uid: _firebaseAuth.currentUser!.uid)
+          .updateNotificationPreference(true, true, true)
+          .then((value) => Get.off(() => Wrapper()));
+    });
   }
 
   void _updateUnits(String? unitsChoose) {
@@ -347,8 +351,7 @@ class _Step5State extends State<Step5> {
               decoration: BoxDecoration(color: Colors.white),
               child: SafeArea(
                   child: Padding(
-                padding:
-                    EdgeInsets.symmetric(horizontal: 28.0, vertical: 40.0),
+                padding: EdgeInsets.symmetric(horizontal: 28.0, vertical: 40.0),
                 child: Column(children: <Widget>[
                   Row(
                     children: [
@@ -402,10 +405,10 @@ class _Step5State extends State<Step5> {
                                   myLocationEnabled: false,
                                   compassEnabled: true,
                                   myLocationButtonEnabled: false,
-                                  markers: Set.of(
-                                      (marker != null) ? [marker!] : []),
-                                  circles: Set.of(
-                                      (circle != null) ? [circle!] : []),
+                                  markers:
+                                      Set.of((marker != null) ? [marker!] : []),
+                                  circles:
+                                      Set.of((circle != null) ? [circle!] : []),
                                   polygons: _polygonsFence,
                                   onTap: (point) {
                                     if (_isPolygonFence) {
@@ -437,10 +440,10 @@ class _Step5State extends State<Step5> {
                                   myLocationEnabled: false,
                                   compassEnabled: true,
                                   myLocationButtonEnabled: false,
-                                  markers: Set.of(
-                                      (marker != null) ? [marker!] : []),
-                                  circles: Set.of(
-                                      (circle != null) ? [circle!] : []),
+                                  markers:
+                                      Set.of((marker != null) ? [marker!] : []),
+                                  circles:
+                                      Set.of((circle != null) ? [circle!] : []),
                                   polygons: _doNotEnterFence,
                                   onTap: (point) {
                                     if (_isPolygonFence) {
