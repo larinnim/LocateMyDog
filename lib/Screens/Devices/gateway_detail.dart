@@ -352,24 +352,31 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                   tileColor: Colors.white70,
                                   leading: Icon(LineAwesomeIcons.wifi),
                                   title: Text('Wifi Connection Status'),
-                                  trailing: ElevatedButton(
-                                    style: ButtonStyle(
-                                        backgroundColor:
-                                            MaterialStateProperty.all(
-                                                Colors.red),
-                                        shape: MaterialStateProperty.all<
-                                                RoundedRectangleBorder>(
-                                            RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(18.0),
-                                        ))),
-                                    child: Text(
-                                      'connect'.toUpperCase(),
-                                      style: TextStyle(fontSize: 16),
+                                  trailing: 
+                                  Text(
+                                      docsnapshot.data!['connectionStatus'] == true ? 'disconnected'.toUpperCase() :
+                                      'connected'.toUpperCase(),
+                                      style: TextStyle(fontSize: 18, color: docsnapshot.data!['connectionStatus'] == true ? Colors.red[300] : Colors.lightGreen, fontWeight: FontWeight.w500
                                     ),
-                                    onPressed: () {
+                                  // ElevatedButton(
+                                  //   style: ButtonStyle(
+                                  //       backgroundColor:
+                                  //           MaterialStateProperty.all(docsnapshot.data!['connectionStatus'] == true ?
+                                  //               Colors.red : Colors.green),
+                                  //       shape: MaterialStateProperty.all<
+                                  //               RoundedRectangleBorder>(
+                                  //           RoundedRectangleBorder(
+                                  //         borderRadius:
+                                  //             BorderRadius.circular(18.0),
+                                  //       ))),
+                                  //   child: Text(
+                                  //     docsnapshot.data!['connectionStatus'] == true ? 'disconnect'.toUpperCase() :
+                                  //     'connect'.toUpperCase(),
+                                  //     style: TextStyle(fontSize: 16),
+                                  //   ),
+                                  //   onPressed: () {
                                       
-                                    },
+                                  //   },
                                   ),
                                 ),
                                 ListTile(
