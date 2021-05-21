@@ -236,9 +236,9 @@ class _Step4State extends State<Step4> {
                 } else {
                   print(password.text);
                   print(deviceCount.text);
-                  // goToTaskRoute(ssidName, bssidName); //TODO enable when arina finishes the ESP32
-                  Navigator.of(context)
-                      .push(MaterialPageRoute(builder: (context) => Step5()));
+                  goToTaskRoute(ssidName, bssidName); //TODO enable when arina finishes the ESP32
+                  // Navigator.of(context)
+                  //     .push(MaterialPageRoute(builder: (context) => Step5()));
                 }
               },
               style: ElevatedButton.styleFrom(

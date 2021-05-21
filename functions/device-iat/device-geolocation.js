@@ -281,7 +281,7 @@ module.exports = functions.pubsub
                     Latitude: newLat,
                     Longitude: newLng,
                   },
-                  batteryLevel: trackerBatteryLevel,
+                  batteryLevel: parseInt(trackerBatteryLevel),
                 },
                 { merge: true }
               );
