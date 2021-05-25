@@ -5,6 +5,7 @@
   deviceState: require('./device-iat/device-state'),
   deviceGeolocation: require('./device-iat/device-geolocation'),
   deviceConnectionStatus: require('./device-iat/device-connection-status'),
+  deviceCommand: require('./device-iat/device-wifiSetting'),
 
   // escapedNotification: require('./escaped-notification.js'),
 

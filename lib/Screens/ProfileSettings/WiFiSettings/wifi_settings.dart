@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:esptouch_smartconfig/esptouch_smartconfig.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/wifi_page.dart';
@@ -17,7 +19,14 @@ class _ConnectivityPageState extends State<ConnectivityPage> {
   late Connectivity _connectivity;
   late Stream<ConnectivityResult> _connectivityStream;
   late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  bool _gatewayConnected = false;
+  String _wifiSSID = "";
   ConnectivityResult? result;
+
+  CollectionReference gatewayCollection =
+      FirebaseFirestore.instance.collection('gateway');
+
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   @override
   void initState() {
@@ -28,6 +37,9 @@ class _ConnectivityPageState extends State<ConnectivityPage> {
     _connectivitySubscription = _connectivityStream.listen((e) {
       setState(() {});
     });
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      _getWiFiStatus();
+    });
   }
 
   @override
@@ -35,6 +47,21 @@ class _ConnectivityPageState extends State<ConnectivityPage> {
     // TODO: implement dispose
     _connectivitySubscription.cancel();
     super.dispose();
+  }
+
+  void _getWiFiStatus() async {
+    gatewayCollection
+        .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
+        .limit(1)
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        setState(() {
+          _gatewayConnected = doc['connectionStatus'];
+          _wifiSSID = doc['wifiSSID'];
+        });
+      });
+    });
   }
 
   @override
@@ -52,13 +79,14 @@ class _ConnectivityPageState extends State<ConnectivityPage> {
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return Loading();
-              } else if (snapshot.data == ConnectivityResult.wifi) {
+              } 
+              else if (snapshot.data == ConnectivityResult.wifi) {
                 return FutureBuilder<Map<String, String>?>(
                     future: EsptouchSmartconfig.wifiData(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.done) {
                         return WifiPage(snapshot.data!['wifiName']!,
-                            snapshot.data!['bssid']!);
+                            snapshot.data!['bssid']!, _gatewayConnected, _wifiSSID);
                       } else {
                         return Container();
                       }

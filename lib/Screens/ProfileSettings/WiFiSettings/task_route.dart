@@ -1,18 +1,24 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:esptouch_smartconfig/esp_touch_result.dart';
 import 'package:esptouch_smartconfig/esptouch_smartconfig.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/wifi_page.dart';
+import 'package:flutter_maps/Services/database.dart';
 import 'package:get/get.dart';
 
 class TaskRoute extends StatefulWidget {
-  TaskRoute(
-      this.ssid, this.bssid, this.password, this.deviceCount, this.isBroadcast);
+  TaskRoute(this.ssid, this.bssid, this.password, this.deviceCount,
+      this.isBroadcast, this.gatewayConnected, this.gatewayConnectedSSID);
   final String ssid;
   final String bssid;
   final String password;
   final String deviceCount;
   final bool isBroadcast;
+  final bool gatewayConnected;
+  final String gatewayConnectedSSID;
+  
   @override
   State<StatefulWidget> createState() {
     return TaskRouteState();
@@ -21,17 +27,34 @@ class TaskRoute extends StatefulWidget {
 
 class TaskRouteState extends State<TaskRoute> {
   late Stream<ESPTouchResult>? _stream;
+  FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  CollectionReference gatewayCollection =
+      FirebaseFirestore.instance.collection('gateway');
+  String _gatewayID = "";
 
   @override
   void initState() {
     _stream = EsptouchSmartconfig.run(widget.ssid, widget.bssid,
         widget.password, widget.deviceCount, widget.isBroadcast);
+    _getGatewayID();
     super.initState();
   }
 
   @override
   dispose() {
     super.dispose();
+  }
+
+  void _getGatewayID(){
+       gatewayCollection
+        .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
+        .limit(1)
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) async {
+        _gatewayID = doc.id;
+      });
+    });
   }
 
   Widget waitingState(BuildContext context) {
@@ -83,8 +106,13 @@ class TaskRouteState extends State<TaskRoute> {
             child: ElevatedButton(
                 onPressed: () async {
                   Navigator.of(context).pop(MaterialPageRoute(
-                      builder: (context) =>
-                          WifiPage(widget.ssid, widget.bssid)));
+                      builder: (context) => WifiPage(
+                          widget.ssid,
+                          widget.bssid,
+                          widget.gatewayConnected,
+                          widget.gatewayConnectedSSID)));
+                  Navigator.of(context)
+                      .pop(); // POP twice because of the dialog box
                 },
                 style: ElevatedButton.styleFrom(
                   primary: Colors.red[300],
@@ -128,7 +156,8 @@ class TaskRouteState extends State<TaskRoute> {
             child: ElevatedButton(
                 onPressed: () async {
                   Navigator.pop(context, espIP);
-
+                  DatabaseService(uid: _firebaseAuth.currentUser!.uid).updateWiFiSSID(_gatewayID, widget.ssid);
+                  // _sendChangeWiFiCommand();
                   // Navigator.of(context).pop(MaterialPageRoute(
                   //     builder: (context) =>
                   //         WifiPage(widget.ssid, widget.bssid, espIP)));

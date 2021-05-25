@@ -25,6 +25,9 @@ class DatabaseService {
   late final CollectionReference pendingDevicesCollection =
       FirebaseFirestore.instance.collection('pendingDevices');
 
+  late final CollectionReference gatewayCommandCollection =
+    FirebaseFirestore.instance.collection('gateway-command');
+
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   Future<void> updateUserData(String? ownername) async {
@@ -38,6 +41,19 @@ class DatabaseService {
     await senderCollection.doc(uid).set({
       'color': deviceColor,
     }, SetOptions(merge: true));
+  }
+
+  Future<void> sendChangeWiFiCommand(String gatewayMAC) async {
+    gatewayCommandCollection.doc('GW-' + gatewayMAC).set(
+        {'command': 'change_wifi', 'gatewayMAC': gatewayMAC, 'changedTimestamp': DateTime.now().millisecondsSinceEpoch}, //default unit is feet
+        SetOptions(merge: true));
+    // SetOptions(merge: true);
+  }
+  Future<void> updateWiFiSSID(String gatewayID, String wifiSSID) async {
+    gatewayCollection.doc(gatewayID).set(
+        {'wifiSSID': wifiSSID}, //default unit is feet
+        SetOptions(merge: true));
+    // SetOptions(merge: true);
   }
 
   Future<void> updateNotificationPreference(

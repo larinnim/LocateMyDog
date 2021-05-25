@@ -6,7 +6,7 @@ const projectIdEnv = 'locatemydog-17a7b';
 const cloudRegion = 'us-central1';
 const cloudRegistry = 'IAT'; 
 
-const iot = require('@google-cloud/iot');
+// const iot = require('@google-cloud/iot');
 
 /**
  * Return a promise to publish the a device command to Cloud IoT Core
@@ -27,8 +27,10 @@ const iot = require('@google-cloud/iot');
 
         const request = {
             name: `${registryName}/devices/${deviceId}`,
-            binaryData: Buffer.from(JSON.stringify(config)).toString('base64'),
-            subfolder: 'wifiSetting'
+            binaryData = Buffer.from(commandMessage),
+
+            // binaryData: Buffer.from(JSON.stringify(command)).toString('base64'),
+            // subfolder: 'wifiSetting'
         };
         client.projects.locations.registries.devices.sendCommandToDevice(request, (err, resp) => {
             if (err) {
@@ -49,7 +51,7 @@ module.exports = functions.firestore.document('gateway-command/{device}').onWrit
         console.log(`Device command removed for ${deviceId}`);
         return;
     }
-    const command = change.after.data();
+    const commandMessage = change.after.data();
 
     // Create a new Cloud IoT client
     const auth = await google.auth.getClient({
@@ -61,27 +63,27 @@ module.exports = functions.firestore.document('gateway-command/{device}').onWrit
     });
     // Send the device message through Cloud IoT
     console.log(`Sending command for ${deviceId}`);
-    console.log(`Sending Command Data: ${config}`);
+    console.log(`Sending Command Data: ${commandMessage}`);
     
     // const iotClient = new iot.v1.DeviceManagerClient({
     //     // optional auth parameters.
     //   });
       
-      const formattedName = iotClient.devicePath(
-        projectId,
-        cloudRegion,
-        registryId,
-        deviceId
-      );
-      const binaryData = Buffer.from(commandMessage);
-      const request = {
-        name: formattedName,
-        binaryData: binaryData,
-      };
+    //   const formattedName = iotClient.devicePath(
+    //     projectId,
+    //     cloudRegion,
+    //     registryId,
+    //     deviceId
+    //   );
+    //   const binaryData = Buffer.from(commandMessage);
+    //   const request = {
+    //     name: formattedName,
+    //     binaryData: binaryData,
+    //   };
       
       try {
         // const result = await updateConfig(client, deviceId, config.value);
-        const result = await updateCommand(client, deviceId, request);
+        const result = await updateCommand(client, deviceId, commandMessage);
 
         console.log(result);
     } catch (error) {

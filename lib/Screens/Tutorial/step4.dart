@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:esptouch_smartconfig/esptouch_smartconfig.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/task_route.dart';
@@ -26,6 +27,7 @@ class _Step4State extends State<Step4> {
   bool _obscureText = false;
   String _espIP = "";
   bool _isDisconnected = true;
+
   // late PermissionStatus _locationPermissionStatus;
 
   void espIPReceived(String receivedIP) {
@@ -66,8 +68,8 @@ class _Step4State extends State<Step4> {
   void goToTaskRoute(String ssid, String bssid) async {
     await Navigator.of(context)
         .push(MaterialPageRoute(
-            builder: (context) => TaskRoute(
-                ssid, bssid, password.text, deviceCount.text, isBroad)))
+            builder: (context) => TaskRoute(ssid, bssid, password.text,
+                deviceCount.text, isBroad, false, "")))
         .then((value) {
       password.clear();
       espIPReceived(value);
@@ -210,36 +212,61 @@ class _Step4State extends State<Step4> {
           height: 50.0,
           child: ElevatedButton(
               onPressed: () async {
-                if (password.text.isEmpty) {
-                  Get.dialog(SimpleDialog(
-                    title: Text(
-                      "Required Fields",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    titlePadding: EdgeInsets.symmetric(
-                      horizontal: 30,
-                      vertical: 20,
-                    ),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: new BorderRadius.circular(10.0)),
-                    children: [
-                      Text('Password field cannot be empty',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 20.0)),
-                    ],
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 40,
-                      vertical: 20,
-                    ),
-                  ));
-                } else {
-                  print(password.text);
-                  print(deviceCount.text);
-                  goToTaskRoute(ssidName, bssidName); //TODO enable when arina finishes the ESP32
-                  // Navigator.of(context)
-                  //     .push(MaterialPageRoute(builder: (context) => Step5()));
-                }
+                showDialog(
+                    context: context,
+                    builder: (context) {
+                      return CupertinoAlertDialog(
+                        title: Text("Confirm WiFi Configuration Change"),
+                        content: Text(
+                            "Are you sure you want to change the wifi configuration?"),
+                        actions: <Widget>[
+                          CupertinoDialogAction(
+                            child: Text("Confirm"),
+                            onPressed: () {
+                              if (password.text.isEmpty) {
+                                Get.dialog(SimpleDialog(
+                                  title: Text(
+                                    "Required Fields",
+                                    textAlign: TextAlign.center,
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  titlePadding: EdgeInsets.symmetric(
+                                    horizontal: 30,
+                                    vertical: 20,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          new BorderRadius.circular(10.0)),
+                                  children: [
+                                    Text('Password field cannot be empty',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(fontSize: 20.0)),
+                                  ],
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 40,
+                                    vertical: 20,
+                                  ),
+                                ));
+                              } else {
+                                print(password.text);
+                                print(deviceCount.text);
+                                goToTaskRoute(ssidName,
+                                    bssidName); //TODO enable when arina finishes the ESP32
+                                // Navigator.of(context)
+                                //     .push(MaterialPageRoute(builder: (context) => Step5()));
+                              }
+                            },
+                          ),
+                          CupertinoDialogAction(
+                            child: Text("Cancel"),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          )
+                        ],
+                      );
+                    });
               },
               style: ElevatedButton.styleFrom(
                 primary: Colors.red[300],
@@ -257,84 +284,83 @@ class _Step4State extends State<Step4> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: SingleChildScrollView(
-          child: FutureBuilder(
-              future: _connectivity.checkConnectivity(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData)
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                else if (snapshot.data == ConnectivityResult.wifi) {
-                  return FutureBuilder<Map<String, String>?>(
-                      future: EsptouchSmartconfig.wifiData(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          return Center(
-                              child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
+      child: FutureBuilder(
+          future: _connectivity.checkConnectivity(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData)
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            else if (snapshot.data == ConnectivityResult.wifi) {
+              return FutureBuilder<Map<String, String>?>(
+                  future: EsptouchSmartconfig.wifiData(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      return Center(
+                          child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 50.0,
+                          ),
+                          Row(
                             children: [
-                              SizedBox(
-                                height: 50.0,
-                              ),
-                              Row(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(30.0),
-                                    child: Text(
-                                      'Step 4 of 5',
-                                      style: TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 20.0,
-                                          fontFamily: 'RobotoMono'),
-                                    ),
-                                  )
-                                ],
-                              ),
-                              SizedBox(
-                                height: 20.0,
-                              ),
-                              // SizedBox(
-                              //   height: 50.0,
-                              // ),
-                              Text(
-                                "Now, Let's connect the Gateway to WiFi.",
-                                style: TextStyle(
-                                  // fontWeight: FontWeight.bold,
-                                  fontSize: 20.0,
+                              Padding(
+                                padding: const EdgeInsets.all(30.0),
+                                child: Text(
+                                  'Step 4 of 5',
+                                  style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 20.0,
+                                      fontFamily: 'RobotoMono'),
                                 ),
-                              ),
-                              normalState(context, snapshot.data!['wifiName']!,
-                                  snapshot.data!['bssid']!),
+                              )
                             ],
-                          ));
+                          ),
+                          SizedBox(
+                            height: 20.0,
+                          ),
+                          // SizedBox(
+                          //   height: 50.0,
+                          // ),
+                          Text(
+                            "Now, Let's connect the Gateway to WiFi.",
+                            style: TextStyle(
+                              // fontWeight: FontWeight.bold,
+                              fontSize: 20.0,
+                            ),
+                          ),
+                          normalState(context, snapshot.data!['wifiName']!,
+                              snapshot.data!['bssid']!),
+                        ],
+                      ));
 
-                          // return WifiPage(snapshot.data!['wifiName']!,
-                          //     snapshot.data!['bssid']!);
-                        } else
-                          return Container();
-                      });
-                } else {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.3),
-                        Icon(
-                          Icons.wifi_off_sharp,
-                          size: 200,
-                          color: Colors.red,
-                        ),
-                        Text(
-                          "wifi_not_connected".tr,
-                          style: TextStyle(fontSize: 20, color: Colors.grey),
-                        )
-                      ],
+                      // return WifiPage(snapshot.data!['wifiName']!,
+                      //     snapshot.data!['bssid']!);
+                    } else
+                      return Container();
+                  });
+            } else {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                    Icon(
+                      Icons.wifi_off_sharp,
+                      size: 200,
+                      color: Colors.red,
                     ),
-                  );
-                }
-              }),
-        ));
+                    Text(
+                      "wifi_not_connected".tr,
+                      style: TextStyle(fontSize: 20, color: Colors.grey),
+                    )
+                  ],
+                ),
+              );
+            }
+          }),
+    ));
   }
 }
