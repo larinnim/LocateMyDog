@@ -27,7 +27,7 @@ const cloudRegistry = 'IAT';
 
         const request = {
             name: `${registryName}/devices/${deviceId}`,
-            binaryData = Buffer.from(commandMessage),
+            binaryData: Buffer.from(command).toString('base64'),
 
             // binaryData: Buffer.from(JSON.stringify(command)).toString('base64'),
             // subfolder: 'wifiSetting'
@@ -63,7 +63,7 @@ module.exports = functions.firestore.document('gateway-command/{device}').onWrit
     });
     // Send the device message through Cloud IoT
     console.log(`Sending command for ${deviceId}`);
-    console.log(`Sending Command Data: ${commandMessage}`);
+    console.log(`Sending Command Data: ${commandMessage.command}`);
     
     // const iotClient = new iot.v1.DeviceManagerClient({
     //     // optional auth parameters.
@@ -83,7 +83,7 @@ module.exports = functions.firestore.document('gateway-command/{device}').onWrit
       
       try {
         // const result = await updateConfig(client, deviceId, config.value);
-        const result = await updateCommand(client, deviceId, commandMessage);
+        const result = await updateCommand(client, deviceId, commandMessage.command);
 
         console.log(result);
     } catch (error) {

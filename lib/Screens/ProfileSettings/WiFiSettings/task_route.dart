@@ -18,7 +18,7 @@ class TaskRoute extends StatefulWidget {
   final bool isBroadcast;
   final bool gatewayConnected;
   final String gatewayConnectedSSID;
-  
+
   @override
   State<StatefulWidget> createState() {
     return TaskRouteState();
@@ -45,8 +45,8 @@ class TaskRouteState extends State<TaskRoute> {
     super.dispose();
   }
 
-  void _getGatewayID(){
-       gatewayCollection
+  void _getGatewayID() {
+    gatewayCollection
         .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
         .limit(1)
         .get()
@@ -155,8 +155,11 @@ class TaskRouteState extends State<TaskRoute> {
             height: 50.0,
             child: ElevatedButton(
                 onPressed: () async {
+                  DatabaseService(uid: _firebaseAuth.currentUser!.uid)
+                      .updateWiFiSSID(_gatewayID, widget.ssid);
                   Navigator.pop(context, espIP);
-                  DatabaseService(uid: _firebaseAuth.currentUser!.uid).updateWiFiSSID(_gatewayID, widget.ssid);
+                  Navigator.of(context)
+                      .pop(); // POP twice because of the dialog box
                   // _sendChangeWiFiCommand();
                   // Navigator.of(context).pop(MaterialPageRoute(
                   //     builder: (context) =>
