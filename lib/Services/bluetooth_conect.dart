@@ -62,7 +62,8 @@ class BleDeviceItem {
   int rssi;
   AdvertisementData advertisementData;
   BluetoothDevice device;
-  BleDeviceItem(this.rssi, this.advertisementData, this.device);
+  Stream<BluetoothDeviceState> deviceState;
+  BleDeviceItem(this.rssi, this.advertisementData, this.device, this.deviceState);
 }
 
 class BleModel extends ChangeNotifier {
@@ -241,7 +242,7 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
                 "\tmanufacture Data : ${r.advertisementData.manufacturerData}");
             print("\tTx Power Level : ${r.advertisementData.txPowerLevel}");
             context.read<BleModel>().addDeviceList(
-                BleDeviceItem(r.rssi, r.advertisementData, r.device));
+                BleDeviceItem(r.rssi, r.advertisementData, r.device, r.device.state));
           }
           setState(() {});
         }
