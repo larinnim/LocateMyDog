@@ -451,9 +451,11 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                                     child: bleSnapshot.data ==
                                                             BluetoothDeviceState
                                                                 .connected
-                                                        ? Text('Disconnect')
-                                                        : Text('Connect'),
-                                                    onPressed: () {
+                                                        ? Text('Disconnect'.toUpperCase(), style: TextStyle(color: Colors.white, fontSize: 16,))
+                                                        : Text('Connect'.toUpperCase(), style: TextStyle(color: Colors.white, fontSize: 16),),
+                                                    onPressed: 
+                                                    docsnapshot.data![
+                                                        'connectionStatus'] == true ? null : () {
                                                       //checks bluetooth current state
                                                       FlutterBlue.instance.state
                                                           .listen((state) {
@@ -517,7 +519,10 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                                       });
                                                     },
                                                     style: ButtonStyle(
-                                                        backgroundColor: bleSnapshot
+                                                      backgroundColor:   docsnapshot.data![
+                                                        'connectionStatus'] == true ? MaterialStateProperty
+                                                                .all(Colors
+                                                                    .grey[400]) : bleSnapshot
                                                                     .data ==
                                                                 BluetoothDeviceState
                                                                     .connected
