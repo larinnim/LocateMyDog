@@ -63,7 +63,36 @@ class BleDeviceItem {
   AdvertisementData advertisementData;
   BluetoothDevice device;
   Stream<BluetoothDeviceState> deviceState;
-  BleDeviceItem(this.rssi, this.advertisementData, this.device, this.deviceState);
+  BleDeviceItem(
+      this.rssi, this.advertisementData, this.device, this.deviceState);
+}
+
+class IATData {
+  String? senderMAC;
+  double? latitude;
+  double? longitude;
+  String? date;
+  String? time;
+  String? gatewayMAC;
+  int? trackerBatteryLevel;
+  int? gatewayBatteryLevel;
+
+  IATData(
+      {this.senderMAC,
+      this.latitude,
+      this.longitude,
+      this.date,
+      this.time,
+      this.gatewayMAC,
+      this.trackerBatteryLevel,
+      this.gatewayBatteryLevel});
+
+  // String? senderNumber;
+  // int rssi;
+  // AdvertisementData advertisementData;
+  // BluetoothDevice device;
+  // Stream<BluetoothDeviceState> deviceState;
+  // BleDeviceItem(this.rssi, this.advertisementData, this.device, this.deviceState);
 }
 
 class BleModel extends ChangeNotifier {
@@ -75,6 +104,7 @@ class BleModel extends ChangeNotifier {
   double? lng;
   DateTime? timestampBLE;
   String? senderNumber;
+  IATData? currentIATData;
 
   /// An unmodifiable view of the items in the cart.
   UnmodifiableListView<BleDeviceItem> get items =>
@@ -98,6 +128,7 @@ class BleModel extends ChangeNotifier {
     lat = null;
     lng = null;
     senderNumber = null;
+    currentIATData = null;
     notifyListeners();
   }
 
@@ -121,6 +152,14 @@ class BleModel extends ChangeNotifier {
     // BleSingleton._singleton.connectedDevices.add(device);
     // This call tells the widgets that are listening to this model to rebuild.
     notifyListeners();
+  }
+
+  void addIATData(IATData item) {
+    // if (item != null) {
+    currentIATData = item;
+    notifyListeners();
+    // }
+    // This call tells the widgets that are listening to this model to rebuild.
   }
 
   void addLatLng(double receivedLat, double receivedLng, String? sender) {
@@ -241,8 +280,8 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
             print(
                 "\tmanufacture Data : ${r.advertisementData.manufacturerData}");
             print("\tTx Power Level : ${r.advertisementData.txPowerLevel}");
-            context.read<BleModel>().addDeviceList(
-                BleDeviceItem(r.rssi, r.advertisementData, r.device, r.device.state));
+            context.read<BleModel>().addDeviceList(BleDeviceItem(
+                r.rssi, r.advertisementData, r.device, r.device.state));
           }
           setState(() {});
         }

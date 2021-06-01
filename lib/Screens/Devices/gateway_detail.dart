@@ -206,7 +206,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
 
                             // final Map<int, String> values = {
                             //   for (int i = 0; i < split.length; i++) i: split[i]
-                            // };
+                            // };x
                             // print(values); //
 
                             // values.forEach((key, value) {
@@ -246,9 +246,18 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                     map['tBL'].toString()); //Come as double
                               }
                               if (map['gBL'] != null) {
-                                print('Tracker Battery Level: ' +
+                                print('Gateway Battery Level: ' +
                                     map['gBL'].toString()); //Come as double
                               }
+                              context.read<BleModel>().addIATData(new IATData(
+                                  senderMAC: map['sID'],
+                                  latitude: map['lat'],
+                                  longitude: map['lng'],
+                                  date: map['d'],
+                                  time: map['t'],
+                                  gatewayMAC: map['gID'],
+                                  trackerBatteryLevel: map['tBL'],
+                                  gatewayBatteryLevel: map['gBL'])); //
                             }
                           });
                         }).catchError((e) {
@@ -536,7 +545,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                             //   },
                                           ),
                                         ),
-                                        StreamBuilder(
+                                        StreamBuilder<BluetoothDeviceState>(
                                             stream: bleDevice?.state,
                                             initialData: BluetoothDeviceState
                                                 .disconnected,
@@ -559,98 +568,117 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                                                   Colors.white,
                                                               fontSize: 16,
                                                             ))
-                                                        : Text(
-                                                            'Connect'
-                                                                .toUpperCase(),
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontSize: 16),
-                                                          ),
-                                                    onPressed: docsnapshot
-                                                                    .data![
-                                                                'connectionStatus'] ==
-                                                            true
-                                                        ? null
-                                                        : () {
-                                                            //checks bluetooth current state
-                                                            FlutterBlue
-                                                                .instance.state
-                                                                .listen(
-                                                                    (state) {
-                                                              if (state ==
-                                                                  BluetoothState
-                                                                      .off) {
-                                                                Get.dialog(
-                                                                    SimpleDialog(
-                                                                  title: Text(
-                                                                    "Warning",
-                                                                    textAlign:
-                                                                        TextAlign
-                                                                            .center,
-                                                                    style: TextStyle(
-                                                                        fontWeight:
-                                                                            FontWeight.bold),
-                                                                  ),
-                                                                  titlePadding:
-                                                                      EdgeInsets
-                                                                          .symmetric(
-                                                                    horizontal:
-                                                                        30,
-                                                                    vertical:
-                                                                        20,
-                                                                  ),
-                                                                  shape: RoundedRectangleBorder(
-                                                                      borderRadius:
-                                                                          new BorderRadius.circular(
-                                                                              10.0)),
-                                                                  children: [
-                                                                    Text(
-                                                                        "Please turn on your Bluetooth",
-                                                                        textAlign:
-                                                                            TextAlign
-                                                                                .center,
-                                                                        style: TextStyle(
-                                                                            fontSize:
-                                                                                20.0)),
-                                                                  ],
-                                                                  contentPadding:
-                                                                      EdgeInsets
-                                                                          .symmetric(
-                                                                    horizontal:
-                                                                        40,
-                                                                    vertical:
-                                                                        20,
-                                                                  ),
-                                                                ));
-                                                                //Alert user to turn on bluetooth.
-                                                              } else if (state ==
-                                                                  BluetoothState
-                                                                      .on) {
-                                                                //if bluetooth is enabled then go ahead.
-                                                                //Make sure user's device gps is on.
-                                                                if (bleSnapshot
-                                                                            .data ==
-                                                                        BluetoothDeviceState
-                                                                            .connected ||
-                                                                    context
-                                                                            .read<BleModel>()
-                                                                            .connectedDevices
-                                                                            .length >
-                                                                        0) {
-                                                                  stopScanning();
-                                                                  context
-                                                                      .read<
-                                                                          BleModel>()
-                                                                      .connectedDevices
-                                                                      .first
-                                                                      .disconnect();
-                                                                } else {
-                                                                  scan();
-                                                                }
-                                                              }
-                                                            });
-                                                          },
+                                                        : bleSnapshot.data ==
+                                                                BluetoothDeviceState
+                                                                    .disconnected
+                                                            ? Text(
+                                                                'Connect'
+                                                                    .toUpperCase(),
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        16),
+                                                              )
+                                                            : Text(
+                                                                bleSnapshot.data
+                                                                    .toString()
+                                                                    .substring(
+                                                                        21)
+                                                                    .toUpperCase()
+                                                                    .toUpperCase(),
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        16),
+                                                              ),
+                                                    onPressed: 
+                                                    // () {
+                                                       docsnapshot
+                                                                  .data![
+                                                              'connectionStatus'] ==
+                                                          true
+                                                      ? null
+                                                      : () {
+                                                          //checks bluetooth current state
+                                                          FlutterBlue
+                                                              .instance.state
+                                                              .listen(
+                                                                  (state) {
+                                                            if (state ==
+                                                                BluetoothState
+                                                                    .off) {
+                                                              Get.dialog(
+                                                                  SimpleDialog(
+                                                                title: Text(
+                                                                  "Warning",
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .center,
+                                                                  style: TextStyle(
+                                                                      fontWeight:
+                                                                          FontWeight.bold),
+                                                                ),
+                                                                titlePadding:
+                                                                    EdgeInsets
+                                                                        .symmetric(
+                                                                  horizontal:
+                                                                      30,
+                                                                  vertical:
+                                                                      20,
+                                                                ),
+                                                                shape: RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        new BorderRadius.circular(
+                                                                            10.0)),
+                                                                children: [
+                                                                  Text(
+                                                                      "Please turn on your Bluetooth",
+                                                                      textAlign:
+                                                                          TextAlign
+                                                                              .center,
+                                                                      style: TextStyle(
+                                                                          fontSize:
+                                                                              20.0)),
+                                                                ],
+                                                                contentPadding:
+                                                                    EdgeInsets
+                                                                        .symmetric(
+                                                                  horizontal:
+                                                                      40,
+                                                                  vertical:
+                                                                      20,
+                                                                ),
+                                                              ));
+                                                              //Alert user to turn on bluetooth.
+                                                            } else if (state ==
+                                                                BluetoothState
+                                                                    .on) {
+                                                      //if bluetooth is enabled then go ahead.
+                                                      //Make sure user's device gps is on.
+                                                      bleSnapshot.data ==
+                                                              BluetoothDeviceState
+                                                                  .connected
+                                                          ?
+                                                          // stopScanning();
+                                                          bleDevice
+                                                              ?.disconnect()
+                                                              .then((value) {
+                                                              print(
+                                                                  'Disconnected clicked');
+
+                                                              context
+                                                                  .read<
+                                                                      BleModel>()
+                                                                  .removeConnectedDevice(
+                                                                      bleDevice!);
+                                                            })
+                                                          : scan();
+                                                      }
+                                                        }
+                                                      );
+                                                    },
                                                     style: ButtonStyle(
                                                         backgroundColor: docsnapshot
                                                                         .data![
@@ -659,11 +687,12 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                                             ? MaterialStateProperty.all(
                                                                 Colors
                                                                     .grey[400])
-                                                            : bleSnapshot.data == BluetoothDeviceState.connected ||
-                                                                    context.read<BleModel>().connectedDevices.length >
-                                                                        0
-                                                                ? MaterialStateProperty.all(Colors
-                                                                    .red[300])
+                                                            : bleSnapshot.data ==
+                                                                    BluetoothDeviceState
+                                                                        .connected
+                                                                ? MaterialStateProperty.all(
+                                                                    Colors.red[
+                                                                        300])
                                                                 : MaterialStateProperty.all(
                                                                     Colors
                                                                         .lightGreen),
@@ -733,16 +762,16 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                                     //           : bleProvider
                                                     //               .deviceList[0].device
                                                     //               .disconnect()
-                                                    //               .then((status) async => {
-                                                    //                     context
-                                                    //                         .read<
-                                                    //                             BleModel>()
-                                                    //                         .removeConnectedDevice(
-                                                    //                             bleProvider
-                                                    //                                 .deviceList[
-                                                    //                                     0]
-                                                    //                                 .device),
-                                                    //                   });
+                                                    // .then((status) async => {
+                                                    //       context
+                                                    //           .read<
+                                                    //               BleModel>()
+                                                    //           .removeConnectedDevice(
+                                                    //               bleProvider
+                                                    //                   .deviceList[
+                                                    //                       0]
+                                                    //                   .device),
+                                                    //     });
                                                     // },
                                                   ));
                                             }),
