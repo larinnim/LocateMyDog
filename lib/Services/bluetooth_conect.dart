@@ -95,6 +95,23 @@ class IATData {
   // BleDeviceItem(this.rssi, this.advertisementData, this.device, this.deviceState);
 }
 
+class BleDataModel extends ChangeNotifier {
+  var iatData = IATData(
+      senderMAC: "",
+      latitude: 0.0,
+      longitude: 0.0,
+      date: "",
+      time: "",
+      gatewayMAC: "",
+      trackerBatteryLevel: 0,
+      gatewayBatteryLevel: 0);
+
+  void addIatData(IATData item) {
+    iatData = item;
+    notifyListeners();
+  }
+}
+
 class BleModel extends ChangeNotifier {
   List<BleDeviceItem> deviceList = [];
   List<BluetoothService> services = [];
@@ -104,7 +121,7 @@ class BleModel extends ChangeNotifier {
   double? lng;
   DateTime? timestampBLE;
   String? senderNumber;
-  IATData? currentIATData;
+  // IATData? currentIATData;
 
   /// An unmodifiable view of the items in the cart.
   UnmodifiableListView<BleDeviceItem> get items =>
@@ -128,7 +145,7 @@ class BleModel extends ChangeNotifier {
     lat = null;
     lng = null;
     senderNumber = null;
-    currentIATData = null;
+    // currentIATData = null;
     notifyListeners();
   }
 
@@ -154,13 +171,13 @@ class BleModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addIATData(IATData item) {
-    // if (item != null) {
-    currentIATData = item;
-    notifyListeners();
-    // }
-    // This call tells the widgets that are listening to this model to rebuild.
-  }
+  // void addIATData(IATData item) {
+  //   // if (item != null) {
+  //   currentIATData = item;
+  //   notifyListeners();
+  //   // }
+  //   // This call tells the widgets that are listening to this model to rebuild.
+  // }
 
   void addLatLng(double receivedLat, double receivedLng, String? sender) {
     //print("addLat - Line 166");

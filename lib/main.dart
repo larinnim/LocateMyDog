@@ -31,7 +31,8 @@ void main() async {
     ChangeNotifierProvider(create: (context) => BleModel()),
     ChangeNotifierProvider(create: (context) => WiFiModel()),
     ChangeNotifierProvider(create: (context) => ConnectionStatusModel()),
-    ChangeNotifierProvider(create: (context) => SocialSignInProvider())
+    ChangeNotifierProvider(create: (context) => SocialSignInProvider()),
+    ChangeNotifierProvider(create: (context) => BleDataModel())
   ], child: MainPage()));
 }
 

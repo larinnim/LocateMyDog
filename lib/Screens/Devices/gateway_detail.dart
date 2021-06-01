@@ -249,7 +249,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                 print('Gateway Battery Level: ' +
                                     map['gBL'].toString()); //Come as double
                               }
-                              context.read<BleModel>().addIATData(new IATData(
+                              context.read<BleDataModel>().addIatData(new IATData(
                                   senderMAC: map['sID'],
                                   latitude: map['lat'],
                                   longitude: map['lng'],
@@ -401,8 +401,8 @@ class _GatewayDetailsState extends State<GatewayDetails> {
 
   @override
   Widget build(BuildContext context) {
-    // return Consumer2<BleModel, WiFiModel>(
-    //     builder: (_, bleProvider, wifiProvider, child) {
+    return Consumer<BleModel>(
+        builder: (_, bleProvider, child) {
     return Scaffold(
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
@@ -546,7 +546,8 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                           ),
                                         ),
                                         StreamBuilder<BluetoothDeviceState>(
-                                            stream: bleDevice?.state,
+                                            stream: bleProvider.connectedDevices.length > 0 ? bleProvider.connectedDevices.first.state: Stream.empty(), 
+                                            // stream: bleDevice?.state,
                                             initialData: BluetoothDeviceState
                                                 .disconnected,
                                             builder: (context, bleSnapshot) {
@@ -662,8 +663,9 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                                                   .connected
                                                           ?
                                                           // stopScanning();
-                                                          bleDevice
-                                                              ?.disconnect()
+                                                          bleProvider.connectedDevices.first.disconnect()
+                                                          // bleDevice
+                                                          //     ?.disconnect()
                                                               .then((value) {
                                                               print(
                                                                   'Disconnected clicked');
@@ -672,7 +674,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                                                   .read<
                                                                       BleModel>()
                                                                   .removeConnectedDevice(
-                                                                      bleDevice!);
+                                                                      bleProvider.connectedDevices.first);
                                                             })
                                                           : scan();
                                                       }
@@ -1015,7 +1017,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
             ],
           ),
         )));
-    // });
+    });
   }
 
   Widget setupAlertDialoadContainer() {
