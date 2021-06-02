@@ -11,6 +11,7 @@ import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/permissionChangeBuilder.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddNewDevice extends StatelessWidget {
   AddNewDevice(this.colorString, this.gatewayID);
@@ -70,7 +71,12 @@ class AddNewDevice extends StatelessWidget {
             'escaped': false,
             'version':
                 '1.0' // Change this version to come from QR Code and gateway later on
-          }, SetOptions(merge: true)).then((value) {
+          }, SetOptions(merge: true)).then((value) async {
+            // obtain shared preferences
+            final prefs = await SharedPreferences.getInstance();
+            // Add color on cache to be used on ble
+            prefs.setString(
+                'color-' + 'SD-' + barcodeScanRes.toString(), colorString);
             Get.back();
           }).catchError((error) {
             print("Failed to add user: $error");

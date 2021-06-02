@@ -32,7 +32,7 @@ void main() async {
     ChangeNotifierProvider(create: (context) => WiFiModel()),
     ChangeNotifierProvider(create: (context) => ConnectionStatusModel()),
     ChangeNotifierProvider(create: (context) => SocialSignInProvider()),
-    ChangeNotifierProvider(create: (context) => BleDataModel())
+    ChangeNotifierProvider(create: (context) => IATDataModel())
   ], child: MainPage()));
 }
 

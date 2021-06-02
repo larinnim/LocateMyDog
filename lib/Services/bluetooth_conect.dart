@@ -71,21 +71,21 @@ class IATData {
   String? senderMAC;
   double? latitude;
   double? longitude;
-  String? date;
-  String? time;
+  int? locationTimestamp;
   String? gatewayMAC;
   int? trackerBatteryLevel;
   int? gatewayBatteryLevel;
+  String? senderColor;
 
   IATData(
       {this.senderMAC,
       this.latitude,
       this.longitude,
-      this.date,
-      this.time,
+      this.locationTimestamp,
       this.gatewayMAC,
       this.trackerBatteryLevel,
-      this.gatewayBatteryLevel});
+      this.gatewayBatteryLevel,
+      this.senderColor});
 
   // String? senderNumber;
   // int rssi;
@@ -95,16 +95,17 @@ class IATData {
   // BleDeviceItem(this.rssi, this.advertisementData, this.device, this.deviceState);
 }
 
-class BleDataModel extends ChangeNotifier {
+class IATDataModel extends ChangeNotifier {
   var iatData = IATData(
-      senderMAC: "",
-      latitude: 0.0,
-      longitude: 0.0,
-      date: "",
-      time: "",
-      gatewayMAC: "",
-      trackerBatteryLevel: 0,
-      gatewayBatteryLevel: 0);
+    senderMAC: "",
+    latitude: 0.0,
+    longitude: 0.0,
+    locationTimestamp: 0,
+    gatewayMAC: "",
+    trackerBatteryLevel: 0,
+    gatewayBatteryLevel: 0,
+    senderColor: "",
+  );
 
   void addIatData(IATData item) {
     iatData = item;

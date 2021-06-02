@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../loading.dart';
 import 'functions_aux.dart';
 
 // ignore: must_be_immutable
-class DeviceDetail extends StatefulWidget {
+class DeviceDetail extends StatefulWidget { // obtain shared preferences
   DeviceDetail(
       {Key? key,
       this.title,
@@ -43,8 +44,14 @@ class _DeviceDetailState extends State<DeviceDetail> {
   }
 
 // ValueChanged<Color> callback
-  void changeColor(Color? color) {
+  void changeColor(Color? color) async {
     setState(() => _pickerColor = color);
+    // obtain shared preferences
+    final prefs = await SharedPreferences.getInstance();
+    // Add color on cache to be used on ble
+    prefs.setString('color-' + widget.senderID.toString(),
+        AuxFunc().colorNamefromColor(color));
+
     DatabaseService(uid: widget.senderID)
         .updateDeviceColor(AuxFunc().colorNamefromColor(_pickerColor));
   }
@@ -171,15 +178,18 @@ class _DeviceDetailState extends State<DeviceDetail> {
                         tileColor: Colors.white70,
                         leading: docsnapshot.data!['batteryLevel'] < 20
                             ? Icon(LineAwesomeIcons.battery_1_4_full)
-                            : 20 < docsnapshot.data!['batteryLevel'] && docsnapshot.data!['batteryLevel'] < 50
+                            : 20 < docsnapshot.data!['batteryLevel'] &&
+                                    docsnapshot.data!['batteryLevel'] < 50
                                 ? Icon(LineAwesomeIcons.battery_1_2_full)
-                                : 50 < docsnapshot.data!['batteryLevel'] && docsnapshot.data!['batteryLevel'] < 80
+                                : 50 < docsnapshot.data!['batteryLevel'] &&
+                                        docsnapshot.data!['batteryLevel'] < 80
                                     ? Icon(LineAwesomeIcons.battery_3_4_full)
                                     : docsnapshot.data!['batteryLevel'] > 80
                                         ? Icon(LineAwesomeIcons.battery_full)
                                         : Icon(LineAwesomeIcons.battery_empty),
                         title: Text('Baterry Level'),
-                        trailing: Text(docsnapshot.data!['batteryLevel'].toString() + '%'),
+                        trailing: Text(
+                            docsnapshot.data!['batteryLevel'].toString() + '%'),
                       ),
                       SizedBox(
                         height: 30.0,
