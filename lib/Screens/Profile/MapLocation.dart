@@ -8,13 +8,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
+import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/offline_regions.dart';
 import 'package:flutter_maps/Screens/loading.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../Services/bluetooth_conect.dart';
+import 'dart:math' as math;
 
 // Initialize the [FlutterLocalNotificationsPlugin] package.
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -34,12 +37,14 @@ class _MapLocationState extends State<MapLocation> {
       FirebaseFirestore.instance.collection('sender');
 
   // List<Marker?> markers = <Marker?>[];
-  List<Polyline> mapPolylines = <Polyline>[];
+  // List<Polyline> mapPolylines = <Polyline>[];
+  Map<PolylineId, Polyline> polylines = <PolylineId, Polyline>{};
+  List<PolylineId>? selectedPolyline;
   late LatLng _currentPosition;
   Circle? circle;
   late GoogleMapController _controller;
   // Map<PolylineId, Polyline> _mapPolylines = {};
-  final List<LatLng> points = <LatLng>[];
+  final List<LatLng> _points = <LatLng>[];
   // FirebaseStorage firestore = FirebaseStorage.instance;
   Geoflutterfire geo = Geoflutterfire();
   CollectionReference reference =
@@ -47,18 +52,19 @@ class _MapLocationState extends State<MapLocation> {
   List<LatLng> polyLinesLatLongs = []; // our list of geopoints
   var mapLocation;
   Uint8List? imageData;
+  LatLng? initLocation;
   // BitmapDescriptor icon;
   late Marker marker;
   Timer? timer;
   // List<Marker> markers = [];
   Set<Marker> markers = Set();
-
   // final List<Flushbar> flushBars = [];
 
   @override
   void initState() {
     super.initState();
     _initSenders();
+
     // timer = Timer.periodic(Duration(seconds: 3), (Timer t) => moveCamera());
   }
 
@@ -66,6 +72,66 @@ class _MapLocationState extends State<MapLocation> {
   void dispose() {
     timer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _addPolyline(Provider.of<IATDataModel>(context, listen: true).iatData);
+    _currentPosition = LatLng(
+        Provider.of<IATDataModel>(context, listen: true).iatData.latitude ?? 0,
+        Provider.of<IATDataModel>(context, listen: true).iatData.longitude ??
+            0);
+  }
+
+  void _addPolyline(IATData iatData) {
+    final PolylineId polylineId = PolylineId(iatData.senderMAC ?? "");
+    // final List<LatLng> _points = <LatLng>[];
+
+    if (_points.length == 0 &&
+        iatData.latitude != 0 &&
+        iatData.longitude != 0) {
+      _points.add(LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0));
+    } else if (_points.length > 0 &&
+        iatData.latitude != 0 &&
+        iatData.longitude != 0) {
+      if (_calculateMeters(_points.last,
+              LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0)) >
+          15) {
+        _points.add(LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0));
+      }
+    }
+
+    final Polyline polyline = Polyline(
+      polylineId: polylineId,
+      consumeTapEvents: true,
+      color: AuxFunc().getColor(iatData.senderColor),
+      width: 5,
+      points: _points,
+      // onTap: () {
+      //   _onPolylineTapped(polylineId);
+      // },
+    );
+
+    setState(() {
+      polylines[polylineId] = polyline;
+    });
+  }
+
+  double _calculateMeters(LatLng latLng1, LatLng latLng2) {
+    var _r = 6378.137; // Radius of earth in KM
+    var dLat =
+        latLng2.latitude * math.pi / 180 - latLng1.latitude * math.pi / 180;
+    var dLon =
+        latLng2.longitude * math.pi / 180 - latLng1.longitude * math.pi / 180;
+    var a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(latLng1.latitude * math.pi / 180) *
+            math.cos(latLng2.latitude * math.pi / 180) *
+            math.sin(dLon / 2) *
+            math.sin(dLon / 2);
+    var c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    var d = _r * c;
+    return d * 1000; // meters
   }
 
   Future<void> _initSenders() async {
@@ -77,6 +143,7 @@ class _MapLocationState extends State<MapLocation> {
         var latlng =
             LatLng(doc['Location']['Latitude'], doc['Location']['Longitude']);
         setState(() {
+          initLocation = latlng;
           updateMarkerAndCircle(latlng, doc.id, doc['color']);
         });
       });
@@ -104,6 +171,8 @@ class _MapLocationState extends State<MapLocation> {
           .where('userID',
               isEqualTo: _firebaseAuth
                   .currentUser?.uid) //Listen to changes in all the users
+          .where('enabled',
+              isEqualTo: true) // Get only senders that are enabled
           .snapshots()
           .listen((querySnapshot) {
         querySnapshot.docChanges.forEach((change) {
@@ -125,13 +194,15 @@ class _MapLocationState extends State<MapLocation> {
                 senderMAC: firestoreInfo["senderMac"],
                 latitude: firestoreInfo['Location']['Latitude'],
                 longitude: firestoreInfo['Location']['Longitude'],
-                locationTimestamp:
-                    firestoreInfo['LocationTimestamp'] != "" ? DateTime.parse(firestoreInfo['LocationTimestamp'])
-                        .millisecondsSinceEpoch : 0,
+                locationTimestamp: firestoreInfo['LocationTimestamp'] != ""
+                    ? DateTime.parse(firestoreInfo['LocationTimestamp'])
+                        .millisecondsSinceEpoch
+                    : 0,
                 gatewayMAC: firestoreInfo['gatewayID'],
                 trackerBatteryLevel: firestoreInfo['batteryLevel'],
                 gatewayBatteryLevel: gwBatteryLevel,
-                senderColor: firestoreInfo['color']));
+                senderColor: firestoreInfo['color'],
+                escaped: firestoreInfo['escaped']));
           });
         });
       });
@@ -141,6 +212,7 @@ class _MapLocationState extends State<MapLocation> {
   Future<void> moveCamera() async {
     // if (_currentPosition.latitude != null &&
     //     _currentPosition.longitude != null) {
+
     _controller.animateCamera(CameraUpdate.newCameraPosition(new CameraPosition(
         bearing: 192.8334901395799,
         target: LatLng(_currentPosition.latitude, _currentPosition.longitude),
@@ -169,28 +241,18 @@ class _MapLocationState extends State<MapLocation> {
       LatLng latlong, String? sender, String senderColor) async {
     LatLng latlng = LatLng(latlong.latitude, latlong.longitude);
     late Uint8List imageData;
-    // locationDB
-    //     .doc(_firebaseAuth.currentUser!.uid)
-    //     .get()
-    //     .then((DocumentSnapshot documentSnapshot) {
-    //   if (documentSnapshot.exists) {
-    //     documentSnapshot.data()!.forEach((key, value) async {
-    //       if (key == sender) {
     String pathColor = 'assets/images/' + 'dogpin_' + senderColor + '.png';
     ByteData byteData = await DefaultAssetBundle.of(context).load(pathColor);
     imageData = byteData.buffer.asUint8List();
     _currentPosition = latlong;
-
-    // if (markers.length > 0) {
-    //   marker = markers[0];
-
     // setState(() {
     //   markers[0] = marker.copyWith(
     //       positionParam: LatLng(latlong.latitude, latlong.longitude));
     // });
     // } else {
     if (markers.length > 0) {
-      markers.removeWhere((marker) => marker.mapsId.value.toString() == sender);
+      markers.removeWhere(
+          (marker) => marker.mapsId.value.toString() == 'SD-' + sender!);
     }
     marker = Marker(
         markerId: MarkerId(sender!),
@@ -323,12 +385,6 @@ class _MapLocationState extends State<MapLocation> {
                               iatDataProvider.iatData.longitude != null
                           ? FutureBuilder(
                               future: //its sending BLE
-                                  // ? updateMarkerAndCircle(
-                                  //     LatLng(
-                                  //         bleProvider.lat!, bleProvider.lng!),
-                                  //     bleProvider.senderNumber,
-                                  //     "green") //TODO create color logic for BLE
-                                  // :
                                   updateMarkerAndCircle(
                                       LatLng(iatDataProvider.iatData.latitude!,
                                           iatDataProvider.iatData.longitude!),
@@ -339,45 +395,71 @@ class _MapLocationState extends State<MapLocation> {
                               builder: (context, snapshotMarker) {
                                 return Align(
                                   child: SafeArea(
-                                    child: Column(children: <Widget>[
-                                      // SizedBox(height:  MediaQuery.of(context).size.height * 0.1, width: MediaQuery.of(context).size.width,),
-                                      Expanded(
-                                        child: SizedBox(
-                                          // width: MediaQuery.of(context).size.width,
-                                          // height: MediaQuery.of(context).size.height * 0.89,
-                                          child: GoogleMap(
-                                            mapType: MapType.hybrid,
-                                            onMapCreated: (GoogleMapController
-                                                controller) {
-                                              _controller = controller;
-                                              moveCamera();
-                                            },
-                                            initialCameraPosition:
-                                                CameraPosition(
-                                                    target: LatLng(
-                                                        iatDataProvider
-                                                            .iatData.latitude!,
-                                                        iatDataProvider.iatData
-                                                            .longitude!),
-                                                    zoom: 16.0),
-                                            markers: markers.toSet(),
+                                    child: FutureBuilder<Position>(
+                                        future: Geolocator.getCurrentPosition(
+                                            desiredAccuracy:
+                                                LocationAccuracy.high),
+                                        builder: (context, userLocation) {
+                                          if (userLocation.hasData) {
+                                            return Column(children: <Widget>[
+                                              // SizedBox(height:  MediaQuery.of(context).size.height * 0.1, width: MediaQuery.of(context).size.width,),
+                                              Expanded(
+                                                child: SizedBox(
+                                                  // width: MediaQuery.of(context).size.width,
+                                                  // height: MediaQuery.of(context).size.height * 0.89,
+                                                  child: GoogleMap(
+                                                    mapType: MapType.hybrid,
+                                                    onMapCreated:
+                                                        (GoogleMapController
+                                                            controller) {
+                                                      _controller = controller;
+                                                      moveCamera();
+                                                    },
+                                                    initialCameraPosition:
+                                                        CameraPosition(
+                                                            target: initLocation ??
+                                                                LatLng(
+                                                                    userLocation.data!.latitude,
+                                                                    userLocation.data!.longitude),
+                                                            zoom: 16.0),
+                                                    // initialCameraPosition:
+                                                    //     CameraPosition(
+                                                    //         target: LatLng(
+                                                    //             iatDataProvider
+                                                    //                 .iatData.latitude!,
+                                                    //             iatDataProvider.iatData
+                                                    //                 .longitude!),
+                                                    //         zoom: 16.0),
+                                                    markers: markers.toSet(),
 
-                                            circles: Set.of((circle != null)
-                                                ? [circle!]
-                                                : []),
-                                            // polylines: snapshotPolyline.data,
-                                            myLocationButtonEnabled: false,
-                                            zoomGesturesEnabled: true,
-                                            mapToolbarEnabled: true,
-                                            myLocationEnabled: false,
-                                            scrollGesturesEnabled: true,
-                                            // initialCameraPosition:
-                                            //     const CameraPosition(
-                                            //         target: LatLng(0.0, 0.0)),
-                                          ),
-                                        ),
-                                      ),
-                                    ]),
+                                                    circles: Set.of(
+                                                        (circle != null)
+                                                            ? [circle!]
+                                                            : []),
+                                                    polylines: iatDataProvider
+                                                                .iatData
+                                                                .escaped ==
+                                                            true
+                                                        ? Set<Polyline>.of(
+                                                            polylines.values)
+                                                        : {},
+                                                    myLocationButtonEnabled:
+                                                        false,
+                                                    zoomGesturesEnabled: true,
+                                                    mapToolbarEnabled: true,
+                                                    myLocationEnabled: false,
+                                                    scrollGesturesEnabled: true,
+                                                    // initialCameraPosition:
+                                                    //     const CameraPosition(
+                                                    //         target: LatLng(0.0, 0.0)),
+                                                  ),
+                                                ),
+                                              ),
+                                            ]);
+                                          } else {
+                                            return Loading();
+                                          }
+                                        }),
                                   ),
                                 );
                               })
@@ -386,193 +468,6 @@ class _MapLocationState extends State<MapLocation> {
                   return Loading();
                 }
               });
-          // })
-
-          // (currentPositionBle.lat != null &&
-          //             currentPositionBle.lng != null ||
-          //         currentPositionWiFi.lat != null &&
-          //             currentPositionWiFi.lng != null)
-          //     ?
-          //   Consumer3<BleModel, WiFiModel, ConnectionStatusModel>(builder:
-          //       (_, bleProvider, wifiProvider, connectionProvider, child) {
-          // return FutureBuilder(
-          //     future: mounted
-          //         ? connectionStatus.getCurrentStatus()
-          //         : Future.value(null),
-          //     initialData: false,
-          //     builder: (context, snapshot) {
-          //       if (snapshot.hasData) {
-          //         return connectionProvider.connectionStatus ==
-          //                     NetworkStatus.Offline ||
-          //                 snapshot.data == NetworkStatus.Offline
-          //             ? CupertinoAlertDialog(
-          //                 title: Text(
-          //                     'You are offline. You are going to be redirected to Offline mode'),
-          //                 actions: [
-          //                   CupertinoDialogAction(
-          //                     child: Text('OK'),
-          //                     onPressed: () {
-          //                       Navigator.push(context,
-          //                           MaterialPageRoute(builder: (context) {
-          //                         // return Radar();
-          //                         return OfflineRegionBody();
-          //                       }));
-          //                     },
-          //                   )
-          //                 ],
-          //               )
-          //             : bleProvider.lat != null && bleProvider.lng != null ||
-          //                     wifiProvider.lat != null &&
-          //                         wifiProvider.lng != null
-          //                 ? FutureBuilder(
-          //                     future: (bleProvider.timestampBLE != null &&
-          //                             wifiProvider.timestampWiFi != null &&
-          //                             bleProvider.timestampBLE!.isAfter(
-          //                                 wifiProvider
-          //                                     .timestampWiFi!)) //its sending BLE
-          //                         ? updateMarkerAndCircle(
-          //                             LatLng(
-          //                                 bleProvider.lat!, bleProvider.lng!),
-          //                             bleProvider.senderNumber,
-          //                             "green") //TODO create color logic for BLE
-          //                         : updateMarkerAndCircle(
-          //                             LatLng(
-          //                                 wifiProvider.lat!, wifiProvider.lng!),
-          //                             wifiProvider.senderNumber,
-          //                             wifiProvider
-          //                                 .senderColor!), // its sending WIFI
-          // (bleProvider.timestampBLE == null &&
-          //         wifiProvider.timestampWiFi != null) //its sending WIFI
-          //     ? updateMarkerAndCircle(
-          //         LatLng(wifiProvider.lat!,
-          //             wifiProvider.lng!),
-          //         wifiProvider.senderNumber)
-          // : (bleProvider != null &&
-          //         wifiProvider == null)
-          //     ? updateMarkerAndCircle(
-          //         LatLng(bleProvider.lat!,
-          //             bleProvider.lng!),
-          //         bleProvider.senderNumber)
-          //     : updateMarkerAndCircle(
-          //         LatLng(wifiProvider.lat!,
-          //             wifiProvider.lng!),
-          //         wifiProvider.senderNumber),
-          // initialData: Set.of(<Marker>[]),
-          // builder: (context, snapshotMarker) {
-          // return new Stack(
-          //   children: <Widget>[
-
-          // new Container(
-          //   height:
-          //       1000, // This line solved the issue
-          //   child: GoogleMap(
-          //     mapType: MapType.hybrid,
-          //     initialCameraPosition: (bleProvider
-          //                     .timestampBLE !=
-          //                 null &&
-          //             wifiProvider.timestampWiFi !=
-          //                 null &&
-          //             bleProvider.timestampBLE!
-          //                 .isAfter(wifiProvider
-          //                     .timestampWiFi!)) // BLE is sending
-          //         ? CameraPosition(
-          //             target: LatLng(bleProvider.lat!,
-          //                 bleProvider.lng!),
-          //             zoom: 16.0)
-          //         : CameraPosition(
-          //             target: LatLng(
-          //                 wifiProvider.lat!,
-          //                 wifiProvider.lng!),
-          //             zoom: 16.0), //WIFI is sending
-          //     // (bleProvider.timestampBLE == null &&
-          //     //         wifiProvider.timestampWiFi !=
-          //     //             null)  // WIFI is sending
-          //     //     ? CameraPosition(
-          //     //         target: LatLng(
-          //     //             wifiProvider.lat!,
-          //     //             wifiProvider.lng!),
-          //     //         zoom: 16.0)
-          //     //     : (bleProvider != null &&
-          //     //             wifiProvider == null)
-          //     //         ? CameraPosition(
-          //     //             target: LatLng(
-          //     //                 bleProvider.lat!,
-          //     //                 bleProvider.lng!),
-          //     //             zoom: 16.0)
-          //     //         : CameraPosition(
-          //     //             target: LatLng(bleProvider.lat!, bleProvider.lng!),
-          //     //             zoom: 16.0),
-          //     // markers: snapshotMarker.data,
-          //     markers: markers.toSet(),
-
-          //     circles: Set.of(
-          //         (circle != null) ? [circle!] : []),
-          //     // polylines: snapshotPolyline.data,
-          //     myLocationButtonEnabled: false,
-          //     zoomGesturesEnabled: true,
-          //     mapToolbarEnabled: true,
-          //     myLocationEnabled: false,
-          //     scrollGesturesEnabled: true,
-          //     onMapCreated:
-          //         (GoogleMapController controller) {
-          //       _controller = controller;
-          //       moveCamera();
-          //     },
-          //   ), // Mapbox
-          // ),
-          // connectionProvider.connectionStatus ==
-          //         NetworkStatus.Offline
-          //     ? CupertinoAlertDialog(
-          //         title: Text(
-          //             'You are offline. You are going to be redirected to Offline mode'),
-          //         actions: [
-          //           CupertinoDialogAction(
-          //             child: Text('OK'),
-          //             onPressed: () {
-          //               // TODO ENABLE WHEN MAPBOX NULLSAFETY IS AVAILABLE
-          //               // Navigator.push(context,
-          //               //     MaterialPageRoute(
-          //               //         builder: (context) {
-          //               //   // return Radar();
-          //               //   return OfflineRegionBody();
-          //               // }));
-          //             },
-          //           )
-          //         ],
-          //       )
-          //     : new Container()
-          //   ],
-          // );
-          //                       })
-          //                   : Loading();
-          //         } else {
-          //           return Loading();
-          //         }
-          //       });
-          // })
-          // :
-          // Loading()
-          //  Center(
-          //     child: Column(
-          //     mainAxisAlignment: MainAxisAlignment.center,
-          //     crossAxisAlignment: CrossAxisAlignment.center,
-          //     children: <Widget>[
-          //       Icon(FontAwesomeIcons.exclamationTriangle),
-          //       Padding(
-          //         padding: EdgeInsets.only(top: 30.0),
-          //       ),
-          //       Text(
-          //         'Whoops',
-          //         style:
-          //             TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),
-          //       ),
-          //       Padding(
-          //         padding: EdgeInsets.only(top: 15.0),
-          //       ),
-          //       Text(
-          //           'You are offline. Please connect the gateway to WiFi or Bluetooth to continue'),
-          //     ],
-          //   ))
         }));
   }
 }

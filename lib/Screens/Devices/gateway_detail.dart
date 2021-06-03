@@ -271,7 +271,8 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                       gatewayMAC: map['gID'],
                                       trackerBatteryLevel: map['tBL'],
                                       gatewayBatteryLevel: map['gBL'],
-                                      senderColor: colorString)); //
+                                      senderColor: colorString,
+                                      escaped: false)); //
                             }
                           });
                         }).catchError((e) {

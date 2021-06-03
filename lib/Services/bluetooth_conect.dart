@@ -76,6 +76,7 @@ class IATData {
   int? trackerBatteryLevel;
   int? gatewayBatteryLevel;
   String? senderColor;
+  bool? escaped;
 
   IATData(
       {this.senderMAC,
@@ -85,7 +86,8 @@ class IATData {
       this.gatewayMAC,
       this.trackerBatteryLevel,
       this.gatewayBatteryLevel,
-      this.senderColor});
+      this.senderColor,
+      this.escaped});
 
   // String? senderNumber;
   // int rssi;
