@@ -44,7 +44,10 @@ class _MapLocationState extends State<MapLocation> {
   Circle? circle;
   late GoogleMapController _controller;
   // Map<PolylineId, Polyline> _mapPolylines = {};
-  final List<LatLng> _points = <LatLng>[];
+
+  // final List<LatLng> _points = <LatLng>[];
+  Map<String, List<LatLng>> _points = <String, List<LatLng>>{};
+
   // FirebaseStorage firestore = FirebaseStorage.instance;
   Geoflutterfire geo = Geoflutterfire();
   CollectionReference reference =
@@ -57,7 +60,9 @@ class _MapLocationState extends State<MapLocation> {
   late Marker marker;
   Timer? timer;
   // List<Marker> markers = [];
-  Set<Marker> markers = Set();
+  // Set<Marker> markers = Set();
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+
   // final List<Flushbar> flushBars = [];
 
   @override
@@ -77,10 +82,10 @@ class _MapLocationState extends State<MapLocation> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _addPolyline(Provider.of<IATDataModel>(context, listen: true).iatData);
+    // _addPolyline(Provider.of<IATDataModel>(context, listen: false).iatData);
     _currentPosition = LatLng(
-        Provider.of<IATDataModel>(context, listen: true).iatData.latitude ?? 0,
-        Provider.of<IATDataModel>(context, listen: true).iatData.longitude ??
+        Provider.of<IATDataModel>(context, listen: false).iatData.latitude ?? 0,
+        Provider.of<IATDataModel>(context, listen: false).iatData.longitude ??
             0);
   }
 
@@ -88,34 +93,79 @@ class _MapLocationState extends State<MapLocation> {
     final PolylineId polylineId = PolylineId(iatData.senderMAC ?? "");
     // final List<LatLng> _points = <LatLng>[];
 
-    if (_points.length == 0 &&
-        iatData.latitude != 0 &&
-        iatData.longitude != 0) {
-      _points.add(LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0));
-    } else if (_points.length > 0 &&
-        iatData.latitude != 0 &&
-        iatData.longitude != 0) {
-      if (_calculateMeters(_points.last,
-              LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0)) >
-          15) {
-        _points.add(LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0));
+    if (_points.length > 0) {
+      if (!_points.containsKey(iatData.senderMAC) &&
+          iatData.latitude != 0 &&
+          iatData.longitude != 0) {
+        // if (_points[iatData.senderMAC]!.last.latitude != iatData.latitude ||
+        //     _points[iatData.senderMAC]!.last.longitude != iatData.longitude) {
+        _points
+            .putIfAbsent(iatData.senderMAC ?? "", () => <LatLng>[])
+            .add(LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0));
+        final Polyline polyline = Polyline(
+          polylineId: polylineId,
+          consumeTapEvents: true,
+          color: AuxFunc().getColor(iatData.senderColor),
+          width: 5,
+          points: _points[iatData.senderMAC]!,
+          // onTap: () {
+          //   _onPolylineTapped(polylineId);
+          // },
+        );
+        setState(() {
+          polylines[polylineId] = polyline;
+        });
+        // _points.add(LatLng(iatData.latitude ?? 0, iatDat  a.longitude ?? 0));
+        // }
+      } 
+      else if (_points.containsKey(iatData.senderMAC) &&
+              iatData.latitude != 0 &&
+              iatData.longitude != 0 &&
+              _points[iatData.senderMAC]!.last.latitude != iatData.latitude ||
+          _points[iatData.senderMAC]!.last.longitude != iatData.longitude) {
+        if (_calculateMeters(_points[iatData.senderMAC]!.last,
+                LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0)) >
+            15) {
+          _points
+              .putIfAbsent(iatData.senderMAC ?? "", () => <LatLng>[])
+              .add(LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0));
+          final Polyline polyline = Polyline(
+            polylineId: polylineId,
+            consumeTapEvents: true,
+            color: AuxFunc().getColor(iatData.senderColor),
+            width: 5,
+            points: _points[iatData.senderMAC]!,
+            // onTap: () {
+            //   _onPolylineTapped(polylineId);
+            // },
+          );
+          setState(() {
+            polylines[polylineId] = polyline;
+          });
+          // _points.add(LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0));
+        }
+      }
+    } else {
+      if (iatData.latitude != 0 && iatData.longitude != 0) {
+        _points
+            .putIfAbsent(iatData.senderMAC ?? "", () => <LatLng>[])
+            .add(LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0));
+        // _points.add(LatLng(iatData.latitude ?? 0, iatDat  a.longitude ?? 0));
+        final Polyline polyline = Polyline(
+          polylineId: polylineId,
+          consumeTapEvents: true,
+          color: AuxFunc().getColor(iatData.senderColor),
+          width: 5,
+          points: _points[iatData.senderMAC]!,
+          // onTap: () {
+          //   _onPolylineTapped(polylineId);
+          // },
+        );
+        setState(() {
+          polylines[polylineId] = polyline;
+        });
       }
     }
-
-    final Polyline polyline = Polyline(
-      polylineId: polylineId,
-      consumeTapEvents: true,
-      color: AuxFunc().getColor(iatData.senderColor),
-      width: 5,
-      points: _points,
-      // onTap: () {
-      //   _onPolylineTapped(polylineId);
-      // },
-    );
-
-    setState(() {
-      polylines[polylineId] = polyline;
-    });
   }
 
   double _calculateMeters(LatLng latLng1, LatLng latLng2) {
@@ -190,7 +240,7 @@ class _MapLocationState extends State<MapLocation> {
                 gwBatteryLevel = documentSnapshot['batteryLevel'];
               }
             });
-            context.read<IATDataModel>().addIatData(new IATData(
+            var tempIatData = new IATData(
                 senderMAC: firestoreInfo["senderMac"],
                 latitude: firestoreInfo['Location']['Latitude'],
                 longitude: firestoreInfo['Location']['Longitude'],
@@ -202,7 +252,15 @@ class _MapLocationState extends State<MapLocation> {
                 trackerBatteryLevel: firestoreInfo['batteryLevel'],
                 gatewayBatteryLevel: gwBatteryLevel,
                 senderColor: firestoreInfo['color'],
-                escaped: firestoreInfo['escaped']));
+                escaped: firestoreInfo['escaped']);
+            context.read<IATDataModel>().addIatData(tempIatData);
+
+            updateMarkerAndCircle(
+                LatLng(tempIatData.latitude!, tempIatData.longitude!),
+                'SD-' + tempIatData.senderMAC!,
+                tempIatData.senderColor!);
+
+            _addPolyline(tempIatData);
           });
         });
       });
@@ -237,23 +295,39 @@ class _MapLocationState extends State<MapLocation> {
     return false;
   }
 
-  Future<Set<Marker>> updateMarkerAndCircle(
+  void updateMarkerAndCircle(
       LatLng latlong, String? sender, String senderColor) async {
+        
     LatLng latlng = LatLng(latlong.latitude, latlong.longitude);
     late Uint8List imageData;
     String pathColor = 'assets/images/' + 'dogpin_' + senderColor + '.png';
     ByteData byteData = await DefaultAssetBundle.of(context).load(pathColor);
     imageData = byteData.buffer.asUint8List();
+
     _currentPosition = latlong;
-    // setState(() {
-    //   markers[0] = marker.copyWith(
-    //       positionParam: LatLng(latlong.latitude, latlong.longitude));
-    // });
-    // } else {
+
     if (markers.length > 0) {
-      markers.removeWhere(
-          (marker) => marker.mapsId.value.toString() == 'SD-' + sender!);
+      if (markers.containsKey(sender!)) {
+        final Marker resetOld =
+            markers[sender]!.copyWith(positionParam: _currentPosition);
+        markers[MarkerId(sender)] = resetOld;
+      }
+      // markers.removeWhere(
+      //     (marker) => marker.mapsId.value.toString() == 'SD-' + sender!);
     }
+    // if (markers.containsKey('SD-' + sender!)) {
+    //   final Marker resetOld = markers[previousMarkerId]!
+    //       .copyWith(iconParam: BitmapDescriptor.defaultMarker);
+    //   markers[previousMarkerId] = resetOld;
+    // }
+    // selectedMarker = markerId;
+    // final Marker newMarker = tappedMarker.copyWith(
+    //   iconParam: BitmapDescriptor.defaultMarkerWithHue(
+    //     BitmapDescriptor.hueGreen,
+    //   ),
+    // );
+
+    // markers[markerId] = newMarker;
     marker = Marker(
         markerId: MarkerId(sender!),
         position: latlng,
@@ -263,47 +337,12 @@ class _MapLocationState extends State<MapLocation> {
         flat: true,
         anchor: Offset(0.5, 0.5),
         icon: BitmapDescriptor.fromBytes(imageData));
-    markers.add(marker);
-    //   for (var i = 0; i < 4; i++) {
-    //     if (markers[i].markerId.value == sender) {
-    //       setState(() {
-    //         markers[i] = marker.copyWith(
-    //             positionParam: LatLng(latlong.latitude, latlong.longitude));
-    //       });
-    //     } else {
-    //       marker = Marker(
-    //           markerId: MarkerId(sender!),
-    //           position: latlng,
-    //           // rotation: BleSingleton.shared.heading,
-    //           draggable: false,
-    //           zIndex: 2,
-    //           flat: true,
-    //           anchor: Offset(0.5, 0.5),
-    //           icon: BitmapDescriptor.fromBytes(imageData));
-    //       setState(() {
-    //         markers.add(marker);
-    //       });
-    //     }
-    //   }
-    // } else {
-    //   marker = Marker(
-    //       markerId: MarkerId(sender!),
-    //       position: latlng,
-    //       // rotation: BleSingleton.shared.heading,
-    //       draggable: false,
-    //       zIndex: 2,
-    //       flat: true,
-    //       anchor: Offset(0.5, 0.5),
-    //       icon: BitmapDescriptor.fromBytes(imageData));
-    //   setState(() {
-    //     markers.add(marker);
-    //   });
-    // }
 
+    setState(() {
+      markers[MarkerId(sender)] = marker;
+    });
     // markers.add(marker);
-    // }
-    // }
-    return markers.toSet();
+    // return markers.toSet();
   }
 
   // Uint8List imageData = await getMarker();
@@ -383,86 +422,88 @@ class _MapLocationState extends State<MapLocation> {
                         )
                       : iatDataProvider.iatData.latitude != null &&
                               iatDataProvider.iatData.longitude != null
-                          ? FutureBuilder(
-                              future: //its sending BLE
-                                  updateMarkerAndCircle(
-                                      LatLng(iatDataProvider.iatData.latitude!,
-                                          iatDataProvider.iatData.longitude!),
-                                      iatDataProvider.iatData.senderMAC,
-                                      iatDataProvider.iatData
-                                          .senderColor!), // its sending WIFI
-                              initialData: Set.of(<Marker>[]),
-                              builder: (context, snapshotMarker) {
-                                return Align(
-                                  child: SafeArea(
-                                    child: FutureBuilder<Position>(
-                                        future: Geolocator.getCurrentPosition(
-                                            desiredAccuracy:
-                                                LocationAccuracy.high),
-                                        builder: (context, userLocation) {
-                                          if (userLocation.hasData) {
-                                            return Column(children: <Widget>[
-                                              // SizedBox(height:  MediaQuery.of(context).size.height * 0.1, width: MediaQuery.of(context).size.width,),
-                                              Expanded(
-                                                child: SizedBox(
-                                                  // width: MediaQuery.of(context).size.width,
-                                                  // height: MediaQuery.of(context).size.height * 0.89,
-                                                  child: GoogleMap(
-                                                    mapType: MapType.hybrid,
-                                                    onMapCreated:
-                                                        (GoogleMapController
-                                                            controller) {
-                                                      _controller = controller;
-                                                      moveCamera();
-                                                    },
-                                                    initialCameraPosition:
-                                                        CameraPosition(
-                                                            target: initLocation ??
-                                                                LatLng(
-                                                                    userLocation.data!.latitude,
-                                                                    userLocation.data!.longitude),
-                                                            zoom: 16.0),
-                                                    // initialCameraPosition:
-                                                    //     CameraPosition(
-                                                    //         target: LatLng(
-                                                    //             iatDataProvider
-                                                    //                 .iatData.latitude!,
-                                                    //             iatDataProvider.iatData
-                                                    //                 .longitude!),
-                                                    //         zoom: 16.0),
-                                                    markers: markers.toSet(),
-
-                                                    circles: Set.of(
-                                                        (circle != null)
-                                                            ? [circle!]
-                                                            : []),
-                                                    polylines: iatDataProvider
-                                                                .iatData
-                                                                .escaped ==
-                                                            true
-                                                        ? Set<Polyline>.of(
-                                                            polylines.values)
-                                                        : {},
-                                                    myLocationButtonEnabled:
-                                                        false,
-                                                    zoomGesturesEnabled: true,
-                                                    mapToolbarEnabled: true,
-                                                    myLocationEnabled: false,
-                                                    scrollGesturesEnabled: true,
-                                                    // initialCameraPosition:
-                                                    //     const CameraPosition(
-                                                    //         target: LatLng(0.0, 0.0)),
-                                                  ),
-                                                ),
+                          ?
+                          // FutureBuilder(
+                          //     future: //its sending BLE
+                          //         updateMarkerAndCircle(
+                          //             LatLng(iatDataProvider.iatData.latitude!,
+                          //                 iatDataProvider.iatData.longitude!),
+                          //             iatDataProvider.iatData.senderMAC,
+                          //             iatDataProvider.iatData
+                          //                 .senderColor!), // its sending WIFI
+                          //     initialData: Set.of(<Marker>[]),
+                          //     builder: (context, snapshotMarker) {
+                          Align(
+                              child: SafeArea(
+                                child: FutureBuilder<Position>(
+                                    future: Geolocator.getCurrentPosition(
+                                        desiredAccuracy: LocationAccuracy.high),
+                                    builder: (context, userLocation) {
+                                      if (userLocation.hasData) {
+                                        return Column(children: <Widget>[
+                                          // SizedBox(height:  MediaQuery.of(context).size.height * 0.1, width: MediaQuery.of(context).size.width,),
+                                          Expanded(
+                                            child: SizedBox(
+                                              // width: MediaQuery.of(context).size.width,
+                                              // height: MediaQuery.of(context).size.height * 0.89,
+                                              child: GoogleMap(
+                                                mapType: MapType.hybrid,
+                                                onMapCreated:
+                                                    (GoogleMapController
+                                                        controller) {
+                                                  _controller = controller;
+                                                  moveCamera();
+                                                },
+                                                initialCameraPosition:
+                                                    CameraPosition(
+                                                        target: initLocation ??
+                                                            LatLng(
+                                                                userLocation
+                                                                    .data!
+                                                                    .latitude,
+                                                                userLocation
+                                                                    .data!
+                                                                    .longitude),
+                                                        zoom: 16.0),
+                                                // initialCameraPosition:
+                                                //     CameraPosition(
+                                                //         target: LatLng(
+                                                //             iatDataProvider
+                                                //                 .iatData.latitude!,
+                                                //             iatDataProvider.iatData
+                                                //                 .longitude!),
+                                                //         zoom: 16.0),
+                                                // markers: markers.toSet(),
+                                                markers: Set<Marker>.of(
+                                                    markers.values),
+                                                circles: Set.of((circle != null)
+                                                    ? [circle!]
+                                                    : []),
+                                                polylines: iatDataProvider
+                                                            .iatData.escaped ==
+                                                        true
+                                                    ? Set<Polyline>.of(
+                                                        polylines.values)
+                                                    : {},
+                                                myLocationButtonEnabled: false,
+                                                zoomGesturesEnabled: true,
+                                                mapToolbarEnabled: true,
+                                                myLocationEnabled: false,
+                                                scrollGesturesEnabled: true,
+                                                // initialCameraPosition:
+                                                //     const CameraPosition(
+                                                //         target: LatLng(0.0, 0.0)),
                                               ),
-                                            ]);
-                                          } else {
-                                            return Loading();
-                                          }
-                                        }),
-                                  ),
-                                );
-                              })
+                                            ),
+                                          ),
+                                        ]);
+                                      } else {
+                                        return Loading();
+                                      }
+                                    }),
+                              ),
+                              // );
+                            )
                           : new Container();
                 } else {
                   return Loading();
