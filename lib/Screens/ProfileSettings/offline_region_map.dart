@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
 import 'package:flutter_maps/Services/bluetooth_conect.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:provider/provider.dart';
@@ -26,7 +27,8 @@ class _OfflineRegionMapState extends State<OfflineRegionMap> {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   bool? _finishedLoadingMap = false;
   Map<String, Symbol> _symbols = <String, Symbol>{};
-
+  Map<String, List<Line>> _polylines = <String, List<Line>>{};
+  Map<String, List<LatLng>> _polyLinesLatLongs = <String, List<LatLng>>{};
   CollectionReference sendersCollection =
       FirebaseFirestore.instance.collection('sender');
   @override
@@ -43,23 +45,182 @@ class _OfflineRegionMapState extends State<OfflineRegionMap> {
     super.dispose();
   }
 
-  // Future<void> _initSenders() async {
+  void _addPolyline(IATData iatData) async {
+    if (_finishedLoadingMap == true) {
+      // if (_polylines.length > 0) {
+      //   if (_polylines.containsKey(iatData.senderMAC!)) {
+      //     setState(() async {
+      //       await controller.updateLine( _polylines[iatData.senderMAC!]!, changes)
+      //        ,
+      //         SymbolOptions(geometry: _geometry),
+      //       );
+      //     });
+      //   }
+      // }
+      _polyLinesLatLongs
+          .putIfAbsent(iatData.senderMAC ?? "", () => <LatLng>[])
+          .add(LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0));
 
-  // }
+      Line newLine = await controller.addLine(
+        LineOptions(
+            geometry: _polyLinesLatLongs[iatData.senderMAC ?? ""]!,
+            // geometry: [
+            //   LatLng(46.5273986264652, -80.9562962707178),
+            //   LatLng(46.521364581404235, -80.94025190931048),
+            //   LatLng(46.52189712161899, -80.95885883495315),
+            // ],
+            lineColor: AuxFunc().colorCodeFromName(iatData.senderColor ?? ""),
+            lineWidth: 8.0,
+            lineOpacity: 1,
+            draggable: false),
+      );
+      // Line newLine = await controller.addLine(
+      //   LineOptions(
+      //       geometry: [
+      //         LatLng(46.5273986264652, -80.9562962707178),
+      //         LatLng(46.521364581404235, -80.94025190931048),
+      //         LatLng(46.52189712161899, -80.95885883495315),
+      //       ],
+      //       lineColor: '#ff00e676',
+      //       lineWidth: 8.0,
+      //       lineOpacity: 1,
+      //       draggable: false),
+      // );
+      _polylines
+          .putIfAbsent(iatData.senderMAC ?? "", () => <Line>[])
+          .add(newLine);
+    }
+  }
 
-  // void _initAddSymbol() {
-  //   var tempIatData = Provider.of<IATDataModel>(context, listen: false).iatData;
-  //   _add(tempIatData);
+  void _addPolylinex(IATData iatData) {
+    // final List<LatLng> _points = <LatLng>[];
+
+    // if (_polylines.length > 0) {
+    //   if (!_polylines.containsKey(iatData.senderMAC) &&
+    //       iatData.latitude != 0 &&
+    //       iatData.longitude != 0) {
+    // if (_points[iatData.senderMAC]!.last.latitude != iatData.latitude ||
+    //     _points[iatData.senderMAC]!.last.longitude != iatData.longitude) {
+
+    // setState(() async {
+    if (_finishedLoadingMap == true) {
+      this.controller.addLine(
+            LineOptions(
+                geometry: [
+                  LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0),
+                ],
+                lineColor:
+                    AuxFunc().colorCodeFromName(iatData.senderColor ?? ""),
+                lineWidth: 28,
+                lineOpacity: 1,
+                draggable: false),
+          );
+      // .then((newLine) => {
+      //       _polylines
+      //           .putIfAbsent(iatData.senderMAC ?? "", () => <Line>[])
+      //           .add(newLine)
+      //     });
+    }
+
+    // _polylines
+    //     .putIfAbsent(iatData.senderMAC ?? "", () => <Line>[])
+    //     .add(newLine);
+    // });
+  }
+
+  //       final Polyline polyline = Polyline(
+  //         polylineId: polylineId,
+  //         consumeTapEvents: true,
+  //         color: AuxFunc().getColor(iatData.senderColor),
+  //         width: 5,
+  //         points: _points[iatData.senderMAC]!,
+  //         // onTap: () {
+  //         //   _onPolylineTapped(polylineId);
+  //         // },
+  //       );
+  //       setState(() {
+  //         polylines[polylineId] = polyline;
+  //       });
+  //       // _points.add(LatLng(iatData.latitude ?? 0, iatDat  a.longitude ?? 0));
+  //       // }
+  //     } else if (_points.containsKey(iatData.senderMAC) &&
+  //             iatData.latitude != 0 &&
+  //             iatData.longitude != 0 &&
+  //             _points[iatData.senderMAC]!.last.latitude != iatData.latitude ||
+  //         _points[iatData.senderMAC]!.last.longitude != iatData.longitude) {
+  //       if (_calculateMeters(_points[iatData.senderMAC]!.last,
+  //               LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0)) >
+  //           15) {
+  //         _points
+  //             .putIfAbsent(iatData.senderMAC ?? "", () => <LatLng>[])
+  //             .add(LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0));
+  //         final Polyline polyline = Polyline(
+  //           polylineId: polylineId,
+  //           consumeTapEvents: true,
+  //           color: AuxFunc().getColor(iatData.senderColor),
+  //           width: 5,
+  //           points: _points[iatData.senderMAC]!,
+  //           // onTap: () {
+  //           //   _onPolylineTapped(polylineId);
+  //           // },
+  //         );
+  //         setState(() {
+  //           polylines[polylineId] = polyline;
+  //         });
+  //         // _points.add(LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0));
+  //       }
+  //     }
+  //   } else {
+  //     if (iatData.latitude != 0 && iatData.longitude != 0) {
+  //       _points
+  //           .putIfAbsent(iatData.senderMAC ?? "", () => <LatLng>[])
+  //           .add(LatLng(iatData.latitude ?? 0, iatData.longitude ?? 0));
+  //       // _points.add(LatLng(iatData.latitude ?? 0, iatDat  a.longitude ?? 0));
+  //       final Polyline polyline = Polyline(
+  //         polylineId: polylineId,
+  //         consumeTapEvents: true,
+  //         color: AuxFunc().getColor(iatData.senderColor),
+  //         width: 5,
+  //         points: _points[iatData.senderMAC]!,
+  //         // onTap: () {
+  //         //   _onPolylineTapped(polylineId);
+  //         // },
+  //       );
+  //       setState(() {
+  //         polylines[polylineId] = polyline;
+  //       });
+  //     }
+  //   }
   // }
-  // void _onMapChanged() {
-  //   // setState(() {
-  //   _add(Provider.of<IATDataModel>(context, listen: false).iatData);
-  //   // });
-  // }
+  void _add(IATData iatData) async {
+    if (_finishedLoadingMap == true) {
+      LatLng _geometry = LatLng(
+        iatData.latitude ?? 0,
+        iatData.longitude ?? 0,
+      );
+      if (_symbols.length > 0) {
+        if (_symbols.containsKey(iatData.senderMAC!)) {
+          setState(() async {
+            await controller.updateSymbol(
+              _symbols[iatData.senderMAC!]!,
+              SymbolOptions(geometry: _geometry),
+            );
+          });
+        }
+      }
+      _symbols[iatData.senderMAC!] = await controller.addSymbol(SymbolOptions(
+        geometry: _geometry,
+        iconImage: "assets/images/dogpin_${iatData.senderColor}.png",
+      ));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     _add(Provider.of<IATDataModel>(context, listen: true).iatData);
+    // _addPolyline();
+
+    _addPolyline(Provider.of<IATDataModel>(context, listen: true).iatData);
     return Scaffold(
       appBar: AppBar(
         title: Text('Offline Region: ${widget.item.name}'),
@@ -156,79 +317,6 @@ class _OfflineRegionMapState extends State<OfflineRegionMap> {
           });
         });
       });
-    }
-  }
-
-  void _add(IATData iatData) async {
-    if (_finishedLoadingMap == true) {
-      LatLng _geometry = LatLng(
-        iatData.latitude ?? 0,
-        iatData.longitude ?? 0,
-        // _center.latitude + sin(symbolCount * pi / 6.0) / 20.0,
-        // _center.longitude + cos(symbolCount * pi / 6.0) / 20.0,
-      );
-
-      if (_symbols.length > 0) {
-        if (_symbols.containsKey(iatData.senderMAC!)) {
-          setState(()async {
-                          await controller.updateSymbol(
-            _symbols[iatData.senderMAC!]!,
-            SymbolOptions(geometry: _geometry),
-          );
-                    });
-          // await controller.updateSymbol(
-          //   _symbols[iatData.senderMAC!]!,
-          //   SymbolOptions(geometry: _geometry),
-          // );
-        }
-        // markers.removeWhere(
-        //     (marker) => marker.mapsId.value.toString() == 'SD-' + sender!);
-      }
-      _symbols[iatData.senderMAC!] = await controller.addSymbol(SymbolOptions(
-        // textField: iatData.senderMAC,
-        geometry: _geometry,
-        iconImage: "assets/images/dogpin_${iatData.senderColor}.png",
-      ));
-
-      // controller.addSymbol(SymbolOptions(
-      //   // textField: iatData.senderMAC,
-      //   geometry: geometry,
-      //   iconImage: "assets/images/dogpin_${iatData.senderColor}.png",
-      // ));
-
-      // controller.addSymbol(SymbolOptions(
-      //   // textField: iatData.senderMAC,
-      //   geometry: geometry,
-      //   iconImage: "assets/images/dogpin_${iatData.senderColor}.png",
-      // ));
-      //  controller.addSymbol(SymbolOptions(
-      //   // textField: iatData.senderMAC,
-      //   geometry: geometry,
-      //   iconImage: "assets/images/dogpin_${iatData.senderColor}.png",
-      // ));
-
-      // controller.updateSymbol(symbol, changes)
-      // controller.symbols.contains(value)
-
-      // controller.addSymbol(SymbolOptions(
-      //   geometry: geometry,
-      //   iconImage: "assets/images/dogpin_purple.png",
-      // ));
-      // controller.addSymbol(SymbolOptions(
-      //   geometry: LatLng(_center.latitude + sin(2 * pi / 6.0) / 20.0,
-      //       _center.longitude + cos(2 * pi / 6.0) / 20.0),
-      //   iconImage: "assets/images/dogpin_green.png",
-      // ));
-      // controller.addSymbol(SymbolOptions(
-      //   geometry: LatLng(_center.latitude + sin(3 * pi / 6.0) / 20.0,
-      //       _center.longitude + cos(3 * pi / 6.0) / 20.0),
-      //   iconImage: "assets/images/dogpin_red.png",
-      // ));
-      // controller.addSymbol(SymbolOptions(
-      //   geometry: LatLng(_center.latitude + sin(4 * pi / 6.0) / 20.0,
-      //       _center.longitude + cos(4 * pi / 6.0) / 20.0),
-      //   iconImage: "assets/images/dogpin_orange.png",
-      // ));
     }
   }
 
