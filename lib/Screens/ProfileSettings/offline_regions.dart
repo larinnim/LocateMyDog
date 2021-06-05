@@ -1,9 +1,12 @@
 
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/offline_regions_section.dart';
+import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'offline_region_map.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
@@ -162,10 +165,24 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
     Get.dialog(Text(response.errorMessage!));
   }
 
+  Future<bool> checkConnection() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.mobile) {
+      return true;
+    } else if (connectivityResult == ConnectivityResult.wifi) {
+      return true;
+    }
+    return false;
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final textController = TextEditingController();
-
+   final connectionStatus =
+        Provider.of<ConnectionStatusModel>(context, listen: false);
+        
+    connectionStatus.initConnectionListen();
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -180,7 +197,26 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
             padding: EdgeInsets.only(right: 10.0),
             child: GestureDetector(
               onTap: () async {
-                places.Prediction? p = await PlacesAutocomplete.show(
+                bool isConnected = await checkConnection();
+                if(!isConnected){
+                  showCupertinoDialog(
+                    context: context,
+                    builder: (_) => CupertinoAlertDialog(
+                          title: Text("Error"),
+                          content: Text(
+                              "You are offline. Please connect to an active internet connection to search places."),
+                          actions: [
+                            // Close the dialog
+                            // You can use the CupertinoDialogAction widget instead
+                            CupertinoButton(
+                                child: Text('Dismiss'),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                }),
+                          ],
+                  ));
+                }else{
+                  places.Prediction? p = await PlacesAutocomplete.show(
                     offset: 0,
                     radius: 1000,
                     types: []
@@ -195,7 +231,8 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
                       places.Component(places.Component.country,
                           Get.deviceLocale!.countryCode!)
                     ]);
-                displayPrediction(p);
+                  displayPrediction(p);
+                }
               },
               child: Icon(Icons.add_circle_outline),
             ),
@@ -295,8 +332,33 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
                               : Icons.file_download,
                         ),
                         onPressed: _items[index].isDownloaded
-                            ? () => _deleteRegion(_items[index], index)
-                            : () => _downloadRegion(_items[index], index),
+                            ? () async {
+                              
+                                _deleteRegion(_items[index], index);
+                            } 
+                            : () async {
+                              // bool isConnected = await checkConnection();
+                              // if(!isConnected){
+                              //   showCupertinoDialog(
+                              //     context: context,
+                              //     builder: (_) => CupertinoAlertDialog(
+                              //           title: Text("Error"),
+                              //           content: Text(
+                              //               "You are offline. Please connect to an active internet connection to download the Map."),
+                              //           actions: [
+                              //             // Close the dialog
+                              //             // You can use the CupertinoDialogAction widget instead
+                              //             CupertinoButton(
+                              //                 child: Text('Dismiss'),
+                              //                 onPressed: () {
+                              //                   Navigator.of(context).pop();
+                              //                 }),
+                              //           ],
+                              //   ));
+                              // }else{
+                                _downloadRegion(_items[index], index);
+                              // }
+                            }
                       ),
               ],
             ),

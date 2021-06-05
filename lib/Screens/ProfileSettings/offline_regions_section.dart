@@ -1,4 +1,5 @@
-
+import 'package:connectivity/connectivity.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import './offline_regions.dart';
@@ -28,6 +29,16 @@ class _OfflineRegionMapSelectionState extends State<OfflineRegionMapSelection> {
   LatLngBounds? mapBounds;
   // ignore: unused_field
   CameraPosition? _position;
+
+  Future<bool> checkConnection() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.mobile) {
+      return true;
+    } else if (connectivityResult == ConnectivityResult.wifi) {
+      return true;
+    }
+    return false;
+  }
 
   @override
   void initState() {
@@ -87,8 +98,28 @@ class _OfflineRegionMapSelectionState extends State<OfflineRegionMapSelection> {
                           RoundedRectangleBorder(
                               borderRadius: BorderRadius.zero,
                               side: BorderSide(color: Colors.red[300]!)))),
-                  onPressed: () {
-                    _downloadRegion();
+                  onPressed: () async {
+                    bool isConnected = await checkConnection();
+                    if (!isConnected) {
+                      showCupertinoDialog(
+                          context: context,
+                          builder: (_) => CupertinoAlertDialog(
+                                title: Text("Error"),
+                                content: Text(
+                                    "You are offline. Please connect to an active internet connection to search places."),
+                                actions: [
+                                  // Close the dialog
+                                  // You can use the CupertinoDialogAction widget instead
+                                  CupertinoButton(
+                                      child: Text('Dismiss'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      }),
+                                ],
+                              ));
+                    } else {
+                      _downloadRegion();
+                    }
                   }),
             ),
           ],
@@ -132,26 +163,25 @@ class _OfflineRegionMapSelectionState extends State<OfflineRegionMapSelection> {
     // });
 
     try {
-
       if (mapBounds == null) {
         mapBounds = await mapController.getVisibleRegion();
       }
 
-      // final downloadingRegion = await downloadOfflineRegion(
-      //   OfflineRegionDefinition(
-      //     bounds: mapBounds!,
-      //     minZoom: _position!.zoom - 1,
-      //     maxZoom: _position!.zoom + 1,
-      //     mapStyleUrl: MapboxStyles.MAPBOX_STREETS,
-      //   ),
-      //   metadata: {
-      //     'name': 'Map ' + _numberOfRegions.toString(),
+      final downloadingRegion = await downloadOfflineRegion(
+        OfflineRegionDefinition(
+          bounds: mapBounds!,
+          minZoom: _position!.zoom - 1,
+          maxZoom: _position!.zoom + 1,
+          mapStyleUrl: MapboxStyles.MAPBOX_STREETS,
+        ),
+        metadata: {
+          'name': 'Map ' + _numberOfRegions.toString(),
 
-      //     // 'name': 'Map ' + _numberOfRegions.toString(),
-      //   },
-      //   accessToken:
-      //       "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w",
-      // );
+          // 'name': 'Map ' + _numberOfRegions.toString(),
+        },
+        accessToken:
+            "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w",
+      );
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (_) => OfflineRegionBody(),

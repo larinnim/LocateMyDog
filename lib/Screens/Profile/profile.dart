@@ -294,7 +294,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               Avatar(
                                                 avatarUrl: _auth.currentUser !=
                                                         null
-                                                    ? _auth.currentUser!
+                                                    ? 
+                                                       connectionStatusProvider
+                                                                  .connectionStatus ==
+                                                              NetworkStatus
+                                                                  .Offline ||
+                                                          snapshot.data ==
+                                                              NetworkStatus
+                                                                  .Offline ? 
+                                                                  'offline' :
+                                                    _auth.currentUser!
                                                                 .photoURL !=
                                                             null
                                                         ? !_auth.currentUser!
