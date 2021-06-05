@@ -117,8 +117,7 @@ class _MapLocationState extends State<MapLocation> {
         });
         // _points.add(LatLng(iatData.latitude ?? 0, iatDat  a.longitude ?? 0));
         // }
-      } 
-      else if (_points.containsKey(iatData.senderMAC) &&
+      } else if (_points.containsKey(iatData.senderMAC) &&
               iatData.latitude != 0 &&
               iatData.longitude != 0 &&
               _points[iatData.senderMAC]!.last.latitude != iatData.latitude ||
@@ -253,8 +252,8 @@ class _MapLocationState extends State<MapLocation> {
                 gatewayBatteryLevel: gwBatteryLevel,
                 senderColor: firestoreInfo['color'],
                 escaped: firestoreInfo['escaped']);
-            context.read<IATDataModel>().addIatData(tempIatData);
-
+            // context.read<IATDataModel>().addIatData(tempIatData);
+            context.read<IATDataModel>().iatData = tempIatData;
             updateMarkerAndCircle(
                 LatLng(tempIatData.latitude!, tempIatData.longitude!),
                 'SD-' + tempIatData.senderMAC!,
@@ -297,7 +296,6 @@ class _MapLocationState extends State<MapLocation> {
 
   void updateMarkerAndCircle(
       LatLng latlong, String? sender, String senderColor) async {
-        
     LatLng latlng = LatLng(latlong.latitude, latlong.longitude);
     late Uint8List imageData;
     String pathColor = 'assets/images/' + 'dogpin_' + senderColor + '.png';

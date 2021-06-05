@@ -257,9 +257,7 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                               final colorString = prefs.getString(
                                       'color-' + 'SD-' + map['sID']) ??
                                   "";
-
-                              context.read<IATDataModel>().addIatData(
-                                  new IATData(
+                      context.read<IATDataModel>().iatData =  new IATData(
                                       senderMAC: map['sID'],
                                       latitude: map['lat'],
                                       longitude: map['lng'],
@@ -272,7 +270,23 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                                       trackerBatteryLevel: map['tBL'],
                                       gatewayBatteryLevel: map['gBL'],
                                       senderColor: colorString,
-                                      escaped: false)); //
+                                      escaped: false);
+                                      
+                              // context.read<IATDataModel>().addIatData(
+                              //     new IATData(
+                              //         senderMAC: map['sID'],
+                              //         latitude: map['lat'],
+                              //         longitude: map['lng'],
+                              //         locationTimestamp: DateFormat("dd/MM/yyyy HH:mm:ss").parse(map['d'] + " " + map['t'])
+                              //             .millisecondsSinceEpoch,
+                              //         // date: DateTime.parse('1974-03-20 00:00:00.000'),
+                              //         // date: map['d'],
+                              //         // time: map['t'],
+                              //         gatewayMAC: map['gID'],
+                              //         trackerBatteryLevel: map['tBL'],
+                              //         gatewayBatteryLevel: map['gBL'],
+                              //         senderColor: colorString,
+                              //         escaped: false)); //
                             }
                           });
                         }).catchError((e) {

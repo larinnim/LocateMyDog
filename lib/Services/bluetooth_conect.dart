@@ -98,7 +98,7 @@ class IATData {
 }
 
 class IATDataModel extends ChangeNotifier {
-  var iatData = IATData(
+  var _iatData = IATData(
     senderMAC: "",
     latitude: 0.0,
     longitude: 0.0,
@@ -108,11 +108,21 @@ class IATDataModel extends ChangeNotifier {
     gatewayBatteryLevel: 0,
     senderColor: "",
   );
+    /// The current catalog. Used to construct items from numeric ids.
+  IATData get iatData => _iatData;
 
-  void addIatData(IATData item) {
-    iatData = item;
+ set iatData(IATData iatData) {
+    _iatData = iatData;
+    // Notify listeners, in case the new catalog provides information
+    // different from the previous one. For example, availability of an item
+    // might have changed.
     notifyListeners();
   }
+
+  // void addIatData(IATData item) {
+  //   iatData = item;
+  //   notifyListeners();
+  // }
 }
 
 class BleModel extends ChangeNotifier {
