@@ -34,7 +34,7 @@ class _OfflineRegionMapState extends State<OfflineRegionMap> {
   @override
   void initState() {
     super.initState();
-    readDatabase(); // set context read
+    _initSenders(); // set context read
   }
 
   @override
@@ -43,6 +43,34 @@ class _OfflineRegionMapState extends State<OfflineRegionMap> {
     //   controller.removeListener(_onMapChanged);
     // }
     super.dispose();
+  }
+
+  Future<void> _initSenders() async {
+    await sendersCollection
+        .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        var tempIatData = new IATData(
+            senderMAC: doc["senderMac"],
+            latitude: doc['Location']['Latitude'],
+            longitude: doc['Location']['Longitude'],
+            locationTimestamp: doc['LocationTimestamp'] != ""
+                ? DateTime.parse(doc['LocationTimestamp'])
+                    .millisecondsSinceEpoch
+                : 0,
+            gatewayMAC: doc['gatewayID'],
+            trackerBatteryLevel: doc['batteryLevel'],
+            gatewayBatteryLevel:
+                0, //Doesnt matter which value we just want the location,
+            senderColor: doc['color'],
+            escaped: doc['escaped']);
+        // setState(() {
+          _add(tempIatData);
+        // });
+      });
+    });
+    readDatabase(); // set context read
   }
 
   void _addPolyline(IATData iatData) async {
