@@ -11,10 +11,11 @@ module.exports = functions.pubsub
 
     console.log('The function was triggered at: ', context.timestamp);
     console.log('The unique ID for the event is: ', context.eventId);
-    console.log('Received: Gateway Battery Level: ', message.json.gatewayBatteryLevel);
-    console.log('Received: Tracker Battery Level: ', message.json.trackerBatteryLevel);
-    console.log('Received: GatewayID: ', message.json.gatewayID);
-    console.log('Received: Escaped: ', message.json.escaped);
+    console.log('The message is: ', message.json);
+    // console.log('Received: Gateway Battery Level: ', message.json.gBL);
+    // console.log('Received: Tracker Battery Level: ', message.json.tBL);
+    // console.log('Received: GatewayID: ', message.json.gID);
+    // console.log('Received: Escaped: ', message.json.escaped);
 
     var senderMac = message.json.sID;
     var senderName = "";
@@ -43,9 +44,9 @@ module.exports = functions.pubsub
 
     var gatewayRef = firestore
       .collection("gateway")
-      .doc("GW-" + message.json.gatewayID);
+      .doc("GW-" + message.json.gID);
 
-      gatewayID = "GW-" + message.json.gatewayID;
+      gatewayID = "GW-" + message.json.gID;
 
       await gatewayRef.get().then((gatewayFields) => {
         if(!gatewayFields.exist){
@@ -58,7 +59,7 @@ module.exports = functions.pubsub
       });
       
       console.log(`Gateway Ref" ${gatewayRef}`);
-      console.log(`Gateway REF DOC " ${"GW-" + message.json.gatewayID}`);
+      console.log(`Gateway REF DOC " ${"GW-" + message.json.gID}`);
       console.log(`Sender Ref" ${deviceRef}`);
       console.log(`Sender REF DOC " ${senderID}`);
 
@@ -97,7 +98,7 @@ module.exports = functions.pubsub
               );    
             if (receivedEscaped == true) {
                 console.log(
-                    `Configuring batteryLevel, latitude and longitude....`
+                    `We Received Escaped.... Escaped = TRUE`
                   );   
                
                   
