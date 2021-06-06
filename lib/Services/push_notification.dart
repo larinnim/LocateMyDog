@@ -188,30 +188,33 @@ class PushNotificationsManager {
 // If the message also contains a data property with a "type" of "chat",
         // navigate to a chat screen
         message ?? print('Push message is null');
-        String messageid = await getFcmId(message!.messageId!);
-        // if (message != null && messageid.isNotEmpty) {
-        if (messageid.isNotEmpty) {
-          setFcmId(message.messageId!);
-          if (message.data['type'] == 'map') {
-            // Get.to(MapLocation());
-            Get.offAllNamed('/blueMap');
-          } else if (message.data['type'] == 'gatewayBatteryLevel') {
-            Get.to(GatewayDetails(
-                title: message.data['gatewayName'],
-                gatewayMAC: message.data['gatewayMAC']));
-          } else if (message.data['type'] == 'trackerBatteryLevel') {
-            String gatewayMAC = message.data['gatewayID'];
-            await getAvailableColors(
-                    AuxFunc().getColor(message.data['senderColor']), gatewayMAC)
-                .then((availableColors) {
-              Get.to(DeviceDetail(), arguments: [
-                message.data['senderMac'],
-                message.data['senderColor'],
-                message.data['batteryLevel'],
-                message.data['senderID'],
-                availableColors
-              ]);
-            });
+        if (message != null) {
+          String messageid = await getFcmId(message.messageId!);
+          // if (message != null && messageid.isNotEmpty) {
+          if (messageid.isNotEmpty) {
+            setFcmId(message.messageId!);
+            if (message.data['type'] == 'map') {
+              // Get.to(MapLocation());
+              Get.offAllNamed('/blueMap');
+            } else if (message.data['type'] == 'gatewayBatteryLevel') {
+              Get.to(GatewayDetails(
+                  title: message.data['gatewayName'],
+                  gatewayMAC: message.data['gatewayMAC']));
+            } else if (message.data['type'] == 'trackerBatteryLevel') {
+              String gatewayMAC = message.data['gatewayID'];
+              await getAvailableColors(
+                      AuxFunc().getColor(message.data['senderColor']),
+                      gatewayMAC)
+                  .then((availableColors) {
+                Get.to(DeviceDetail(), arguments: [
+                  message.data['senderMac'],
+                  message.data['senderColor'],
+                  message.data['batteryLevel'],
+                  message.data['senderID'],
+                  availableColors
+                ]);
+              });
+            }
           }
         }
       });

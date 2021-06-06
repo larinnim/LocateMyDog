@@ -16,17 +16,19 @@ module.exports = functions.pubsub
     console.log('Received: GatewayID: ', message.json.gatewayID);
     console.log('Received: Escaped: ', message.json.escaped);
 
-    var senderMac = message.json.senderID;
+    var senderMac = message.json.sID;
     var senderName = "";
     var senderColor = "";
-    var senderID = "SD-" + message.json.senderID;
-    var newLat = message.json.latitude;
-    var newLng = message.json.longitude;
-    var gatewayBatteryLevel = message.json.gatewayBatteryLevel;
-    var trackerBatteryLevel = message.json.trackerBatteryLevel;
+    var senderID = "SD-" + message.json.sID;
+    var newLat = message.json.lat;
+    var newLng = message.json.lng;
+    var gatewayMAC = message.json.gID;
+    var trackerBatteryLevel = message.json.tBL;
+    var gatewayBatteryLevel = message.json.gBL;
+    var locationTimestamp = message.json.d.concat(" " + message.json.t)
     var gatewayName = "";
     var gatewayID = message.attributes.deviceId;
-    var gatewayMAC = "";
+    // var gatewayMAC = "";
     var gatewayStoredBatteryLevel = 0;
     var userToken = "";
     var notificateGeofence = false;
@@ -43,7 +45,6 @@ module.exports = functions.pubsub
       .collection("gateway")
       .doc("GW-" + message.json.gatewayID);
 
-      gatewayMAC = message.json.gatewayID;
       gatewayID = "GW-" + message.json.gatewayID;
 
       await gatewayRef.get().then((gatewayFields) => {
@@ -281,6 +282,7 @@ module.exports = functions.pubsub
                     Latitude: newLat,
                     Longitude: newLng,
                   },
+                  LocationTimestamp: locationTimestamp,
                   batteryLevel: parseInt(trackerBatteryLevel),
                 },
                 { merge: true }
