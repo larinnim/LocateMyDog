@@ -49,6 +49,20 @@ class DatabaseService {
     }, SetOptions(merge: true));
   }
 
+  Future<String> getSenderPicture() async {
+    return await senderCollection
+        .doc(uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        print('Document exists on the database');
+        return documentSnapshot.data()!['pictureUrl'];
+      } else {
+        return "";
+      }
+    });
+  }
+
   Future<void> sendChangeWiFiCommand(String gatewayMAC) async {
     gatewayCommandCollection.doc('GW-' + gatewayMAC).set(
         {

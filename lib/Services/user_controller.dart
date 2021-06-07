@@ -26,13 +26,14 @@ class UserController {
 
   AppUser? get currentUser => _currentUser;
 
-  void uploadProfilePicture(File image) async {
+  Future<String> uploadProfilePicture(File image) async {
     print("In uploadProfile pic");
     _currentUser!.avatarUrl = await _storageRepo.uploadFile(image);
+    return await _storageRepo.uploadFile(image);
   }
 
   Future<String> uploadSenderPicture(File image, String senderDocID) async {
-    print("In uploadProfile Sender pic");
+    print("In upload Sender pic");
     var picURL = await _storageRepo.uploadSenderPic(image, senderDocID);
     await DatabaseService(uid: senderDocID).setSenderPicture(picURL);
     return picURL;

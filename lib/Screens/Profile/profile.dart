@@ -63,6 +63,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final box = GetStorage();
   final storage = FlutterSecureStorage();
   FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  bool _isUploadingImage = false;
 
   @override
   void initState() {
@@ -86,14 +87,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  Future getImage() async {
-    final pickedFile = await picker.getImage(source: ImageSource.camera);
+  // Future getImage() async {
+  //   final pickedFile = await picker.getImage(source: ImageSource.gallery);
 
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
+  //   setState(() {
+  //     if (pickedFile != null) {
+  //       _image = File(pickedFile.path);
+  //     } else {
+  //       print('No image selected.');
+  //     }
+  //   });
+  // }
+
+  Future getImage() async {
+    await picker
+        .getImage(source: ImageSource.gallery)
+        .then((pickedImage) async {
+      if (pickedImage != null) {
+        setState(() {
+          _isUploadingImage = true;
+        });
+        await locator
+            .get<UserController>()
+            .uploadProfilePicture(File(pickedImage.path))
+            .then((value) {
+          setState(() {
+            _isUploadingImage = false;
+          });
+        });
       } else {
-        print('No image selected.');
+        setState(() {
+          _isUploadingImage = false;
+        });
       }
     });
   }
@@ -139,15 +164,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _firebaseMessaging.deleteToken(senderId: '687212317780');
     PushNotificationsManager().clear();
   }
+
   void setAckNotification(bool setAck) async {
     // setState(() {
     // _ackNotify = setAck;
     // });
-     DatabaseService(
-                  uid: _auth
-                      .currentUser!
-                      .uid)
-              .setAgreedToNotBeNotified(setAck);
+    DatabaseService(uid: _auth.currentUser!.uid)
+        .setAgreedToNotBeNotified(setAck);
     // await FirebaseFirestore.instance
     //     .collection('users')
     //     .doc(_auth.currentUser!.uid)
@@ -262,8 +285,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             })
                       ],
                     ));
-                  } 
-                  else {
+                  } else {
                     return Builder(
                       builder: (context) {
                         return Stack(
@@ -291,55 +313,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             children: <Widget>[
                                               SizedBox(
                                                   width: kSpacingUnit.w * 3),
-                                              Avatar(
-                                                avatarUrl: _auth.currentUser !=
-                                                        null
-                                                    ? 
-                                                       connectionStatusProvider
-                                                                  .connectionStatus ==
-                                                              NetworkStatus
-                                                                  .Offline ||
-                                                          snapshot.data ==
-                                                              NetworkStatus
-                                                                  .Offline ? 
-                                                                  'offline' :
-                                                    _auth.currentUser!
-                                                                .photoURL !=
-                                                            null
-                                                        ? !_auth.currentUser!
-                                                                .photoURL!
-                                                                .contains(
-                                                                    'facebook')
-                                                            ? _auth.currentUser!
-                                                                .photoURL
-                                                            : _auth.currentUser!
-                                                                    .photoURL! +
-                                                                "?height=500&access_token=" +
-                                                                box.read(
-                                                                    'token')
-                                                        : _currentUser
-                                                                    ?.avatarUrl !=
-                                                                null
-                                                            ? _currentUser
-                                                                ?.avatarUrl
-                                                            : ""
-                                                    : "",
-                                                onTap: () async {
-                                                  getImage();
-                                                  locator
-                                                      .get<UserController>()
-                                                      .uploadProfilePicture(
-                                                          _image);
-                                                  setState(() {});
-                                                },
-                                              ),
+                                              _isUploadingImage
+                                                  ? Avatar(
+                                                      avatarUrl: 'uploading',
+                                                      onTap: () async {
+                                                        // getImage();
+                                                        // locator
+                                                        //     .get<UserController>()
+                                                        //     .uploadSenderPicture(_image, widget.senderID!);
+                                                        // setState(() {});
+                                                      },
+                                                    )
+                                                  : Avatar(
+                                                      avatarUrl: _auth
+                                                                  .currentUser !=
+                                                              null
+                                                          ? connectionStatusProvider
+                                                                          .connectionStatus ==
+                                                                      NetworkStatus
+                                                                          .Offline ||
+                                                                  snapshot.data ==
+                                                                      NetworkStatus
+                                                                          .Offline
+                                                              ? 'offline'
+                                                              : _auth.currentUser!
+                                                                          .photoURL !=
+                                                                      null
+                                                                  ? !_auth.currentUser!
+                                                                          .photoURL!
+                                                                          .contains(
+                                                                              'facebook')
+                                                                      ? _auth
+                                                                          .currentUser!
+                                                                          .photoURL
+                                                                      : _auth.currentUser!
+                                                                              .photoURL! +
+                                                                          "?height=500&access_token=" +
+                                                                          box.read(
+                                                                              'token')
+                                                                  : _currentUser
+                                                                              ?.avatarUrl !=
+                                                                          null
+                                                                      ? _currentUser
+                                                                          ?.avatarUrl
+                                                                      : ""
+                                                          : "",
+                                                      onTap: () async {
+                                                        getImage();
+                                                        // locator
+                                                        //     .get<UserController>()
+                                                        //     .uploadProfilePicture(
+                                                        //         _image);
+                                                        // setState(() {});
+                                                      },
+                                                    ),
                                               SizedBox(
                                                   width: kSpacingUnit.w * 3),
                                             ],
                                           ),
                                           SizedBox(height: kSpacingUnit.w * 3),
-                                          Column(
-                                            children: <Widget>[ 
+                                          Column(children: <Widget>[
                                             ListView(
                                               shrinkWrap: true,
                                               children: <Widget>[
@@ -514,7 +547,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                 //     )))
                                               ],
                                             ),
-                                            ]),
+                                          ]),
                                           Align(
                                               alignment: Alignment.bottomCenter,
                                               child: Text.rich(TextSpan(

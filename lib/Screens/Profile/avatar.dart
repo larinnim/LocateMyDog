@@ -3,6 +3,8 @@ import 'package:flutter_maps/Services/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../loading.dart';
+
 class Avatar extends StatelessWidget {
   final String? avatarUrl;
   final Function? onTap;
@@ -25,7 +27,11 @@ class Avatar extends StatelessWidget {
                   ),
                 )
               : 
-              avatarUrl == 'offline'? CircleAvatar(
+              avatarUrl == 'uploading' ? CircleAvatar(
+                  radius: kSpacingUnit.w * 5,
+                  backgroundColor: Colors.lightGreen[100],
+                  child: CircularProgressIndicator(),
+                ) : avatarUrl == 'offline'? CircleAvatar(
                   radius: kSpacingUnit.w * 5,
                   backgroundColor: Colors.lightGreen[100],
                   child: Icon(

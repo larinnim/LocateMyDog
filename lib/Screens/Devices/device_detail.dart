@@ -45,11 +45,20 @@ class _DeviceDetailState extends State<DeviceDetail> {
 
   final picker = ImagePicker();
   late File _image;
+  String senderImagePic = "";
 
+  bool _isUploadingImage = false;
   @override
   void initState() {
     super.initState();
     changeColor(widget.color);
+    // WidgetsBinding.instance?.addPostFrameCallback((_) {
+    //   getSenderImage();
+    // });
+  }
+
+  Future<String> _getSenderImage() async {
+    return await DatabaseService(uid: widget.senderID).getSenderPicture();
   }
 
 // ValueChanged<Color> callback
@@ -71,13 +80,26 @@ class _DeviceDetailState extends State<DeviceDetail> {
   }
 
   Future getImage() async {
-    final pickedFile = await picker.getImage(source: ImageSource.gallery);
-
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
+    await picker
+        .getImage(source: ImageSource.gallery)
+        .then((pickedImage) async {
+      if (pickedImage != null) {
+        setState(() {
+          _isUploadingImage = true;
+        });
+        await locator
+            .get<UserController>()
+            .uploadSenderPicture(File(pickedImage.path), widget.senderID!)
+            .then((value) {
+          setState(() {
+            _isUploadingImage = false;
+          });
+        });
       } else {
         print('No image selected.');
+        setState(() {
+          _isUploadingImage = false;
+        });
       }
     });
   }
@@ -112,24 +134,79 @@ class _DeviceDetailState extends State<DeviceDetail> {
                 SizedBox(
                   height: 30.0,
                 ),
-                Container(
-                  width: 200,
-                  child: Avatar(
-                    avatarUrl: null,
-                    onTap: () async {
-                      getImage();
-                      locator.get<UserController>().uploadSenderPicture(_image, widget.senderID!);
-                      setState(() {});
-                    },
-                  ),
-                  decoration: new BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: new Border.all(
-                      color: _pickerColor ?? Colors.black,
-                      width: 4.0,
-                    ),
-                  ),
-                ),
+                FutureBuilder<String>(
+                    future: _getSenderImage(),
+                    builder:
+                        (BuildContext context, AsyncSnapshot<String> snapshot) {
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.waiting:
+                          return Avatar(
+                            avatarUrl: 'uploading',
+                            onTap: () async {
+                              // getImage();
+                              // locator
+                              //     .get<UserController>()
+                              //     .uploadSenderPicture(_image, widget.senderID!);
+                              // setState(() {});
+                            },
+                          );
+                        default:
+                          if (snapshot.hasError || snapshot.data == '')
+                            return Container(
+                              width: 200,
+                              child: Avatar(
+                                avatarUrl: null,
+                                onTap: () async {
+                                  getImage();
+                                  // locator
+                                  //     .get<UserController>()
+                                  //     .uploadSenderPicture(_image, widget.senderID!);
+                                  // setState(() {});
+                                },
+                              ),
+                              decoration: new BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: new Border.all(
+                                  color: _pickerColor ?? Colors.black,
+                                  width: 4.0,
+                                ),
+                              ),
+                            );
+                          else
+                            return _isUploadingImage
+                                ? Avatar(
+                                    avatarUrl: 'uploading',
+                                    onTap: () async {
+                                      // getImage();
+                                      // locator
+                                      //     .get<UserController>()
+                                      //     .uploadSenderPicture(_image, widget.senderID!);
+                                      // setState(() {});
+                                    },
+                                  )
+                                : Container(
+                                    width: 200,
+                                    child: Avatar(
+                                      avatarUrl: snapshot.data,
+                                      onTap: () async {
+                                        getImage();
+                                        // locator
+                                        //     .get<UserController>()
+                                        //     .uploadSenderPicture(_image, widget.senderID!);
+                                        // setState(() {});
+                                      },
+                                    ),
+                                    decoration: new BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: new Border.all(
+                                        color: _pickerColor ?? Colors.black,
+                                        width: 4.0,
+                                      ),
+                                    ),
+                                  );
+                      }
+                    }),
+
                 // Icon(
                 //   LineAwesomeIcons.mobile_phone,
                 //   color: _pickerColor,
