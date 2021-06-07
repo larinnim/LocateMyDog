@@ -5,7 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 class DatabaseService {
   final String? uid;
   DatabaseService({this.uid});
-  
+
   // collection reference
   final CollectionReference locateCollection =
       FirebaseFirestore.instance.collection('locateDog');
@@ -26,7 +26,7 @@ class DatabaseService {
       FirebaseFirestore.instance.collection('pendingDevices');
 
   late final CollectionReference gatewayCommandCollection =
-    FirebaseFirestore.instance.collection('gateway-command');
+      FirebaseFirestore.instance.collection('gateway-command');
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
@@ -43,12 +43,23 @@ class DatabaseService {
     }, SetOptions(merge: true));
   }
 
+  Future<void> setSenderPicture(String url) async {
+    await senderCollection.doc(uid).set({
+      'pictureUrl': url,
+    }, SetOptions(merge: true));
+  }
+
   Future<void> sendChangeWiFiCommand(String gatewayMAC) async {
     gatewayCommandCollection.doc('GW-' + gatewayMAC).set(
-        {'command': 'change_wifi', 'gatewayMAC': gatewayMAC, 'changedTimestamp': DateTime.now().millisecondsSinceEpoch}, //default unit is feet
+        {
+          'command': 'change_wifi',
+          'gatewayMAC': gatewayMAC,
+          'changedTimestamp': DateTime.now().millisecondsSinceEpoch
+        }, //default unit is feet
         SetOptions(merge: true));
     // SetOptions(merge: true);
   }
+
   Future<void> updateWiFiSSID(String gatewayID, String wifiSSID) async {
     gatewayCollection.doc(gatewayID).set(
         {'wifiSSID': wifiSSID}, //default unit is feet
@@ -60,25 +71,17 @@ class DatabaseService {
       bool escaped, bool gatewayBattery, bool trackerBattery) async {
     await usersCollection.doc(uid).set({
       'Notification': {
-        'gatewayBattery':{
-          'enabled': gatewayBattery
-        },
-         'geofence':{
-          'enabled': escaped
-        },
-         'trackerBattery':{
-          'enabled': trackerBattery
-        },
+        'gatewayBattery': {'enabled': gatewayBattery},
+        'geofence': {'enabled': escaped},
+        'trackerBattery': {'enabled': trackerBattery},
       },
     }, SetOptions(merge: true));
   }
 
-  Future<void> setAgreedToNotBeNotified(
-      bool agreed) async {
+  Future<void> setAgreedToNotBeNotified(bool agreed) async {
     await usersCollection.doc(uid).set({
       'agreedToNotBeNotified': agreed,
-      },
-    SetOptions(merge: true));
+    }, SetOptions(merge: true));
   }
 
   Future<void> addSenderToGateway(String senderMac, String gatewayID) async {

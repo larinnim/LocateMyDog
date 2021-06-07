@@ -1,14 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:flutter_maps/Screens/Profile/avatar.dart';
 import 'package:flutter_maps/Services/database.dart';
+import 'package:flutter_maps/Services/user_controller.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../locator.dart';
 import '../loading.dart';
 import 'functions_aux.dart';
+import 'dart:io';
 
 // ignore: must_be_immutable
-class DeviceDetail extends StatefulWidget { // obtain shared preferences
+class DeviceDetail extends StatefulWidget {
+  // obtain shared preferences
   DeviceDetail(
       {Key? key,
       this.title,
@@ -37,6 +43,9 @@ class _DeviceDetailState extends State<DeviceDetail> {
   Color? currentColor = Color(0xff443a49);
   Color? _pickerColor = Color(0xff443a49);
 
+  final picker = ImagePicker();
+  late File _image;
+
   @override
   void initState() {
     super.initState();
@@ -61,6 +70,17 @@ class _DeviceDetailState extends State<DeviceDetail> {
         .updateDeviceName(_renameController.text);
   }
 
+  Future getImage() async {
+    final pickedFile = await picker.getImage(source: ImageSource.gallery);
+
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+      } else {
+        print('No image selected.');
+      }
+    });
+  }
 // raise the [showDialog] widget
 
   @override
@@ -92,11 +112,29 @@ class _DeviceDetailState extends State<DeviceDetail> {
                 SizedBox(
                   height: 30.0,
                 ),
-                Icon(
-                  LineAwesomeIcons.mobile_phone,
-                  color: _pickerColor,
-                  size: 100.0,
+                Container(
+                  width: 200,
+                  child: Avatar(
+                    avatarUrl: null,
+                    onTap: () async {
+                      getImage();
+                      locator.get<UserController>().uploadSenderPicture(_image, widget.senderID!);
+                      setState(() {});
+                    },
+                  ),
+                  decoration: new BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: new Border.all(
+                      color: _pickerColor ?? Colors.black,
+                      width: 4.0,
+                    ),
+                  ),
                 ),
+                // Icon(
+                //   LineAwesomeIcons.mobile_phone,
+                //   color: _pickerColor,
+                //   size: 100.0,
+                // ),
                 SizedBox(
                   height: 10.0,
                 ),

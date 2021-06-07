@@ -7,6 +7,8 @@ import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/locator.dart';
 import 'package:get/get.dart';
 
+import 'database.dart';
+
 class UserController {
   AppUser? _currentUser;
   AuthRepo _authRepo = locator.get<AuthRepo>();
@@ -27,6 +29,13 @@ class UserController {
   void uploadProfilePicture(File image) async {
     print("In uploadProfile pic");
     _currentUser!.avatarUrl = await _storageRepo.uploadFile(image);
+  }
+
+  Future<String> uploadSenderPicture(File image, String senderDocID) async {
+    print("In uploadProfile Sender pic");
+    var picURL = await _storageRepo.uploadSenderPic(image, senderDocID);
+    await DatabaseService(uid: senderDocID).setSenderPicture(picURL);
+    return picURL;
   }
 
   Future<String> getDownloadUrl() async {
