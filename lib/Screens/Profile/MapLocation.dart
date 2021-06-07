@@ -12,6 +12,7 @@ import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/offline_regions.dart';
 import 'package:flutter_maps/Screens/loading.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
+import 'package:flutter_maps/Services/custom_window_info.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -48,6 +49,9 @@ class _MapLocationState extends State<MapLocation> {
   // final List<LatLng> _points = <LatLng>[];
   Map<String, List<LatLng>> _points = <String, List<LatLng>>{};
 
+  CustomInfoWindowController _customInfoWindowController =
+      CustomInfoWindowController();
+
   // FirebaseStorage firestore = FirebaseStorage.instance;
   Geoflutterfire geo = Geoflutterfire();
   CollectionReference reference =
@@ -76,6 +80,7 @@ class _MapLocationState extends State<MapLocation> {
   @override
   void dispose() {
     timer?.cancel();
+    _customInfoWindowController.dispose();
     super.dispose();
   }
 
@@ -193,7 +198,8 @@ class _MapLocationState extends State<MapLocation> {
             LatLng(doc['Location']['Latitude'], doc['Location']['Longitude']);
         setState(() {
           initLocation = latlng;
-          updateMarkerAndCircle(latlng, doc.id, doc['color']);
+          updateMarkerAndCircle(
+              latlng, doc.id, doc['color'], doc['name'], doc['batteryLevel']);
         });
       });
     });
@@ -257,7 +263,9 @@ class _MapLocationState extends State<MapLocation> {
             updateMarkerAndCircle(
                 LatLng(tempIatData.latitude!, tempIatData.longitude!),
                 'SD-' + tempIatData.senderMAC!,
-                tempIatData.senderColor!);
+                tempIatData.senderColor!,
+                firestoreInfo['name'],
+                tempIatData.trackerBatteryLevel ?? 0);
 
             _addPolyline(tempIatData);
           });
@@ -278,11 +286,11 @@ class _MapLocationState extends State<MapLocation> {
     // }
   }
 
-  Future<Uint8List> getMarker() async {
-    ByteData byteData =
-        await DefaultAssetBundle.of(context).load("assets/images/dogpin.png");
-    return byteData.buffer.asUint8List();
-  }
+  // Future<Uint8List> getMarker() async {
+  //   ByteData byteData =
+  //       await DefaultAssetBundle.of(context).load("assets/images/dogpin.png");
+  //   return byteData.buffer.asUint8List();
+  // }
 
   Future<bool> checkConnection() async {
     var connectivityResult = await (Connectivity().checkConnectivity());
@@ -294,8 +302,8 @@ class _MapLocationState extends State<MapLocation> {
     return false;
   }
 
-  void updateMarkerAndCircle(
-      LatLng latlong, String? sender, String senderColor) async {
+  void updateMarkerAndCircle(LatLng latlong, String? sender, String senderColor,
+      String senderName, int trackerBatteryLevel) async {
     LatLng latlng = LatLng(latlong.latitude, latlong.longitude);
     late Uint8List imageData;
     String pathColor = 'assets/images/' + 'dogpin_' + senderColor + '.png';
@@ -329,6 +337,99 @@ class _MapLocationState extends State<MapLocation> {
     marker = Marker(
         markerId: MarkerId(sender!),
         position: latlng,
+        onTap: () {
+          _customInfoWindowController.addInfoWindow!(
+            Column(
+              children: [
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AuxFunc().getColor(senderColor),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircleAvatar(
+                              backgroundImage:
+                                  AssetImage("assets/images/Bailey1.png"),
+                              radius: 40),
+
+                          // FittedBox(fit: BoxFit.cover,child: ImageIcon(AssetImage('assets/images/Bailey1.png'), color:  Color(0xFF3A5A98),)),
+                          // Icon(
+                          //   Icons.account_circle,
+                          //   color: Colors.white,
+                          //   size: 30,
+                          // ),
+                          SizedBox(
+                            width: 8.0,
+                          ),
+                          Column(
+                            children: [
+                              Text(
+                                senderName,
+                                style: new TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white),
+                              ),
+                              Text(
+                                "Battery Level: " +
+                                    trackerBatteryLevel.toString(),
+                                style: new TextStyle(
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.white),
+                              ),
+                              Text(
+                                'Latitude: ' + latlng.latitude.toString(),
+                                style: new TextStyle(
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.white),
+                              ),
+                              Text(
+                                'Longitude: ' + latlng.longitude.toString(),
+                                style: new TextStyle(
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.white),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
+                ),
+                ClipPath(
+                  clipper: TriangleClipper(),
+                  child: Container(
+                    color: AuxFunc().getColor(senderColor),
+                    height: 10,
+                    width: 20,
+                  ),
+                  // Triangle.isosceles(
+                  //   edge: Edge.BOTTOM,
+                  //   child: Container(
+                  //     color: Colors.blue,
+                  //     width: 20.0,
+                  //     height: 10.0,
+                  //   ),
+                ),
+              ],
+            ),
+            latlng,
+          );
+        },
+        // infoWindow: InfoWindow(
+        //     title: senderName,
+        //     snippet: latlng.latitude.toString() +
+        //         ' , ' +
+        //         latlng.longitude.toString() +
+        //         '\r\n' +
+        //         'Battery Level: ' +
+        //         trackerBatteryLevel.toString()),
         // rotation: BleSingleton.shared.heading,
         draggable: false,
         zIndex: 2,
@@ -441,58 +542,82 @@ class _MapLocationState extends State<MapLocation> {
                                         return Column(children: <Widget>[
                                           // SizedBox(height:  MediaQuery.of(context).size.height * 0.1, width: MediaQuery.of(context).size.width,),
                                           Expanded(
-                                            child: SizedBox(
-                                              // width: MediaQuery.of(context).size.width,
-                                              // height: MediaQuery.of(context).size.height * 0.89,
-                                              child: GoogleMap(
-                                                mapType: MapType.hybrid,
-                                                onMapCreated:
-                                                    (GoogleMapController
-                                                        controller) {
-                                                  _controller = controller;
-                                                  moveCamera();
-                                                },
-                                                initialCameraPosition:
-                                                    CameraPosition(
-                                                        target: initLocation ??
-                                                            LatLng(
-                                                                userLocation
-                                                                    .data!
-                                                                    .latitude,
-                                                                userLocation
-                                                                    .data!
-                                                                    .longitude),
-                                                        zoom: 16.0),
-                                                // initialCameraPosition:
-                                                //     CameraPosition(
-                                                //         target: LatLng(
-                                                //             iatDataProvider
-                                                //                 .iatData.latitude!,
-                                                //             iatDataProvider.iatData
-                                                //                 .longitude!),
-                                                //         zoom: 16.0),
-                                                // markers: markers.toSet(),
-                                                markers: Set<Marker>.of(
-                                                    markers.values),
-                                                circles: Set.of((circle != null)
-                                                    ? [circle!]
-                                                    : []),
-                                                polylines: iatDataProvider
-                                                            .iatData.escaped ==
-                                                        true
-                                                    ? Set<Polyline>.of(
-                                                        polylines.values)
-                                                    : {},
-                                                myLocationButtonEnabled: false,
-                                                zoomGesturesEnabled: true,
-                                                mapToolbarEnabled: true,
-                                                myLocationEnabled: false,
-                                                scrollGesturesEnabled: true,
-                                                // initialCameraPosition:
-                                                //     const CameraPosition(
-                                                //         target: LatLng(0.0, 0.0)),
+                                            child: Stack(children: <Widget>[
+                                              SizedBox(
+                                                // width: MediaQuery.of(context).size.width,
+                                                // height: MediaQuery.of(context).size.height * 0.89,
+                                                child: GoogleMap(
+                                                  mapType: MapType.hybrid,
+                                                  onMapCreated:
+                                                      (GoogleMapController
+                                                          controller) {
+                                                    _controller = controller;
+                                                    _customInfoWindowController
+                                                            .googleMapController =
+                                                        controller;
+
+                                                    moveCamera();
+                                                  },
+                                                  onTap: (position) {
+                                                    _customInfoWindowController
+                                                        .hideInfoWindow!();
+                                                  },
+                                                  onCameraMove: (position) {
+                                                    _customInfoWindowController
+                                                        .onCameraMove!();
+                                                  },
+                                                  initialCameraPosition:
+                                                      CameraPosition(
+                                                          target: initLocation ??
+                                                              LatLng(
+                                                                  userLocation
+                                                                      .data!
+                                                                      .latitude,
+                                                                  userLocation
+                                                                      .data!
+                                                                      .longitude),
+                                                          zoom: 16.0),
+                                                  // initialCameraPosition:
+                                                  //     CameraPosition(
+                                                  //         target: LatLng(
+                                                  //             iatDataProvider
+                                                  //                 .iatData.latitude!,
+                                                  //             iatDataProvider.iatData
+                                                  //                 .longitude!),
+                                                  //         zoom: 16.0),
+                                                  // markers: markers.toSet(),
+                                                  markers: Set<Marker>.of(
+                                                      markers.values),
+                                                  circles: Set.of(
+                                                      (circle != null)
+                                                          ? [circle!]
+                                                          : []),
+                                                  polylines: iatDataProvider
+                                                              .iatData
+                                                              .escaped ==
+                                                          true
+                                                      ? Set<Polyline>.of(
+                                                          polylines.values)
+                                                      : {},
+                                                  myLocationButtonEnabled:
+                                                      false,
+                                                  zoomGesturesEnabled: true,
+                                                  mapToolbarEnabled: true,
+                                                  myLocationEnabled: false,
+                                                  scrollGesturesEnabled: true,
+                                                  // initialCameraPosition:
+                                                  //     const CameraPosition(
+                                                  //         target: LatLng(0.0, 0.0)),
+                                                ),
                                               ),
-                                            ),
+                                              CustomInfoWindow(
+                                                controller:
+                                                    _customInfoWindowController,
+                                                height: 85,
+                                                width: 300,
+                                                offset: 50,
+                                              ),
+                                            ]),
                                           ),
                                         ]);
                                       } else {
@@ -509,4 +634,18 @@ class _MapLocationState extends State<MapLocation> {
               });
         }));
   }
+}
+
+class TriangleClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(size.width, 0.0);
+    path.lineTo(size.width / 2, size.height);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(TriangleClipper oldClipper) => false;
 }
