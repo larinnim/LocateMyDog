@@ -151,7 +151,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                             },
                           );
                         default:
-                          if (snapshot.hasError || snapshot.data == '')
+                          if (snapshot.hasError || snapshot.data == '') {
                             return Container(
                               width: 200,
                               child: Avatar(
@@ -172,7 +172,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                                 ),
                               ),
                             );
-                          else
+                          } else {
                             return _isUploadingImage
                                 ? Avatar(
                                     avatarUrl: 'uploading',
@@ -204,6 +204,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                                       ),
                                     ),
                                   );
+                          }
                       }
                     }),
 

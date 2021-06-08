@@ -13,9 +13,11 @@ import 'package:flutter_maps/Screens/ProfileSettings/offline_regions.dart';
 import 'package:flutter_maps/Screens/loading.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:flutter_maps/Services/custom_window_info.dart';
+import 'package:flutter_maps/Services/database.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../Services/bluetooth_conect.dart';
 import 'dart:math' as math;
@@ -302,6 +304,10 @@ class _MapLocationState extends State<MapLocation> {
     return false;
   }
 
+  Future<String> _getSenderImage(String senderID) async {
+    return await DatabaseService(uid: senderID).getSenderPicture();
+  }
+
   void updateMarkerAndCircle(LatLng latlong, String? sender, String senderColor,
       String senderName, int trackerBatteryLevel) async {
     LatLng latlng = LatLng(latlong.latitude, latlong.longitude);
@@ -352,10 +358,33 @@ class _MapLocationState extends State<MapLocation> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          CircleAvatar(
-                              backgroundImage:
-                                  AssetImage("assets/images/Bailey1.png"),
-                              radius: 40),
+                          FutureBuilder<String>(
+                              future: _getSenderImage(sender),
+                              builder: (BuildContext context,
+                                  AsyncSnapshot<String> snapshot) {
+                                switch (snapshot.connectionState) {
+                                  case ConnectionState.waiting:
+                                    return CircleAvatar(
+                                        child: CircularProgressIndicator(),
+                                        backgroundColor: AuxFunc().getColor(senderColor),
+                                        radius: 40);
+                                  default:
+                                    if (snapshot.hasError ||
+                                        snapshot.data == '') {
+                                      return CircleAvatar(
+                                          child: Icon(LineAwesomeIcons.paw, size: 40, color: Colors.white,),
+                                          backgroundColor: AuxFunc().getColor(senderColor),
+                                          radius: 40);
+                                    } else {
+                                      return CircleAvatar(
+                                          backgroundImage:
+                                              // AssetImage('assets/images/Bailey1.png'),
+                                              NetworkImage(snapshot.data!),
+                                          backgroundColor: AuxFunc().getColor(senderColor),
+                                          radius: 40);
+                                    }
+                                }
+                              }),
 
                           // FittedBox(fit: BoxFit.cover,child: ImageIcon(AssetImage('assets/images/Bailey1.png'), color:  Color(0xFF3A5A98),)),
                           // Icon(
