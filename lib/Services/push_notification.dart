@@ -33,6 +33,10 @@ const AndroidNotificationChannel channel = AndroidNotificationChannel(
   'High Importance Notifications', // title
   'This channel is used for important notifications.', // description
   importance: Importance.high,
+  sound: RawResourceAndroidNotificationSound('alert'),
+  playSound: true,
+  enableLights: true,
+  enableVibration: true,
 );
 
 /// Initialize the [FlutterLocalNotificationsPlugin] package.
@@ -250,6 +254,7 @@ class PushNotificationsManager {
         }
       });
 
+
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         print('Got a message whilst in the foreground!');
         print('Message data: ${message.data}');
@@ -263,25 +268,40 @@ class PushNotificationsManager {
           RemoteNotification notification = message.notification!;
           // AndroidNotification android = message.notification!.android!;
           // if (notification != null && android != null) {
+          const IOSNotificationDetails iOSPlatformChannelSpecifics =
+              IOSNotificationDetails(sound: 'alert');
+
+          const MacOSNotificationDetails macOSPlatformChannelSpecifics =
+              MacOSNotificationDetails(sound: 'alert');
+
           flutterLocalNotificationsPlugin.show(
               notification.hashCode,
               notification.title,
               notification.body,
               NotificationDetails(
-                android: AndroidNotificationDetails(
-                  channel.id,
-                  channel.name,
-                  channel.description,
-                  // TODO add a proper drawable resource to android, for now using
-                  //      one that already exists in example app.
-                  icon: 'launch_background',
-                ),
-              ));
+                  android: AndroidNotificationDetails(
+                    channel.id,
+                    channel.name,
+                    channel.description,
+                    visibility: NotificationVisibility.public,
+                    // TODO add a proper drawable resource to android, for now using
+                    //      one that already exists in example app.
+                    icon: 'launch_background',
+                    playSound: true,
+                    importance: Importance.high,
+                    priority: Priority.high,
+                    enableLights: true,
+                    enableVibration: true,
+                    sound: RawResourceAndroidNotificationSound('alert'),
+                  ),
+                  iOS: iOSPlatformChannelSpecifics,
+                  macOS: macOSPlatformChannelSpecifics));
         }
       });
 
       const AndroidInitializationSettings initializationSettingsAndroid =
           AndroidInitializationSettings('@mipmap/ic_launcher');
+
       final IOSInitializationSettings initializationSettingsIOS =
           IOSInitializationSettings(
               requestSoundPermission: false,
@@ -298,6 +318,7 @@ class PushNotificationsManager {
               requestAlertPermission: false,
               requestBadgePermission: false,
               requestSoundPermission: false);
+
       final InitializationSettings initializationSettings =
           InitializationSettings(
               android: initializationSettingsAndroid,

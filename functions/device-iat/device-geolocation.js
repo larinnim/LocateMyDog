@@ -121,11 +121,27 @@ module.exports = functions.pubsub
                         body: `${
                           senderFields.data().name
                         } escaped. The last recorded location was ${newLat} / ${newLng}`,
+                        // sound: `alert.mp3`
                       },
                         // Set Android priority to "high"
                       android: {
                         priority: "high",
+                        notification: {
+                          defaultSound: true,
+                          // notificationCount: 1,
+                          sound: "alert.mp3",
+                          // channelId: 'high_importance_channel'
+                        },
+                        // ttl: 20000,
                       },
+                      // apns: {
+                      //   payload: {
+                      //       aps: {
+                      //         badge: 1,
+                      //         sound: 'default'
+                      //       }
+                      //   }
+                      // },
                       token: userToken,
                     };
                     admin
@@ -161,11 +177,27 @@ module.exports = functions.pubsub
                       notification: {
                         title: `${senderFields.data().name} has returned to home!`,
                         body: `${senderFields.data().name} is safely back home.`,
+                        // sound: `alert.mp3`
                       },
                         // Set Android priority to "high"
                       android: {
                         priority: "high",
+                        notification: {
+                          defaultSound: true,
+                          // notificationCount: 1,
+                          sound: "alert.mp3",
+                          // channelId: 'high_importance_channel'
+                        },
+                        // ttl: 20000,
                       },
+                      // apns: {
+                      //   payload: {
+                      //       aps: {
+                      //         badge: 1,
+                      //         sound: 'default'
+                      //       }
+                      //   }
+                      // },
                       token: userToken,
                     };
                     admin
@@ -206,11 +238,27 @@ module.exports = functions.pubsub
                     senderFields.data().name
                   } battery level is low!`,
                   body:`Please charge the tracker ${senderFields.data().name}.`,
+                  // sound: `alert.mp3`
                 },
                   // Set Android priority to "high"
                 android: {
                   priority: "high",
+                  notification: {
+                    defaultSound: true,
+                    // notificationCount: 1,
+                    sound: "alert.mp3",
+                    // channelId: 'high_importance_channel'
+                  },
+                  // ttl: 20000,
                 },
+                // apns: {
+                //   payload: {
+                //       aps: {
+                //         badge: 1,
+                //         sound: 'default'
+                //       }
+                //   }
+                // },
                 token: userToken,
               };
               admin
@@ -250,11 +298,27 @@ module.exports = functions.pubsub
                 notification: {
                   title: `The gateway ${gatewayName} battery level is low!`,
                   body:`Please charge the gateway ${gatewayName}.`,
+                  // sound: `alert.mp3`
                 },
                   // Set Android priority to "high"
                 android: {
                   priority: "high",
+                  notification: {
+                    defaultSound: true,
+                    // notificationCount: 1,
+                    sound: "alert.mp3",
+                    // channelId: 'high_importance_channel'
+                  },
+                  // ttl: 20000,
                 },
+                // apns: {
+                //   payload: {
+                //       aps: {
+                //         badge: 1,
+                //         sound: 'default'
+                //       }
+                //   }
+                // },
                 token: userToken,
               };
               admin
