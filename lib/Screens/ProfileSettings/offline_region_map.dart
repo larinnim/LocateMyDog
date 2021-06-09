@@ -10,6 +10,7 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
 
+import 'offline_map_infowindow.dart';
 import 'offline_regions.dart';
 
 class OfflineRegionMap extends StatefulWidget {
@@ -31,6 +32,16 @@ class _OfflineRegionMapState extends State<OfflineRegionMap> {
   Map<String, List<LatLng>> _polyLinesLatLongs = <String, List<LatLng>>{};
   CollectionReference sendersCollection =
       FirebaseFirestore.instance.collection('sender');
+  double _pinPillPosition = -100;
+
+  PinData _currentPinData = PinData(
+      pinPath: '',
+      avatarPath: '',
+      location: LatLng(0, 0),
+      locationName: '',
+      labelColor: Colors.grey);
+  late PinData _sourcePinInfo;
+
   @override
   void initState() {
     super.initState();
@@ -66,7 +77,7 @@ class _OfflineRegionMapState extends State<OfflineRegionMap> {
             senderColor: doc['color'],
             escaped: doc['escaped']);
         // setState(() {
-          _add(tempIatData);
+        _add(tempIatData);
         // });
       });
     });
@@ -74,6 +85,8 @@ class _OfflineRegionMapState extends State<OfflineRegionMap> {
   }
 
   void _addPolyline(IATData iatData) async {
+    if (!mounted) return;
+
     if (_finishedLoadingMap == true) {
       // if (_polylines.length > 0) {
       //   if (_polylines.containsKey(iatData.senderMAC!)) {
@@ -117,6 +130,9 @@ class _OfflineRegionMapState extends State<OfflineRegionMap> {
       _polylines
           .putIfAbsent(iatData.senderMAC ?? "", () => <Line>[])
           .add(newLine);
+      // setState(() {
+      //   _pinPillPosition = -100;
+      // });
     }
   }
 
@@ -220,7 +236,7 @@ class _OfflineRegionMapState extends State<OfflineRegionMap> {
   //     }
   //   }
   // }
-  void _add(IATData iatData) async {
+  Future<void> _add(IATData iatData) async {
     if (_finishedLoadingMap == true) {
       LatLng _geometry = LatLng(
         iatData.latitude ?? 0,
@@ -228,63 +244,202 @@ class _OfflineRegionMapState extends State<OfflineRegionMap> {
       );
       if (_symbols.length > 0) {
         if (_symbols.containsKey(iatData.senderMAC!)) {
-          setState(() async {
-            await controller.updateSymbol(
-              _symbols[iatData.senderMAC!]!,
-              SymbolOptions(geometry: _geometry),
-            );
-          });
+          if (_symbols[iatData.senderMAC!]!.options.geometry != _geometry) {
+            // setState(() {
+            _pinPillPosition = -100;
+            // });
+          }
+
+          return await controller.updateSymbol(
+            _symbols[iatData.senderMAC!]!,
+            SymbolOptions(geometry: _geometry),
+          );
+
+          // setState(() {
+
+          //           });
+          // setState(() async {
+          //   await controller.updateSymbol(
+          //     _symbols[iatData.senderMAC!]!,
+          //     SymbolOptions(geometry: _geometry),
+          //   );
+          // });
         }
       }
       _symbols[iatData.senderMAC!] = await controller.addSymbol(SymbolOptions(
         geometry: _geometry,
         iconImage: "assets/images/dogpin_${iatData.senderColor}.png",
       ));
+      // setState(() {
+      //   _pinPillPosition = -100;
+      // });
     }
+  }
+
+  Widget _buildAvatar() {
+    return Container(
+      margin: EdgeInsets.only(left: 10),
+      width: 50,
+      height: 50,
+      child: ClipOval(
+        child: Image.asset(
+          _currentPinData.avatarPath,
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  void _setMapPins(Symbol argument) {
+    _sourcePinInfo = PinData(
+        pinPath: "",
+        // pinPath: argument.options.iconImage ?? 'assets/images/dogpin.png',
+        locationName: "My Location",
+        location: LatLng(argument.options.geometry!.latitude,
+            argument.options.geometry!.longitude),
+        avatarPath: argument.options.iconImage ?? 'assets/images/dogpin.png',
+        labelColor: Colors.blue);
+    setState(() {
+      _currentPinData = _sourcePinInfo;
+      _pinPillPosition = 0;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    _add(Provider.of<IATDataModel>(context, listen: true).iatData);
+    // _add(Provider.of<IATDataModel>(context, listen: true).iatData);
     // _addPolyline();
-
     _addPolyline(Provider.of<IATDataModel>(context, listen: true).iatData);
     return Scaffold(
       appBar: AppBar(
         title: Text('Offline Region: ${widget.item.name}'),
       ),
       body: Consumer<IATDataModel>(builder: (context, iatDataProvider, child) {
-        return MapboxMap(
-          // onMapCreated: _onMapCreated,
-          onMapCreated: (MapboxMapController controller) {
-            this.controller = controller;
+        return FutureBuilder(
+            initialData: false,
+            future:
+                _add(Provider.of<IATDataModel>(context, listen: true).iatData),
 
-            // controller.addListener(() {
-            //   _add(iatDataProvider.iatData);
-            // });
-            // controller.addListener(_onMapChanged);
-            // _initAddSymbol();
-            // _add(iatDataProvider.iatData);
-          },
-          onStyleLoadedCallback: () {
-            // _add(iatDataProvider.iatData);
-            _finishedLoadingMap = true;
-          },
+            // future: mounted
+            //     ? _add(Provider.of<IATDataModel>(context, listen: true).iatData)
+            //     : Future.value(null),
+            builder: (context, snap) {
+              return Stack(children: <Widget>[
+                MapboxMap(
+                  // onMapCreated: _onMapCreated,
+                  onMapCreated: (MapboxMapController controller) {
+                    this.controller = controller;
+                    this.controller.onSymbolTapped.add((argument) {
+                      _setMapPins(argument);
+                    });
+                    // controller.addListener(() {
+                    //   _add(iatDataProvider.iatData);
+                    // });
+                    // controller.addListener(_onMapChanged);
+                    // _initAddSymbol();
+                    // _add(iatDataProvider.iatData);
+                  },
+                  onStyleLoadedCallback: () {
+                    // _add(iatDataProvider.iatData);
+                    _finishedLoadingMap = true;
+                  },
+                  onMapClick: (point, latlng) {
+                    setState(() {
+                      _pinPillPosition = -100;
+                    });
+                    // if (latlng.latitude == latitude &&
+                    //     latlng.longitude == longitude) {
+                    //   launchGoogleMaps(latitude: latitude, longitude: longitude);
+                    // }
+                    // print(
+                    //     "From Map ${latlng.latitude} |${latlng.latitude} \nFrom Server $latitude||$longitude \n\n");
+                  },
 
-          initialCameraPosition: CameraPosition(
-            target: _center,
-            zoom: widget.item.offlineRegionDefinition.minZoom,
-          ),
-          minMaxZoomPreference: MinMaxZoomPreference(
-            widget.item.offlineRegionDefinition.minZoom,
-            widget.item.offlineRegionDefinition.maxZoom,
-          ),
-          styleString: widget.item.offlineRegionDefinition.mapStyleUrl,
-          cameraTargetBounds: CameraTargetBounds(
-            widget.item.offlineRegionDefinition.bounds,
-          ),
-        );
+                  initialCameraPosition: CameraPosition(
+                    target: _center,
+                    zoom: widget.item.offlineRegionDefinition.minZoom,
+                  ),
+                  minMaxZoomPreference: MinMaxZoomPreference(
+                    widget.item.offlineRegionDefinition.minZoom,
+                    widget.item.offlineRegionDefinition.maxZoom,
+                  ),
+                  styleString: widget.item.offlineRegionDefinition.mapStyleUrl,
+                  cameraTargetBounds: CameraTargetBounds(
+                    widget.item.offlineRegionDefinition.bounds,
+                  ),
+                ),
+                AnimatedPositioned(
+                  bottom: _pinPillPosition,
+                  right: 0,
+                  left: 0,
+                  duration: Duration(milliseconds: 200),
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      margin: EdgeInsets.all(20),
+                      height: 70,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(50)),
+                          boxShadow: <BoxShadow>[
+                            BoxShadow(
+                              blurRadius: 20,
+                              offset: Offset.zero,
+                              color: Colors.grey.withOpacity(0.5),
+                            )
+                          ]),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          _buildAvatar(),
+                          _buildLocationInfo(),
+                          _buildMarkerType()
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ]);
+            });
       }),
+    );
+  }
+
+  Widget _buildLocationInfo() {
+    return Expanded(
+      child: Container(
+        margin: EdgeInsets.only(left: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              _currentPinData.locationName,
+              // style: CustomAppTheme().data.textTheme.subtitle,
+            ),
+            Text(
+              'Latitude : ${_currentPinData.location.latitude}',
+              // style: CustomAppTheme().data.textTheme.display1,
+            ),
+            Text(
+              'Longitude : ${_currentPinData.location.longitude}',
+              // style: CustomAppTheme().data.textTheme.display1,
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMarkerType() {
+    return Padding(
+      padding: EdgeInsets.all(15),
+      child: Image.asset(
+        _currentPinData.pinPath,
+        width: 50,
+        height: 50,
+      ),
     );
   }
 
