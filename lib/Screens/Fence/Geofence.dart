@@ -15,11 +15,14 @@ import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:location/location.dart' as localization;
 import 'package:provider/provider.dart';
 import 'package:get/get.dart';
 
 import '../loading.dart';
+
+enum GeofenceType { Circle, Polygon }
 
 class Geofence extends StatefulWidget {
   @override
@@ -33,6 +36,10 @@ class _GeofenceWidgetState extends State<Geofence> {
   Circle? circle;
   Marker? marker;
   late Polygon polygon;
+  Map<PolygonId, Polygon> polygons = <PolygonId, Polygon>{};
+  Map<MarkerId, Marker> polygonMarkers = <MarkerId, Marker>{};
+  final List<LatLng> _polygonPoints = <LatLng>[];
+
   GoogleMapController? _controller;
   static LatLng? _initialPosition;
   late double _configuredRadius; //Radius is 30 meters
@@ -61,6 +68,10 @@ class _GeofenceWidgetState extends State<Geofence> {
   int _doNotEnterFenceIdCounter = 1;
   int _incrementRadius = 5;
   String? _units = 'meter';
+  int _markerIdCounter = 1;
+
+  GeofenceType? _geofenceType = GeofenceType.Circle;
+
   // String _connectionStatus = 'Unknown';
   // final Connectivity _connectivity = Connectivity();
   // late StreamSubscription<ConnectivityResult> _connectivitySubscription;
@@ -147,6 +158,36 @@ class _GeofenceWidgetState extends State<Geofence> {
     // });
   }
 
+  void _onMarkerDragEnd(MarkerId markerId, LatLng newPosition) async {
+    final Marker? tappedMarker = polygonMarkers[markerId];
+    if (tappedMarker != null) {
+      setState(() {
+        _polygonPoints.add(newPosition);
+      });
+      _addPolygon();
+      // await showDialog<void>(
+      //     context: context,
+      //     builder: (BuildContext context) {
+      //       return AlertDialog(
+      //           actions: <Widget>[
+      //             TextButton(
+      //               child: const Text('OK'),
+      //               onPressed: () => Navigator.of(context).pop(),
+      //             )
+      //           ],
+      //           content: Padding(
+      //               padding: const EdgeInsets.symmetric(vertical: 66),
+      //               child: Column(
+      //                 mainAxisSize: MainAxisSize.min,
+      //                 children: <Widget>[
+      //                   Text('Old position: ${tappedMarker.position}'),
+      //                   Text('New position: $newPosition'),
+      //                 ],
+      //               )));
+      //     });
+    }
+  }
+
   void _updateCurrentRadius() {
     setState(() {
       if (_configuredRadius != 0.0) {
@@ -168,6 +209,41 @@ class _GeofenceWidgetState extends State<Geofence> {
     updateMarkerAndCircle(imageData);
 
     // updateMarkerAndCircle(location, imageData);
+  }
+
+  void _addPolygon() {
+    final PolygonId polygonId = PolygonId('polygonGeofence');
+
+    final Polygon polygon = Polygon(
+      polygonId: polygonId,
+      consumeTapEvents: true,
+      strokeColor: Colors.transparent,
+      strokeWidth: 5,
+      fillColor: Colors.blue.withOpacity(0.7),
+      points: _polygonPoints,
+      onTap: () {
+        // _onPolygonTapped(polygonId);
+      },
+    );
+
+    setState(() {
+      polygons[polygonId] = polygon;
+    });
+  }
+
+  List<LatLng> _createPoints() {
+    _polygonPoints.add(LatLng(46.51973906501267, -80.9557356970208));
+    _polygonPoints.add(LatLng(46.520536375823674, -80.9542122023067));
+    _polygonPoints.add(LatLng(46.52069140712267, -80.9556605951687));
+    // points.add(LatLng(46.522085913406585, -80.93543132597847));
+    return _polygonPoints;
+  }
+
+  void _updateIfPolygon() {
+    setState(() {
+      _isPolygonFence = _isPolygonFence;
+    });
+    _addPolygon();
   }
 
   void _onSettingsPressed() {
@@ -222,13 +298,14 @@ class _GeofenceWidgetState extends State<Geofence> {
       _locationSubscription =
           _locationTracker.onLocationChanged.listen((newLocalData) {
         if (_controller != null) {
-          _controller!.animateCamera(CameraUpdate.newCameraPosition(
-              new CameraPosition(
-                  bearing: 192.8334901395799,
-                  target:
-                      LatLng(newLocalData.latitude!, newLocalData.longitude!),
-                  tilt: 0,
-                  zoom: 18.00)));
+          // _controller!.animateCamera(CameraUpdate.newCameraPosition(
+          //     new CameraPosition(
+          //         bearing: 192.8334901395799,
+          //         target:
+          //             LatLng(newLocalData.latitude!, newLocalData.longitude!),
+          //         tilt: 0,
+          //         zoom: 18.00)));
+
           // updateMarkerAndCircle(newLocalData, imageData);
         }
       });
@@ -300,8 +377,83 @@ class _GeofenceWidgetState extends State<Geofence> {
 
   Column bottonNavigationBuilder(StateSetter mystate) {
     return Column(children: <Widget>[
-      SizedBox(height: 50),
-
+      SizedBox(height: 30),
+      ListTile(
+        leading: Icon(FontAwesomeIcons.drawPolygon),
+        title: Row(
+          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text("Polygon Geofence"),
+                  SizedBox(height: 5),
+                  // Text(
+                  //     'current'.tr +
+                  //         ': ' +
+                  //         _configuredRadiusToUnits.toStringAsFixed(2) +
+                  //         // _configuredRadius.toString() +
+                  //         ' ' +
+                  //         _units!.tr,
+                  //     style: TextStyle(color: Colors.black.withOpacity(0.6))),
+                ]),
+            SizedBox(width: 30),
+            // Row(
+            //   children: [
+            //     IconButton(
+            //         icon: Icon(FontAwesomeIcons.plus, size: 20),
+            //         onPressed: () async {
+            //           mystate(() {
+            //             _configuredRadius +=
+            //                 _incrementRadius; //Increase by 5 meters
+            //           });
+            //           _updateCurrentRadius();
+            //           await DatabaseService(uid: _currentUser!.uid)
+            //               .updateCircleRadius(
+            //                   _configuredRadius, _initialPosition!);
+            //         }),
+            //     SizedBox(width: 15),
+            //     IconButton(
+            //         icon: Icon(FontAwesomeIcons.minus, size: 20),
+            //         onPressed: () async {
+            //           mystate(() {
+            //             if (_configuredRadius > 0.0) {
+            //               _configuredRadius -=
+            //                   _incrementRadius; //Increase by 5 meters
+            //             } else {
+            //               _configuredRadius = 0.0;
+            //             }
+            //           });
+            //           _updateCurrentRadius();
+            //           await DatabaseService(uid: _currentUser!.uid)
+            //               .updateCircleRadius(
+            //                   _configuredRadius, _initialPosition!);
+            //         }),
+            //     // })
+            //   ],
+            // ),
+          ],
+        ),
+        trailing: Radio<GeofenceType>(
+          value: GeofenceType.Polygon,
+          groupValue: _geofenceType,
+          activeColor: Colors.lightGreen,
+          onChanged: (GeofenceType? value) {
+            mystate(() {
+              _geofenceType = value;
+              _isPolygonFence = true;
+            });
+            _updateIfPolygon();
+          },
+        ),
+        onTap: () => {
+          // mystate(() {
+          //   _isPolygonFence = false;
+          //   _isDoNotEnterFence = false;
+          // }),
+          Navigator.of(context).pop()
+        },
+      ),
       ListTile(
         leading: Icon(Icons.adjust_rounded),
         title: Row(
@@ -336,7 +488,7 @@ class _GeofenceWidgetState extends State<Geofence> {
                           .updateCircleRadius(
                               _configuredRadius, _initialPosition!);
                     }),
-                SizedBox(width: 50),
+                SizedBox(width: 15),
                 IconButton(
                     icon: Icon(FontAwesomeIcons.minus, size: 20),
                     onPressed: () async {
@@ -358,14 +510,27 @@ class _GeofenceWidgetState extends State<Geofence> {
             ),
           ],
         ),
+        trailing: Radio<GeofenceType>(
+          value: GeofenceType.Circle,
+          groupValue: _geofenceType,
+          activeColor: Colors.lightGreen,
+          onChanged: (GeofenceType? value) {
+            mystate(() {
+              _geofenceType = value;
+              _isPolygonFence = false;
+            });
+            _updateIfPolygon();
+          },
+        ),
         onTap: () => {
-          mystate(() {
-            _isPolygonFence = false;
-            _isDoNotEnterFence = false;
-          }),
+          // mystate(() {
+          //   _isPolygonFence = false;
+          //   _isDoNotEnterFence = false;
+          // }),
           Navigator.of(context).pop()
         },
       ),
+
       // ListTile(
       //   leading: Icon(FontAwesomeIcons.drawPolygon),
       //   title: Text("Polygon Geofence"),
@@ -381,14 +546,76 @@ class _GeofenceWidgetState extends State<Geofence> {
       //   leading: Icon(Icons.do_disturb_on_outlined),
       //   title: Text("Dot Not Enter Area"),
       //   onTap: () => {
-      //     mystate(() {
-      //       _isPolygonFence = false;
-      //       _isDoNotEnterFence = true;
-      //     }),
+      // mystate(() {
+      //   _isPolygonFence = false;
+      //   _isDoNotEnterFence = true;
+      // }),
       //     Navigator.of(context).pop()
       //   },
       // )
     ]);
+  }
+
+  // Future<Uint8List> getBytesFromCanvas(int width, int height) async {
+  //   // final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
+  //   final Canvas canvas = Canvas(pictureRecorder);
+  //   final Paint paint = Paint()
+  //     ..color = Color(0xff63aa65)
+  //     ..strokeCap = StrokeCap.round //rounded points
+  //     ..strokeWidth = 10;
+  //   canvas.drawPoints(pointMode, points, paint);
+  //   final Radius radius = Radius.circular(20.0);
+  // canvas.drawRRect(
+  //     RRect.fromRectAndCorners(
+  //       Rect.fromLTWH(0.0, 0.0, width.toDouble(), height.toDouble()),
+  //       topLeft: radius,
+  //       topRight: radius,
+  //       bottomLeft: radius,
+  //       bottomRight: radius,
+  //     ),
+  //     paint);
+  // TextPainter painter = TextPainter(textDirection: TextDirection.ltr);
+  // painter.text = TextSpan(
+  //   text: 'Hello world',
+  //   style: TextStyle(fontSize: 25.0, color: Colors.white),
+  // );
+  //   painter.layout();
+  //   painter.paint(
+  //       canvas,
+  //       Offset((width * 0.5) - painter.width * 0.5,
+  //           (height * 0.5) - painter.height * 0.5));
+  //   final img = await pictureRecorder.endRecording().toImage(width, height);
+  //   final data = await img.toByteData(format: ui.ImageByteFormat.png);
+  //   return data.buffer.asUint8List();
+  // }
+
+  void _addPolygonMarker(LatLng markerLatLng) async {
+    final String markerIdVal = 'marker_id_$_markerIdCounter';
+    _markerIdCounter++;
+    final MarkerId markerId = MarkerId(markerIdVal);
+
+    // final Uint8List markerIcon = await getBytesFromCanvas(200, 100);
+
+    final Marker marker = Marker(
+      markerId: markerId,
+      draggable: true,
+      // icon: BitmapDescriptor.fromBytes(markerIcon),
+      position: LatLng(
+        markerLatLng.latitude,
+        markerLatLng.longitude,
+      ),
+      // infoWindow: InfoWindow(title: markerIdVal, snippet: '*'),
+      onTap: () {
+        // _onMarkerTapped(markerId);
+      },
+      onDragEnd: (LatLng position) {
+        _onMarkerDragEnd(markerId, position);
+      },
+    );
+
+    setState(() {
+      polygonMarkers[markerId] = marker;
+    });
   }
 
   @override
@@ -515,30 +742,38 @@ class _GeofenceWidgetState extends State<Geofence> {
                                           myLocationEnabled: false,
                                           compassEnabled: true,
                                           myLocationButtonEnabled: false,
-                                          markers: Set.of((marker != null)
-                                              ? [marker!]
-                                              : []),
-                                          circles: Set.of((circle != null)
-                                              ? [circle!]
-                                              : []),
-                                          polygons: _polygonsFence,
+                                          onLongPress: (latlang) {
+                                            _addPolygonMarker(latlang);
+                                            _addPolygon();
+                                            //we will call this function when pressed on the map
+                                          },
+                                          markers: Set<Marker>.of(
+                                              polygonMarkers.values),
+
+                                          // circles: Set.of((circle != null)
+                                          //     ? [circle!]
+                                          //     : []),
+                                          polygons:
+                                              Set<Polygon>.of(polygons.values),
+
+                                          // polygons: _polygonsFence,
                                           //     : _isDoNotEnterFence
                                           //         ? _doNotEnterFence
                                           //         : null,
                                           onTap: (point) {
-                                            if (_isPolygonFence) {
-                                              setState(() {
-                                                polygonFenceLatLngs.add(point);
-                                                _setPolygonFence();
-                                              });
-                                            }
-                                            if (_isDoNotEnterFence) {
-                                              setState(() {
-                                                dotNotEnterFenceLatLngs
-                                                    .add(point);
-                                                _setDoNotEnterFence();
-                                              });
-                                            }
+                                            // if (_isPolygonFence) {
+                                            //   setState(() {
+                                            //     polygonFenceLatLngs.add(point);
+                                            //     _setPolygonFence();
+                                            //   });
+                                            // }
+                                            // if (_isDoNotEnterFence) {
+                                            //   setState(() {
+                                            //     dotNotEnterFenceLatLngs
+                                            //         .add(point);
+                                            //     _setDoNotEnterFence();
+                                            //   });
+                                            // }
                                           },
                                           onMapCreated:
                                               (GoogleMapController controller) {
@@ -563,19 +798,19 @@ class _GeofenceWidgetState extends State<Geofence> {
                                               : []),
                                           polygons: _doNotEnterFence,
                                           onTap: (point) {
-                                            if (_isPolygonFence) {
-                                              setState(() {
-                                                polygonFenceLatLngs.add(point);
-                                                _setPolygonFence();
-                                              });
-                                            }
-                                            if (_isDoNotEnterFence) {
-                                              setState(() {
-                                                dotNotEnterFenceLatLngs
-                                                    .add(point);
-                                                _setDoNotEnterFence();
-                                              });
-                                            }
+                                            // if (_isPolygonFence) {
+                                            //   setState(() {
+                                            //     polygonFenceLatLngs.add(point);
+                                            //     _setPolygonFence();
+                                            //   });
+                                            // }
+                                            // if (_isDoNotEnterFence) {
+                                            //   setState(() {
+                                            //     dotNotEnterFenceLatLngs
+                                            //         .add(point);
+                                            //     _setDoNotEnterFence();
+                                            //   });
+                                            // }
                                           },
                                           onMapCreated:
                                               (GoogleMapController controller) {
