@@ -257,21 +257,26 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                               final colorString = prefs.getString(
                                       'color-' + 'SD-' + map['sID']) ??
                                   "";
-                      context.read<IATDataModel>().iatData =  new IATData(
-                                      senderMAC: map['sID'],
-                                      latitude: map['lat'],
-                                      longitude: map['lng'],
-                                      locationTimestamp: DateFormat("dd/MM/yyyy HH:mm:ss").parse(map['d'] + " " + map['t'])
+
+                              var tempIATData = new IATData(
+                                  senderMAC: map['sID'],
+                                  latitude: map['lat'],
+                                  longitude: map['lng'],
+                                  locationTimestamp:
+                                      DateFormat("dd/MM/yyyy HH:mm:ss")
+                                          .parse(map['d'] + " " + map['t'])
                                           .millisecondsSinceEpoch,
-                                      // date: DateTime.parse('1974-03-20 00:00:00.000'),
-                                      // date: map['d'],
-                                      // time: map['t'],
-                                      gatewayMAC: map['gID'],
-                                      trackerBatteryLevel: map['tBL'],
-                                      gatewayBatteryLevel: map['gBL'],
-                                      senderColor: colorString,
-                                      escaped: false);
-                                      
+                                  // date: DateTime.parse('1974-03-20 00:00:00.000'),
+                                  // date: map['d'],
+                                  // time: map['t'],
+                                  gatewayMAC: map['gID'],
+                                  trackerBatteryLevel: map['tBL'],
+                                  gatewayBatteryLevel: map['gBL'],
+                                  senderColor: colorString,
+                                  escaped: false);
+
+                              context.read<IATDataModel>().iatData =
+                                  tempIATData;
                               // context.read<IATDataModel>().addIatData(
                               //     new IATData(
                               //         senderMAC: map['sID'],
@@ -366,6 +371,25 @@ class _GatewayDetailsState extends State<GatewayDetails> {
                   longitude: null,
                   color: AuxFunc().colorNamefromColor(_availableColors[0]),
                   enabled: true));
+
+              final iatDevices = prefs
+                  .getString('iatDevices'); // will initite this value at setup
+              final List<IATData> decodedIATData =
+                  IATData.decode(iatDevices ?? "");
+              decodedIATData.add(new IATData(
+                  senderMAC: barcodeScanRes,
+                  latitude: 0,
+                  longitude: 0,
+                  locationTimestamp: 0,
+                  gatewayMAC: widget.gatewayMAC!,
+                  trackerBatteryLevel: 0,
+                  gatewayBatteryLevel: 0,
+                  senderColor:
+                      AuxFunc().colorNamefromColor(_availableColors[0]),
+                  name: barcodeScanRes,
+                  enabled: true,
+                  escaped: false));
+              prefs.setString('iatDevices', IATData.encode(decodedIATData));
               // _devices.add(Device(
               //   id: 'SD-' + barcodeScanRes,
               //   name: 'SD-' + barcodeScanRes,

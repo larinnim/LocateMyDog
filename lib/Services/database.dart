@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_maps/Services/bluetooth_conect.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DatabaseService {
   final String? uid;
@@ -162,6 +164,15 @@ class DatabaseService {
     await senderCollection.doc(uid).set({
       'name': name,
     }, SetOptions(merge: true));
+
+    //updating name for ble devices
+    final prefs = await SharedPreferences.getInstance();
+    final iatDevices = prefs.getString('iatDevices'); // will initite this value at setup
+    final List<IATData> decodedIATData = IATData.decode(iatDevices ?? "");
+    final indexUpdatedName = decodedIATData
+        .indexWhere((element) => element.senderMAC == 'SD-' + uid.toString());
+    decodedIATData[indexUpdatedName].name = name;
+    prefs.setString('iatDevices',IATData.encode(decodedIATData));
   }
 
   // Future<void> updateFencePreference(String fencePref) async {

@@ -9,6 +9,7 @@ import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/permissionChangeBuilder.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Step2 extends StatefulWidget {
   @override
@@ -24,12 +25,20 @@ class _Step2State extends State<Step2> {
   @override
   initState() {
     requestLocation();
-
+    initBLEDevices();
     super.initState();
   }
 
   void requestLocation() async {
     await Permission.camera.request();
+  }
+
+  void initBLEDevices() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    //updating name for ble devices
+    prefs.setString('iatDevices', '');
+
   }
 
   @override
@@ -71,11 +80,11 @@ class _Step2State extends State<Step2> {
                               MaterialStateProperty.all<Color>(Colors.white),
                           backgroundColor:
                               MaterialStateProperty.all<Color>(Colors.red),
-                          shape: MaterialStateProperty.all<
-                                  RoundedRectangleBorder>(
-                              RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.zero,
-                                  side: BorderSide(color: Colors.red)))),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.zero,
+                                      side: BorderSide(color: Colors.red)))),
                       onPressed: () => AppSettings.openAppSettings())
                 ],
               ));
@@ -124,13 +133,11 @@ class _Step2State extends State<Step2> {
                               child: ElevatedButton(
                                 style: ButtonStyle(
                                     backgroundColor:
-                                        MaterialStateProperty.all(
-                                            Colors.blue),
+                                        MaterialStateProperty.all(Colors.blue),
                                     shape: MaterialStateProperty.all<
                                             RoundedRectangleBorder>(
                                         RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(8.0),
+                                      borderRadius: BorderRadius.circular(8.0),
                                     ))),
                                 child: Text(
                                   'Scan Gateway Device',

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart'
     as barcode;
 import 'package:flutter_maps/Screens/Tutorial/step3.dart';
+import 'package:flutter_maps/Services/bluetooth_conect.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/permissionChangeBuilder.dart';
 import 'package:get/get.dart';
@@ -77,6 +78,14 @@ class AddNewDevice extends StatelessWidget {
             // Add color on cache to be used on ble
             prefs.setString(
                 'color-' + 'SD-' + barcodeScanRes.toString(), colorString);
+
+            final iatDevices = prefs
+                .getString('iatDevices'); // will initite this value at setup
+            final List<IATData> decodedIATData =
+                IATData.decode(iatDevices ?? "");
+            decodedIATData.add(new IATData(senderMAC: barcodeScanRes, latitude: 0, longitude: 0, locationTimestamp: 0, gatewayMAC: gatewayID, trackerBatteryLevel: 0, gatewayBatteryLevel: 0,senderColor: colorString, name: barcodeScanRes, enabled: true ,escaped: false));
+            prefs.setString('iatDevices', IATData.encode(decodedIATData));
+            
             Get.back();
           }).catchError((error) {
             print("Failed to add user: $error");

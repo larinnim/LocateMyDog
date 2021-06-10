@@ -8,6 +8,7 @@ import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
 import 'package:flutter_maps/Services/bluetooth_conect.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 
 import 'offline_map_infowindow.dart';
@@ -41,11 +42,13 @@ class _OfflineRegionMapState extends State<OfflineRegionMap> {
       locationName: '',
       labelColor: Colors.grey);
   late PinData _sourcePinInfo;
+  late SharedPreferences prefs;
 
   @override
   void initState() {
     super.initState();
     _initSenders(); // set context read
+    _initPrefs();
   }
 
   @override
@@ -54,6 +57,10 @@ class _OfflineRegionMapState extends State<OfflineRegionMap> {
     //   controller.removeListener(_onMapChanged);
     // }
     super.dispose();
+  }
+
+  Future<void> _initPrefs() async {
+    prefs = await SharedPreferences.getInstance();
   }
 
   Future<void> _initSenders() async {
@@ -276,6 +283,30 @@ class _OfflineRegionMapState extends State<OfflineRegionMap> {
     }
   }
 
+  String getSenderNameFromIcon(String iconPath) {
+    var index = 0;
+    if (iconPath != '') {
+      final iatDevices =
+          prefs.getString('iatDevices'); // will initite this value at setup
+      final List<IATData> decodedIATData = IATData.decode(iatDevices ?? "");
+      if (iconPath.contains('green')) {
+        index = decodedIATData
+            .indexWhere((element) => element.senderColor == 'green');
+      } else if (iconPath.contains('orange')) {
+        index = decodedIATData
+            .indexWhere((element) => element.senderColor == 'orange');
+      } else if (iconPath.contains('purple')) {
+        index = decodedIATData
+            .indexWhere((element) => element.senderColor == 'purple');
+      } else if (iconPath.contains('red')) {
+        index = decodedIATData
+            .indexWhere((element) => element.senderColor == 'red');
+      }
+      return decodedIATData[index].name ?? '';
+    }
+    return '';
+  }
+
   Widget _buildAvatar() {
     return Container(
       margin: EdgeInsets.only(left: 10),
@@ -292,7 +323,7 @@ class _OfflineRegionMapState extends State<OfflineRegionMap> {
 
   void _setMapPins(Symbol argument) {
     _sourcePinInfo = PinData(
-        pinPath: "",
+        pinPath: getSenderNameFromIcon(argument.options.iconImage ?? ""),
         // pinPath: argument.options.iconImage ?? 'assets/images/dogpin.png',
         locationName: "My Location",
         location: LatLng(argument.options.geometry!.latitude,

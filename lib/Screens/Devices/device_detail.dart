@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_maps/Screens/Profile/avatar.dart';
+import 'package:flutter_maps/Services/bluetooth_conect.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:image_picker/image_picker.dart';
@@ -11,6 +12,7 @@ import '../../locator.dart';
 import '../loading.dart';
 import 'functions_aux.dart';
 import 'dart:io';
+
 
 // ignore: must_be_immutable
 class DeviceDetail extends StatefulWidget {

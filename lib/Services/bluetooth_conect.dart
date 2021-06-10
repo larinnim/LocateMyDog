@@ -76,6 +76,8 @@ class IATData {
   int? trackerBatteryLevel;
   int? gatewayBatteryLevel;
   String? senderColor;
+  String? name;
+  bool? enabled;
   bool? escaped;
 
   IATData(
@@ -87,7 +89,52 @@ class IATData {
       this.trackerBatteryLevel,
       this.gatewayBatteryLevel,
       this.senderColor,
+      this.name,
+      this.enabled,
       this.escaped});
+
+  factory IATData.fromJson(Map<String, dynamic> jsonData) {
+    return IATData(
+        senderMAC: jsonData['senderMAC'],
+        latitude: jsonData['latitude'],
+        longitude: jsonData['longitude'],
+        locationTimestamp: jsonData['locationTimestamp'],
+        gatewayMAC: jsonData['gatewayMAC'],
+        trackerBatteryLevel: jsonData['trackerBatteryLevel'],
+        gatewayBatteryLevel: jsonData['gatewayBatteryLevel'],
+        senderColor: jsonData['senderColor'],
+        name: jsonData['name'],
+        enabled: jsonData['enabled'],
+        escaped: false);
+  }
+
+  static Map<String, dynamic> toMap(IATData iatData) => {
+        'senderMAC': iatData.senderMAC,
+        'latitude': iatData.latitude,
+        'longitude': iatData.longitude,
+        'locationTimestamp': iatData.locationTimestamp,
+        'gatewayMAC': iatData.gatewayMAC,
+        'trackerBatteryLevel': iatData.trackerBatteryLevel,
+        'gatewayBatteryLevel': iatData.gatewayBatteryLevel,
+        'senderColor': iatData.senderColor,
+        'name': iatData.name,
+        'enabled': iatData.enabled,
+        'escaped': iatData.escaped
+      };
+
+  static String encode(List<IATData> iats) => json.encode(
+        iats.map<Map<String, dynamic>>((iat) => IATData.toMap(iat)).toList(),
+      );
+
+  static List<IATData> decode(String iats) {
+    if (json.decode(iats) != null) {
+      return (json.decode(iats) as List<dynamic>)
+          .map<IATData>((item) => IATData.fromJson(item))
+          .toList();
+    } else {
+      return [];
+    }
+  }
 
   // String? senderNumber;
   // int rssi;
@@ -108,10 +155,11 @@ class IATDataModel extends ChangeNotifier {
     gatewayBatteryLevel: 0,
     senderColor: "",
   );
-    /// The current catalog. Used to construct items from numeric ids.
+
+  /// The current catalog. Used to construct items from numeric ids.
   IATData get iatData => _iatData;
 
- set iatData(IATData iatData) {
+  set iatData(IATData iatData) {
     _iatData = iatData;
     // Notify listeners, in case the new catalog provides information
     // different from the previous one. For example, availability of an item
