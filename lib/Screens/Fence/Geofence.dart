@@ -19,6 +19,7 @@ import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:location/location.dart' as localization;
 import 'package:provider/provider.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter_platform_interface/src/types/polygon_updates.dart';
 
 import '../loading.dart';
 
@@ -211,9 +212,20 @@ class _GeofenceWidgetState extends State<Geofence> {
     // updateMarkerAndCircle(location, imageData);
   }
 
-  void _addPolygon() {
-    final PolygonId polygonId = PolygonId('polygonGeofence');
+  void _addPolygon() async {
+    final PolygonId polygonId = PolygonId(_markerIdCounter.toString());
 
+    // final Polygon polygon = Polygon(
+    //   polygonId: polygonId,
+    //   consumeTapEvents: true,
+    //   strokeColor: Colors.transparent,
+    //   strokeWidth: 5,
+    //   fillColor: Colors.blue.withOpacity(0.7),
+    //   points: _polygonPoints,
+    //   onTap: () {
+    //     // _onPolygonTapped(polygonId);
+    //   },
+    // );
     final Polygon polygon = Polygon(
       polygonId: polygonId,
       consumeTapEvents: true,
@@ -225,8 +237,13 @@ class _GeofenceWidgetState extends State<Geofence> {
         // _onPolygonTapped(polygonId);
       },
     );
-
     setState(() {
+      Map<PolygonId, Polygon> updatedPolygon = polygons;
+      updatedPolygon[polygonId] = polygon;
+
+      PolygonUpdates.from(Set<Polygon>.from(polygons.values),
+          Set<Polygon>.from(updatedPolygon.values));
+
       polygons[polygonId] = polygon;
     });
   }
@@ -322,17 +339,17 @@ class _GeofenceWidgetState extends State<Geofence> {
   //   _initialPosition = LatLng(position.latitude, position.longitude);
   // }
 
-  void _setPolygonFence() {
-    final String polygonVal = 'polygon_id_$_polygonFenceIdCounter';
-    _polygonsFence.add(Polygon(
-      polygonId: PolygonId(polygonVal),
-      points: polygonFenceLatLngs,
-      // geodesic: true,
-      strokeWidth: 2,
-      strokeColor: Colors.blue,
-      fillColor: Colors.lightBlue,
-    ));
-  }
+  // void _setPolygonFence() {
+  //   final String polygonVal = 'polygon_id_$_polygonFenceIdCounter';
+  //   _polygonsFence.add(Polygon(
+  //     polygonId: PolygonId(polygonVal),
+  //     points: polygonFenceLatLngs,
+  //     // geodesic: true,
+  //     strokeWidth: 2,
+  //     strokeColor: Colors.blue,
+  //     fillColor: Colors.lightBlue,
+  //   ));
+  // }
 
   void _setDoNotEnterFence() {
     final String doNotEnterVal = 'doNotEnter_id_$_doNotEnterFenceIdCounter';
@@ -615,6 +632,8 @@ class _GeofenceWidgetState extends State<Geofence> {
 
     setState(() {
       polygonMarkers[markerId] = marker;
+      _polygonPoints.add(LatLng(markerLatLng.latitude, markerLatLng.longitude));
+      _addPolygon();
     });
   }
 
@@ -744,7 +763,7 @@ class _GeofenceWidgetState extends State<Geofence> {
                                           myLocationButtonEnabled: false,
                                           onLongPress: (latlang) {
                                             _addPolygonMarker(latlang);
-                                            _addPolygon();
+                                            // _addPolygon();
                                             //we will call this function when pressed on the map
                                           },
                                           markers: Set<Marker>.of(
