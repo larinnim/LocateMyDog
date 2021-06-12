@@ -97,6 +97,14 @@ class DatabaseService {
       'agreedToNotBeNotified': agreed,
     }, SetOptions(merge: true));
   }
+  Future<void> updateGeofenceType(String gatewayID, String fenceType) async {
+    await gatewayConfigCollection.doc(gatewayID).set({
+      'Geofence': {
+        'FenceType': fenceType
+      },
+    }, SetOptions(merge: true));
+  }
+
 
   Future<void> addSenderToGateway(String senderMac, String gatewayID) async {
     await gatewayConfigCollection.doc('GW-' + gatewayID).set({

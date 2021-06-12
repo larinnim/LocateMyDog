@@ -21,7 +21,7 @@ class MapProvider extends ChangeNotifier {
   ///------------------------///
 
   ///Property zoom camera
-  double _cameraZoom = 16;
+  double _cameraZoom = 17;
   double get cameraZoom => _cameraZoom;
 
   ///Property camera position
@@ -49,8 +49,10 @@ class MapProvider extends ChangeNotifier {
   GoogleMapController? get controller => _controller;
 
   ///Property to save all markers
-  Set<Marker> _markers = {};
-  Set<Marker> get markers => _markers;
+  // Set<Marker> _markers = {};
+  // Set<Marker> get markers => _markers;
+  List<Marker> _markers = [];
+  List<Marker> get markers => _markers;
 
   ///Property to mapStyle
   String? _mapStyle;
@@ -123,6 +125,10 @@ class MapProvider extends ChangeNotifier {
   bool _onInitCamera = false;
   bool get onInitCamera => _onInitCamera;
 
+  ///Change Camera on first get data
+  LatLng? _updateCameraLocation;
+  LatLng get updateCameraLocation => _updateCameraLocation!;
+
   CollectionReference gatewayConfigCollection =
       FirebaseFirestore.instance.collection('gateway-config');
 
@@ -163,6 +169,58 @@ class MapProvider extends ChangeNotifier {
       _enableDragMarker = dragMarker;
     }
 
+    notifyListeners();
+  }
+
+  //Function to init polygon markers
+  void initPolygonMarkers() async {
+    await gatewayConfigCollection
+        .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        List<dynamic> polygonLocation = doc.data()['Geofence']['Polygon'];
+        polygonLocation.forEach((element) async {
+          ///Find center position between two coordinate
+          if (_tempLocation.length > 0) {
+            if (_tempLocation.length > 1 && pointDistance) {
+              ///Remove previous distance first point to last point
+              await removeMarker(_endLoc);
+
+              ///Create distance marker for first point to last point
+              await createEndLoc(
+                  _tempLocation[0], LatLng(element['lat'], element['lng']));
+            }
+
+            if (pointDistance) {
+              ///Create distance marker for last positions
+              await createDistanceMarker(
+                  _tempLocation.last, LatLng(element['lat'], element['lng']));
+            }
+          }
+
+          ///Adding new locations
+          _tempLocation.add(LatLng(element['lat'], element['lng']));
+          if (_uniqueID == "") {
+            _uniqueID = Random().nextInt(10000).toString();
+          }
+
+          ///Create marker point
+          Uint8List? markerIcon = await getUint8List(markerKey);
+          setMarkerLocation(_tempLocation.length.toString(),
+              LatLng(element['lat'], element['lng']), markerIcon);
+
+          ///Set current tracking mode
+          ///so we can use this variable in every function
+          setTrackingMode(TrackingMode.PLANAR);
+          if (trackingMode == TrackingMode.PLANAR) {
+            setTempToPolygon();
+          } else {
+            setTempToPolyline();
+          }
+        });
+      });
+    });
     notifyListeners();
   }
 
@@ -226,25 +284,54 @@ class MapProvider extends ChangeNotifier {
 
     // if (_isEditMode == false) {
     //   /// When editing mode done
-    //   _uniqueID = "";
-    //   _tempPolygons.clear();
-    //   _tempLocation.clear();
-    //   _distanceLocation.clear();
+    // _uniqueID = "";
+    // _tempPolygons.clear();
+    // _tempLocation.clear();
+    // _distanceLocation.clear();
     //   _markers.clear();
     // } else {
     //   _markers.clear();
     // }
     if (_isEditMode == false) {
-      Set<Marker> updatedMarkers =
-          _markers.map((item) => item.copyWith(draggableParam: false)).toSet();
-      _markers = updatedMarkers;
+      // List<Marker> tempMarker = [];
+      // // _markers.clear();
+      // _markers.forEach((element) {
+      //   tempMarker.add(element.copyWith(draggableParam: false));
+      //   // element.copyWith(draggableParam: false);
+      // });
+      _uniqueID = "";
+      _tempLocation.clear();
+      _distanceLocation.clear();
+      _markers.clear();
+      // _markers = tempMarker;
+
+      // Set<Marker> updatedMarkers =
+      //     _markers.map((item) => item.copyWith(draggableParam: false)).toSet();
+      // _markers = updatedMarkers;
+
+      // _tempLocation.clear();
+
       // _markers.forEach((marker) {
       //   marker.copyWith(draggableParam: false);
       // });
     } else {
-      Set<Marker> updatedMarkers =
-          _markers.map((item) => item.copyWith(draggableParam: true)).toSet();
-      _markers = updatedMarkers;
+      //  List<Marker> tempMarker = [];
+      // // _markers.clear();
+      // _markers.forEach((element) {
+      //   tempMarker.add(element.copyWith(draggableParam: true));
+      //   // element.copyWith(draggableParam: false);
+      // });
+      _markers.clear();
+      _tempPolygons.clear();
+      // _markers = tempMarker;
+
+      // _markers.forEach((element) {
+      //   element.copyWith(draggableParam: true);
+      // });
+
+      // Set<Marker> updatedMarkers =
+      //     _markers.map((item) => item.copyWith(draggableParam: true)).toSet();
+      // _markers = updatedMarkers;
     }
     notifyListeners();
   }
@@ -408,14 +495,36 @@ class MapProvider extends ChangeNotifier {
         icon: BitmapDescriptor.fromBytes(markerIcon!),
         onDragEnd: (newLoc) {
           if (enableDragMarker) {
+            // var _tempLongitude = _markers
+            //     .firstWhere((element) =>
+            //         element.markerId == MarkerId("${uniqueID + id}"))
+            //     .position
+            //     .longitude;
+            // var _tempLatitude = _markers
+            //     .firstWhere((element) =>
+            //         element.markerId == MarkerId("${uniqueID + id}"))
+            //     .position
+            //     .latitude;
+
+            // _tempLocation.removeWhere((element) =>
+            //     element.longitude == _tempLongitude &&
+            //     element.latitude == _tempLatitude);
+
+            // ///Adding new locations
+            // _tempLocation.add(newLoc);
+            // if (_uniqueID == "") {
+            //   _uniqueID = Random().nextInt(10000).toString();
+            // }
             updateNewMarkerLocation(id, newLoc);
-            // Set<Marker> updatedMarkers = 
-          
+
+            // Set<Marker> updatedMarkers =
+
             // _markers = updatedMarkers;
           }
-            _markers
-                .map((item) => item.markerId == MarkerId("${uniqueID + id}") ? item.copyWith(positionParam: newLoc) : item)
-                .toSet();
+          // _markers
+          //     .map((item) => item.markerId == MarkerId("${uniqueID + id}") ? item.copyWith(positionParam: newLoc) : item)
+          //     .toSet();
+
           // else {
           //   var _currentMarker = _markers.firstWhere((element) => element.markerId == MarkerId("${uniqueID + id}"));
           //   updateNewMarkerLocation(id,  _currentMarker.position);
