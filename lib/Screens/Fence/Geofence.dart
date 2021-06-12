@@ -37,7 +37,9 @@ class _GeofenceWidgetState extends State<Geofence> {
   Circle? circle;
   Marker? marker;
   late Polygon polygon;
-  Map<PolygonId, Polygon> polygons = <PolygonId, Polygon>{};
+  // Map<PolygonId, Polygon> polygons = <PolygonId, Polygon>{};
+  List<Polygon> polygons = <Polygon>[];
+
   Map<MarkerId, Marker> polygonMarkers = <MarkerId, Marker>{};
   final List<LatLng> _polygonPoints = <LatLng>[];
 
@@ -70,7 +72,7 @@ class _GeofenceWidgetState extends State<Geofence> {
   int _incrementRadius = 5;
   String? _units = 'meter';
   int _markerIdCounter = 1;
-
+  late LatLng _currentPolyPoint;
   GeofenceType? _geofenceType = GeofenceType.Circle;
 
   // String _connectionStatus = 'Unknown';
@@ -233,18 +235,33 @@ class _GeofenceWidgetState extends State<Geofence> {
       strokeWidth: 5,
       fillColor: Colors.blue.withOpacity(0.7),
       points: _polygonPoints,
+      visible: true,
+      geodesic: false,
       onTap: () {
         // _onPolygonTapped(polygonId);
       },
     );
     setState(() {
-      Map<PolygonId, Polygon> updatedPolygon = polygons;
-      updatedPolygon[polygonId] = polygon;
+      // Map<PolygonId, Polygon> updatedPolygon = polygons;
+      // List<Polygon> updatedPolygon = polygons;
+      // List<Polygon> updatedPolygon = polygons;
 
-      PolygonUpdates.from(Set<Polygon>.from(polygons.values),
-          Set<Polygon>.from(updatedPolygon.values));
+      // updatedPolygon[polygonId] = polygon;
+      List<Polygon> updatedPolygon = [];
+      updatedPolygon.add(polygon);
 
-      polygons[polygonId] = polygon;
+      PolygonUpdates.from(
+          Set<Polygon>.from(polygons), Set<Polygon>.from(updatedPolygon));
+
+      // PolygonUpdates.from(Set<Polygon>.from(polygons.values),
+      //     Set<Polygon>.from(updatedPolygon.values));
+
+      // polygons = <PolygonId, Polygon>{};
+      polygons.clear();
+      polygons = updatedPolygon;
+      // polygons = updatedPolygon;
+
+      // polygons[polygonId] = polygon;
     });
   }
 
@@ -252,7 +269,9 @@ class _GeofenceWidgetState extends State<Geofence> {
     _polygonPoints.add(LatLng(46.51973906501267, -80.9557356970208));
     _polygonPoints.add(LatLng(46.520536375823674, -80.9542122023067));
     _polygonPoints.add(LatLng(46.52069140712267, -80.9556605951687));
-    // points.add(LatLng(46.522085913406585, -80.93543132597847));
+    _polygonPoints.add(LatLng(46.522085913406585, -80.93543132597847));
+    _polygonPoints.add(LatLng(46.519098900787895, -80.95964122930971));
+
     return _polygonPoints;
   }
 
@@ -629,10 +648,11 @@ class _GeofenceWidgetState extends State<Geofence> {
         _onMarkerDragEnd(markerId, position);
       },
     );
+    _polygonPoints.add(LatLng(markerLatLng.latitude, markerLatLng.longitude));
 
     setState(() {
       polygonMarkers[markerId] = marker;
-      _polygonPoints.add(LatLng(markerLatLng.latitude, markerLatLng.longitude));
+      // _polygonPoints.add(LatLng(markerLatLng.latitude, markerLatLng.longitude));
       _addPolygon();
     });
   }
@@ -773,7 +793,8 @@ class _GeofenceWidgetState extends State<Geofence> {
                                           //     ? [circle!]
                                           //     : []),
                                           polygons:
-                                              Set<Polygon>.of(polygons.values),
+                                              // Set<Polygon>.of(polygons.values),
+                                              Set<Polygon>.of(polygons),
 
                                           // polygons: _polygonsFence,
                                           //     : _isDoNotEnterFence
