@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'Screens/Profile/profile.dart';
 import 'Screens/ProfileSettings/translationDictionary.dart';
 // import 'Services/SetWiFiConf.dart';
+import 'Services/mapProvider.dart';
 import 'locator.dart';
 import 'Services/bluetooth_conect.dart';
 // void main() => runApp(MyApp());
@@ -32,7 +33,8 @@ void main() async {
     ChangeNotifierProvider(create: (context) => WiFiModel()),
     ChangeNotifierProvider(create: (context) => ConnectionStatusModel()),
     ChangeNotifierProvider(create: (context) => SocialSignInProvider()),
-    ChangeNotifierProvider(create: (context) => IATDataModel())
+    ChangeNotifierProvider(create: (context) => IATDataModel()),
+    ChangeNotifierProvider(create: (context) => MapProvider())
   ], child: MainPage()));
 }
 

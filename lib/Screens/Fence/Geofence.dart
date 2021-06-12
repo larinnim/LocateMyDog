@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
+import 'package:flutter_maps/Services/mapProvider.dart';
 import 'package:flutter_maps/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +18,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:location/location.dart' as localization;
+import 'package:polymaker/core/models/trackingmode.dart';
+
+// import 'package:polymaker/core/models/trackingmode.dart';
 import 'package:provider/provider.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter_platform_interface/src/types/polygon_updates.dart';
@@ -40,11 +44,15 @@ class _GeofenceWidgetState extends State<Geofence> {
   Map<PolygonId, Polygon> polygons = <PolygonId, Polygon>{};
   Map<MarkerId, Marker> polygonMarkers = <MarkerId, Marker>{};
   final List<LatLng> _polygonPoints = <LatLng>[];
+  bool isSatellite = false;
 
   GoogleMapController? _controller;
   static LatLng? _initialPosition;
-  late double _configuredRadius; //Radius is 30 meters
-  late double _configuredRadiusToUnits; //Radius is 30 meters
+  double _configuredRadius = 0.0; //Radius is 30 meters
+
+  // late double _configuredRadius; //Radius is 30 meters
+  // late double _configuredRadiusToUnits; //R
+  double _configuredRadiusToUnits = 0.0;
   late Uint8List imageData;
   late localization.LocationData location;
   AppUser? _currentUser = locator.get<UserController>().currentUser;
@@ -647,6 +655,56 @@ class _GeofenceWidgetState extends State<Geofence> {
     super.dispose();
   }
 
+  ///Widget for custom marker
+  Widget mapIcon() {
+    return Consumer<MapProvider>(
+      builder: (context, mapProv, _) {
+        return RepaintBoundary(
+          key: mapProv.markerKey,
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration:
+                BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+            child: Center(
+              child: Text(
+                (mapProv.tempLocation.length + 1).toString(),
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget mapDistance() {
+    return Consumer<MapProvider>(
+      builder: (context, mapProv, _) {
+        return RepaintBoundary(
+          key: mapProv.distanceKey,
+          child: Container(
+            width: mapProv.distance.length > 6
+                ? (mapProv.distance.length >= 9 ? 100 : 80)
+                : 64,
+            height: 32,
+            decoration: BoxDecoration(
+                color: Colors.black87, borderRadius: BorderRadius.circular(10)),
+            child: Center(
+              child: Text(mapProv.distance,
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
+            ),
+          ),
+        );
+      },
+    );
+  }
   // Platform messages are asynchronous, so we initialize in an async method.
   // Future<void> initConnectivity() async {
   //   ConnectivityResult result = ConnectivityResult.none;
@@ -680,9 +738,201 @@ class _GeofenceWidgetState extends State<Geofence> {
   //     );
   //   }
   // }
+  ///Widget tools list
+  Widget _toolsList() {
+    return Builder(
+      builder: (context) {
+        return Consumer<MapProvider>(
+          builder: (context, mapProv, _) {
+            return SafeArea(
+              child: Stack(
+                children: <Widget>[
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                        padding: const EdgeInsets.only(top: 30, right: 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            _isPolygonFence == true
+
+                                // mapProv.isEditMode == true
+                                ? Row(children: [
+                                    mapProv.isEditMode == true
+                                        ? InkWell(
+                                            onTap: () => mapProv.undoLocation(),
+                                            child: Container(
+                                              width: 40,
+                                              height: 40,
+                                              decoration: BoxDecoration(
+                                                  color: isSatellite
+                                                      ? Colors.white
+                                                      : Colors.black87,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          50)),
+                                              child: Icon(
+                                                Icons.undo,
+                                                color: isSatellite
+                                                    ? Colors.black87
+                                                    : Colors.white,
+                                              ),
+                                            ),
+                                          )
+                                        : SizedBox(),
+
+                                    SizedBox(
+                                        width: mapProv.isEditMode == true
+                                            ? 10
+                                            : 0),
+                                    mapProv.isEditMode == true
+                                        ? InkWell(
+                                            onTap: () {
+                                              mapProv.saveTracking(context);
+                                              mapProv.changeEditMode();
+                                            },
+                                            child: Container(
+                                              width: 40,
+                                              height: 40,
+                                              decoration: BoxDecoration(
+                                                  color: isSatellite
+                                                      ? Colors.white
+                                                      : Colors.black87,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          50)),
+                                              child: Icon(
+                                                Icons.check,
+                                                color: isSatellite
+                                                    ? Colors.black87
+                                                    : Colors.white,
+                                              ),
+                                            ),
+                                          )
+                                        : SizedBox(),
+                                    SizedBox(
+                                        width: mapProv.isEditMode == true
+                                            ? 10
+                                            : 0),
+                                    InkWell(
+                                      onTap: () => mapProv.changeEditMode(),
+                                      child: Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                            color: isSatellite
+                                                ? Colors.white
+                                                : Colors.black87,
+                                            borderRadius:
+                                                BorderRadius.circular(50)),
+                                        child: Icon(
+                                          mapProv.isEditMode == false
+                                              ? Icons.edit_location
+                                              : Icons.close,
+                                          color: isSatellite
+                                              ? Colors.black87
+                                              : Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 10),
+                                    // InkWell(
+                                    //   onTap: () => mapProv.changeCameraPosition(
+                                    //       mapProv.sourceLocation!),
+                                    //   child: Container(
+                                    //     width: 40,
+                                    //     height: 40,
+                                    //     decoration: BoxDecoration(
+                                    //         color: isSatellite
+                                    //             ? Colors.white
+                                    //             : Colors.black87,
+                                    //         borderRadius:
+                                    //             BorderRadius.circular(50)),
+                                    //     child: Icon(
+                                    //       Icons.my_location,
+                                    //       color: isSatellite
+                                    //           ? Colors.black87
+                                    //           : Colors.white,
+                                    //     ),
+                                    //   ),
+                                    // ),
+                                    // SizedBox(width: 10),
+                                  ])
+                                : SizedBox(),
+                            InkWell(
+                              onTap: () {
+                                if (isSatellite) {
+                                  isSatellite = false;
+                                } else
+                                  isSatellite = true;
+                                setState(() {});
+                              },
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                    color: isSatellite
+                                        ? Colors.white
+                                        : Colors.black87,
+                                    borderRadius: BorderRadius.circular(50)),
+                                child: Icon(
+                                  isSatellite ? Icons.map : Icons.satellite,
+                                  color: isSatellite
+                                      ? Colors.black87
+                                      : Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )),
+                  ),
+                  // widget.targetCameraPosition == null &&
+                  // mapProv.isEditMode
+                  //     ? Align(
+                  //         alignment: Alignment.bottomLeft,
+                  //         child: Padding(
+                  //           padding:
+                  //               const EdgeInsets.only(bottom: 30, left: 20),
+                  //           child: InkWell(
+                  //             onTap: () {
+                  //               mapProv.addGpsLocation(
+                  //                   mode: TrackingMode.PLANAR);
+                  //             },
+                  //             child: Container(
+                  //               width: 40,
+                  //               height: 40,
+                  //               decoration: BoxDecoration(
+                  //                   color: isSatellite
+                  //                       ? Colors.white
+                  //                       : Colors.black87,
+                  //                   borderRadius: BorderRadius.circular(50)),
+                  //               child: Icon(
+                  //                 Icons.add_location,
+                  //                 color: isSatellite
+                  //                     ? Colors.black87
+                  //                     : Colors.white,
+                  //               ),
+                  //             ),
+                  //           ),
+                  //         ),
+                  //       )
+                  //     : SizedBox(height: 0, width: 0),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    //To modify status bar
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark));
+
     final connectionStatus =
         Provider.of<ConnectionStatusModel>(context, listen: false);
     connectionStatus.initConnectionListen();
@@ -709,8 +959,23 @@ class _GeofenceWidgetState extends State<Geofence> {
           ],
         ),
         backgroundColor: Colors.grey[500],
-        body: Consumer<ConnectionStatusModel>(
-            builder: (_, connectionProvider, child) {
+        body: Consumer2<ConnectionStatusModel, MapProvider>(
+            builder: (_, connectionProvider, mapProv, child) {
+//Get first location
+          if (mapProv.cameraPosition == null && mapProv.onInitCamera == false) {
+            // if (widget.targetCameraPosition != null) {
+            //   mapProv.initCamera(false, true,
+            //       targetCameraPosition: widget.targetCameraPosition,
+            //       dragMarker: widget.enableDragMarker);
+            // }
+            // else {
+            mapProv.initCamera(false, true, dragMarker: true);
+            // }
+            mapProv.setPolygonColor(Colors.blue);
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
           return FutureBuilder(
               initialData: false,
               future: mounted
@@ -748,62 +1013,45 @@ class _GeofenceWidgetState extends State<Geofence> {
                               ),
                             )
                           : new Stack(children: <Widget>[
+                              Positioned(top: -300, child: mapDistance()),
+                              Positioned(top: -300, child: mapIcon()),
                               new Container(
                                   height: 1000, // This line solved the issue
                                   child: _isPolygonFence
                                       ? GoogleMap(
-                                          mapType: MapType.hybrid,
+                                          mapType: isSatellite
+                                              ? MapType.satellite
+                                              : MapType.normal,
                                           initialCameraPosition: CameraPosition(
                                             target: _initialPosition!,
-                                            zoom: 11,
+                                            zoom: 17,
                                           ),
                                           zoomGesturesEnabled: true,
-                                          myLocationEnabled: false,
+                                          myLocationEnabled: true,
                                           compassEnabled: true,
                                           myLocationButtonEnabled: false,
-                                          onLongPress: (latlang) {
-                                            _addPolygonMarker(latlang);
-                                            // _addPolygon();
-                                            //we will call this function when pressed on the map
-                                          },
-                                          markers: Set<Marker>.of(
-                                              polygonMarkers.values),
-
-                                          // circles: Set.of((circle != null)
-                                          //     ? [circle!]
-                                          //     : []),
-                                          polygons:
-                                              Set<Polygon>.of(polygons.values),
-
-                                          // polygons: _polygonsFence,
-                                          //     : _isDoNotEnterFence
-                                          //         ? _doNotEnterFence
-                                          //         : null,
-                                          onTap: (point) {
-                                            // if (_isPolygonFence) {
-                                            //   setState(() {
-                                            //     polygonFenceLatLngs.add(point);
-                                            //     _setPolygonFence();
-                                            //   });
-                                            // }
-                                            // if (_isDoNotEnterFence) {
-                                            //   setState(() {
-                                            //     dotNotEnterFenceLatLngs
-                                            //         .add(point);
-                                            //     _setDoNotEnterFence();
-                                            //   });
-                                            // }
-                                          },
+                                          markers: mapProv.markers,
+                                          // onLongPress: (latlang) {
+                                          //   _addPolygonMarker(latlang);
+                                          //   // _addPolygon();
+                                          //   //we will call this function when pressed on the map
+                                          // },
+                                          polygons: mapProv.polygons,
+                                          polylines: mapProv.polylines,
+                                          onTap: (loc) => mapProv.onTapMap(loc,
+                                              mode: TrackingMode.PLANAR),
                                           onMapCreated:
                                               (GoogleMapController controller) {
                                             _controller = controller;
                                           },
                                         )
                                       : GoogleMap(
-                                          mapType: MapType.hybrid,
+                                          mapType: isSatellite
+                                              ? MapType.satellite
+                                              : MapType.normal,
                                           initialCameraPosition: CameraPosition(
                                             target: _initialPosition!,
-                                            zoom: 11,
+                                            zoom: 17,
                                           ),
                                           zoomGesturesEnabled: true,
                                           myLocationEnabled: false,
@@ -836,6 +1084,7 @@ class _GeofenceWidgetState extends State<Geofence> {
                                             _controller = controller;
                                           },
                                         )),
+                              _toolsList(),
                               // connectionProvider.connectionStatus == NetworkStatus.Offline
                               //     ? CupertinoAlertDialog(
                               //         title: Text(

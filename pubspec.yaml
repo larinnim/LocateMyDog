@@ -70,6 +70,7 @@ dependencies:
   flutter_local_notifications: ^5.0.0+4
   rxdart: ^0.26.0
   google_maps_flutter_platform_interface: ^2.0.4
+  polymaker: ^1.0.2
 
   mapbox_gl:
     git:

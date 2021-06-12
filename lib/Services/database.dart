@@ -105,9 +105,30 @@ class DatabaseService {
       ]),
       'userID': uid,
       'Geofence': {
-        'Circle': {'initialLat': 0, 'initialLng': 0, 'radius': 30}
-      }
+        'Circle': {'initialLat': 0, 'initialLng': 0, 'radius': 30},
+        'Polygon': FieldValue.arrayUnion([
+          {'ID': senderMac}
+        ])
+      },
     }, SetOptions(merge: true));
+  }
+
+  Future<void> updatePolygonGeofenceConfiguration(
+    String gatewayID, List<LatLng> polygonLatLng) async {
+       await gatewayConfigCollection.doc(gatewayID).set({
+        'Geofence': {
+          'Polygon': FieldValue.delete()
+        },
+      }, SetOptions(merge: true));
+    polygonLatLng.forEach((element) async {
+      await gatewayConfigCollection.doc(gatewayID).set({
+        'Geofence': {
+          'Polygon': FieldValue.arrayUnion([
+            {'lat': element.latitude, 'lng': element.longitude}
+          ])
+        },
+      }, SetOptions(merge: true));
+    });
   }
 
   Future<void> updateCircleRadius(
