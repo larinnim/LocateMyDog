@@ -86,6 +86,10 @@ class _GeofenceWidgetState extends State<Geofence> {
         });
       });
     });
+     await userCollection.doc(_firebaseAuth.currentUser!.uid).get()
+        .then((DocumentSnapshot documentSnapshot) {
+         _isSatellite =  documentSnapshot.data()!['MapTypeIsSatellite'];
+    });
   }
 
   Future<void> _getRadiusAndUnits() async {
@@ -550,8 +554,11 @@ class _GeofenceWidgetState extends State<Geofence> {
                               onTap: () {
                                 if (_isSatellite) {
                                   _isSatellite = false;
-                                } else
+                                } else {
                                   _isSatellite = true;
+                                }
+                                DatabaseService(uid: _firebaseAuth.currentUser?.uid)
+                                    .updateMapTypePreference(_isSatellite);
                                 setState(() {});
                               },
                               child: Container(
@@ -617,7 +624,26 @@ class _GeofenceWidgetState extends State<Geofence> {
         backgroundColor: Colors.grey[500],
         body: Consumer2<ConnectionStatusModel, MapProvider>(
             builder: (_, connectionProvider, mapProv, child) {
+          // if (mapProv.markers.isEmpty) {
+          //   mapProv.initPolygonMarkers();
+          // }
+
+          // _initialPosition != null ?
+          //     _controller!.animateCamera(CameraUpdate.newCameraPosition(
+          //         new CameraPosition(
+          //             bearing: 192.8334901395799,
+          //             target: LatLng(_initialPosition!.latitude,
+          //                _initialPosition!.longitude),
+          //             tilt: 0,
+          //             zoom: 20.00))) : mapProv.initCamera(false, true, dragMarker: true) ;
 //Get first location
+          if (mapProv.cameraPosition == null || mapProv.onInitCamera == false) {
+            if (mapProv.markers.isEmpty &&
+                mapProv.tempLocation.isEmpty &&
+                !mapProv.isEditMode) {
+              mapProv.initPolygonMarkers();
+            }
+          }
           if (mapProv.cameraPosition == null && mapProv.onInitCamera == false) {
             // if (widget.targetCameraPosition != null) {
             //   mapProv.initCamera(false, true,
@@ -627,19 +653,18 @@ class _GeofenceWidgetState extends State<Geofence> {
             // else {
 
             // mapProv.initCamera(false, true, dragMarker: true);
-            mapProv.initPolygonMarkers();
             // mapProv.tempLocation.isNotEmpty
-            //     ? 
-            //     _controller!.animateCamera(CameraUpdate.newCameraPosition(
-            //         new CameraPosition(
-            //             bearing: 192.8334901395799,
-            //             target: LatLng(mapProv.markers.first.position.latitude,
-            //                 mapProv.markers.first.position.longitude),
-            //             tilt: 0,
-            //             zoom: 18.00)))
+            //     ?
+            // _controller!.animateCamera(CameraUpdate.newCameraPosition(
+            //     new CameraPosition(
+            //         bearing: 192.8334901395799,
+            //         target: LatLng(mapProv.markers.first.position.latitude,
+            //             mapProv.markers.first.position.longitude),
+            //         tilt: 0,
+            //         zoom: 18.00)))
             //     :
-                
-                 mapProv.initCamera(false, true, dragMarker: true);
+
+            mapProv.initCamera(false, true, dragMarker: true);
 
             // }
             mapProv.setPolygonColor(Colors.blue);
@@ -695,7 +720,7 @@ class _GeofenceWidgetState extends State<Geofence> {
                                               : MapType.normal,
                                           initialCameraPosition: CameraPosition(
                                             target: _initialPosition!,
-                                            zoom: 17,
+                                            zoom: 20,
                                           ),
                                           zoomGesturesEnabled: true,
                                           myLocationEnabled: true,
@@ -720,7 +745,7 @@ class _GeofenceWidgetState extends State<Geofence> {
                                               : MapType.normal,
                                           initialCameraPosition: CameraPosition(
                                             target: _initialPosition!,
-                                            zoom: 17,
+                                            zoom: 20,
                                           ),
                                           zoomGesturesEnabled: true,
                                           myLocationEnabled: false,

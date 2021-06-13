@@ -21,7 +21,7 @@ class MapProvider extends ChangeNotifier {
   ///------------------------///
 
   ///Property zoom camera
-  double _cameraZoom = 17;
+  double _cameraZoom = 20;
   double get cameraZoom => _cameraZoom;
 
   ///Property camera position
@@ -173,7 +173,7 @@ class MapProvider extends ChangeNotifier {
   }
 
   //Function to init polygon markers
-  void initPolygonMarkers() async {
+  Future<void> initPolygonMarkers() async {
     await gatewayConfigCollection
         .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
         .get()
@@ -187,16 +187,16 @@ class MapProvider extends ChangeNotifier {
               ///Remove previous distance first point to last point
               await removeMarker(_endLoc);
 
-              ///Create distance marker for first point to last point
-              await createEndLoc(
-                  _tempLocation[0], LatLng(element['lat'], element['lng']));
+              // ///Create distance marker for first point to last point
+              // await createEndLoc(
+              //     _tempLocation[0], LatLng(element['lat'], element['lng']));
             }
 
-            if (pointDistance) {
-              ///Create distance marker for last positions
-              await createDistanceMarker(
-                  _tempLocation.last, LatLng(element['lat'], element['lng']));
-            }
+            // if (pointDistance) {
+            //   ///Create distance marker for last positions
+            //   await createDistanceMarker(
+            //       _tempLocation.last, LatLng(element['lat'], element['lng']));
+            // }
           }
 
           ///Adding new locations
@@ -206,9 +206,9 @@ class MapProvider extends ChangeNotifier {
           }
 
           ///Create marker point
-          Uint8List? markerIcon = await getUint8List(markerKey);
-          setMarkerLocation(_tempLocation.length.toString(),
-              LatLng(element['lat'], element['lng']), markerIcon);
+          // Uint8List? markerIcon = await getUint8List(markerKey);
+          // setMarkerLocation(_tempLocation.length.toString(),
+          //     LatLng(element['lat'], element['lng']), markerIcon);
 
           ///Set current tracking mode
           ///so we can use this variable in every function
@@ -321,8 +321,11 @@ class MapProvider extends ChangeNotifier {
       //   tempMarker.add(element.copyWith(draggableParam: true));
       //   // element.copyWith(draggableParam: false);
       // });
-      _markers.clear();
+      // _markers.clear();
       _tempPolygons.clear();
+       _uniqueID = "";
+      _tempLocation.clear();
+      _distanceLocation.clear();
       // _markers = tempMarker;
 
       // _markers.forEach((element) {
