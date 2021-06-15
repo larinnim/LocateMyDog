@@ -62,9 +62,13 @@ class MapProvider extends ChangeNotifier {
   bool _isEditMode = false;
   bool get isEditMode => _isEditMode;
 
-  ///Property temporary polygon list
+  // ///Property temporary polygon list
   Set<Polygon> _tempPolygons = new Set();
   Set<Polygon> get tempPolygons => _tempPolygons;
+
+  ///Property temporary polygon list
+  Set<Polygon> _savedPolygons = new Set();
+  Set<Polygon> get savedPolygons => _savedPolygons;
 
   ///Property polygon list
   Set<Polygon> _polygons = new Set();
@@ -80,6 +84,10 @@ class MapProvider extends ChangeNotifier {
   ///Property temporary location
   List<LatLng> _tempLocation = [];
   List<LatLng> get tempLocation => _tempLocation;
+
+  ///Property temporary location
+  List<LatLng> _savedLocation = [];
+  List<LatLng> get savedLocation => _savedLocation;
 
   ///Property to save distance location
   List<LatLng> _distanceLocation = [];
@@ -102,8 +110,13 @@ class MapProvider extends ChangeNotifier {
   Uint8List? get customMarker => _customMarker;
 
   ///Custom key for custom marker
-  final markerKey = GlobalKey();
-  final distanceKey = GlobalKey();
+  final markerKey = new GlobalKey();
+  final distanceKey = new GlobalKey();
+  // static final markerKey = GlobalKey<RefreshIndicatorState>();
+  // static final distanceKey = GlobalKey<RefreshIndicatorState>();
+
+//  static final markerKey = const Key('__markerKey__');
+//   static final distanceKey = const Key('__distanceKey__');
 
   ///Value to show distance between two location
   String _distance = "0";
@@ -180,48 +193,11 @@ class MapProvider extends ChangeNotifier {
         .then((QuerySnapshot querySnapshot) {
       querySnapshot.docs.forEach((doc) {
         List<dynamic> polygonLocation = doc.data()['Geofence']['Polygon'];
-        polygonLocation.forEach((element) async {
-          ///Find center position between two coordinate
-          if (_tempLocation.length > 0) {
-            if (_tempLocation.length > 1 && pointDistance) {
-              ///Remove previous distance first point to last point
-              await removeMarker(_endLoc);
-
-              // ///Create distance marker for first point to last point
-              // await createEndLoc(
-              //     _tempLocation[0], LatLng(element['lat'], element['lng']));
-            }
-
-            // if (pointDistance) {
-            //   ///Create distance marker for last positions
-            //   await createDistanceMarker(
-            //       _tempLocation.last, LatLng(element['lat'], element['lng']));
-            // }
-          }
-
-          ///Adding new locations
-          _tempLocation.add(LatLng(element['lat'], element['lng']));
-          if (_uniqueID == "") {
-            _uniqueID = Random().nextInt(10000).toString();
-          }
-
-          ///Create marker point
-          // Uint8List? markerIcon = await getUint8List(markerKey);
-          // setMarkerLocation(_tempLocation.length.toString(),
-          //     LatLng(element['lat'], element['lng']), markerIcon);
-
-          ///Set current tracking mode
-          ///so we can use this variable in every function
-          setTrackingMode(TrackingMode.PLANAR);
-          if (trackingMode == TrackingMode.PLANAR) {
-            setTempToPolygon();
-          } else {
-            setTempToPolyline();
-          }
-        });
+        buildSavedPoints(polygonLocation);
+        buildInitPolygon(polygonLocation);
       });
     });
-    notifyListeners();
+    // notifyListeners();
   }
 
   ///Function to init polygon color
@@ -299,43 +275,56 @@ class MapProvider extends ChangeNotifier {
       //   tempMarker.add(element.copyWith(draggableParam: false));
       //   // element.copyWith(draggableParam: false);
       // });
+
       _uniqueID = "";
+      _tempPolygons.clear();
       _tempLocation.clear();
       _distanceLocation.clear();
       _markers.clear();
-      // _markers = tempMarker;
-
-      // Set<Marker> updatedMarkers =
-      //     _markers.map((item) => item.copyWith(draggableParam: false)).toSet();
-      // _markers = updatedMarkers;
-
-      // _tempLocation.clear();
-
-      // _markers.forEach((marker) {
-      //   marker.copyWith(draggableParam: false);
-      // });
     } else {
-      //  List<Marker> tempMarker = [];
-      // // _markers.clear();
-      // _markers.forEach((element) {
-      //   tempMarker.add(element.copyWith(draggableParam: true));
-      //   // element.copyWith(draggableParam: false);
-      // });
-      // _markers.clear();
-      _tempPolygons.clear();
-       _uniqueID = "";
-      _tempLocation.clear();
-      _distanceLocation.clear();
-      // _markers = tempMarker;
-
-      // _markers.forEach((element) {
-      //   element.copyWith(draggableParam: true);
-      // });
-
-      // Set<Marker> updatedMarkers =
-      //     _markers.map((item) => item.copyWith(draggableParam: true)).toSet();
-      // _markers = updatedMarkers;
+      _markers.clear();
     }
+
+    // _uniqueID = "";
+    // _tempLocation.clear();
+    // _distanceLocation.clear();
+    // _markers.clear();
+    // _markers = tempMarker;
+
+    // Set<Marker> updatedMarkers =
+    //     _markers.map((item) => item.copyWith(draggableParam: false)).toSet();
+    // _markers = updatedMarkers;
+
+    // _tempLocation.clear();
+
+    // _markers.forEach((marker) {
+    //   marker.copyWith(draggableParam: false);
+    // });
+    // }
+    // else {
+    //  List<Marker> tempMarker = [];
+    // // _markers.clear();
+    // _markers.forEach((element) {
+    //   tempMarker.add(element.copyWith(draggableParam: true));
+    //   // element.copyWith(draggableParam: false);
+    // });
+    // _markers.clear();
+
+    // _tempPolygons.clear();
+    // _uniqueID = "";
+    // _tempLocation.clear();
+    // _distanceLocation.clear();
+
+    // _markers = tempMarker;
+
+    // _markers.forEach((element) {
+    //   element.copyWith(draggableParam: true);
+    // });
+
+    // Set<Marker> updatedMarkers =
+    //     _markers.map((item) => item.copyWith(draggableParam: true)).toSet();
+    // _markers = updatedMarkers;
+    // }
     notifyListeners();
   }
 
@@ -592,7 +581,46 @@ class MapProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void buildSavedPoints(List<dynamic> polygonLocation) {
+    polygonLocation.forEach((element) {
+      if (_savedLocation.length < polygonLocation.length) {
+        _savedLocation.add(LatLng(element['lat'], element['lng']));
+      }
+    });
+  }
+
+  ///Function to set temporary polygons to polygons
+  void buildInitPolygon(List<dynamic> savedLocations) {
+    var _index = 0;
+    savedLocations.forEach((element) {
+      _index++;
+      _savedPolygons.add(Polygon(
+          polygonId: PolygonId(_index.toString()),
+          points: _savedLocation,
+          strokeWidth: 3,
+          fillColor: _polygonColor!.withOpacity(0.3),
+          strokeColor: _polygonColor!));
+    });
+    notifyListeners();
+  }
+
   void setTempToPolyline() {
+    _tempPolylines
+        .removeWhere((line) => line.polylineId.toString() == uniqueID);
+
+    _tempPolylines.add(
+      Polyline(
+        polylineId: PolylineId(uniqueID),
+        points: _tempLocation,
+        width: 8,
+        color: _polygonColor!.withOpacity(0.3),
+      ),
+    );
+    _polylines = _tempPolylines;
+    notifyListeners();
+  }
+
+  void buildInitPolyline() {
     _tempPolylines
         .removeWhere((line) => line.polylineId.toString() == uniqueID);
 
@@ -616,16 +644,23 @@ class MapProvider extends ChangeNotifier {
         .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
         .get()
         .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        if (_tempLocation.length > 0) {
-          DatabaseService()
-              .updatePolygonGeofenceConfiguration(doc.id, _tempLocation);
-          // Navigator.pop(context, _tempLocation);
-        }
-        //  else {
-        //   Navigator.pop(context, null);
-        // }
-      });
+      querySnapshot.docs.forEach(
+        (doc) {
+          if (_tempLocation.length > 0) {
+            DatabaseService()
+                .updatePolygonGeofenceConfiguration(doc.id, _tempLocation)
+                .then((value) {
+              changeEditMode();
+              _savedLocation.clear();
+              _savedPolygons.clear();
+            });
+            // Navigator.pop(context, _tempLocation);
+          }
+          //  else {
+          //   Navigator.pop(context, null);
+          // }
+        },
+      );
     });
   }
 

@@ -100,13 +100,11 @@ class DatabaseService {
 
   Future<void> updateGeofenceType(String gatewayID, String fenceType) async {
     await gatewayConfigCollection.doc(gatewayID).set({
-      'Geofence': {
-        'FenceType': fenceType
-      },
+      'Geofence': {'FenceType': fenceType},
     }, SetOptions(merge: true));
   }
 
-Future<void> updateMapTypePreference(bool isSatellite) async {
+  Future<void> updateMapTypePreference(bool isSatellite) async {
     await usersCollection.doc(uid).set({
       'MapTypeIsSatellite': isSatellite,
     }, SetOptions(merge: true));
@@ -128,20 +126,20 @@ Future<void> updateMapTypePreference(bool isSatellite) async {
   }
 
   Future<void> updatePolygonGeofenceConfiguration(
-    String gatewayID, List<LatLng> polygonLatLng) async {
-       await gatewayConfigCollection.doc(gatewayID).set({
-        'Geofence': {
-          'Polygon': FieldValue.delete()
-        },
-      }, SetOptions(merge: true));
-    polygonLatLng.forEach((element) async {
-      await gatewayConfigCollection.doc(gatewayID).set({
-        'Geofence': {
-          'Polygon': FieldValue.arrayUnion([
-            {'lat': element.latitude, 'lng': element.longitude}
-          ])
-        },
-      }, SetOptions(merge: true));
+      String gatewayID, List<LatLng> polygonLatLng) async {
+    await gatewayConfigCollection.doc(gatewayID).set({
+      'Geofence': {'Polygon': FieldValue.delete()},
+    }, SetOptions(merge: true)).then((value) {
+      polygonLatLng.forEach((element) async {
+        await gatewayConfigCollection.doc(gatewayID).set({
+          'Geofence': {
+            'Polygon': FieldValue.arrayUnion([
+              {'lat': element.latitude, 'lng': element.longitude}
+            ]),
+            'updatedTimestamp': DateTime.now(),
+          },
+        }, SetOptions(merge: true));
+      });
     });
   }
 

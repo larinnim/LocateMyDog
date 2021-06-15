@@ -36,6 +36,8 @@ class _MapLocationState extends State<MapLocation> {
   //     FirebaseFirestore.instance.collection('locateDog');
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
+  bool _isSatellite = false;
+
   CollectionReference sendersCollection =
       FirebaseFirestore.instance.collection('sender');
 
@@ -69,10 +71,14 @@ class _MapLocationState extends State<MapLocation> {
   // Set<Marker> markers = Set();
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
 
+  CollectionReference userCollection =
+      FirebaseFirestore.instance.collection('users');
+
   // final List<Flushbar> flushBars = [];
 
   @override
   void initState() {
+    _getMapType();
     super.initState();
     _initSenders();
 
@@ -94,6 +100,15 @@ class _MapLocationState extends State<MapLocation> {
         Provider.of<IATDataModel>(context, listen: false).iatData.latitude ?? 0,
         Provider.of<IATDataModel>(context, listen: false).iatData.longitude ??
             0);
+  }
+
+  Future<void> _getMapType() async {
+    await userCollection
+        .doc(_firebaseAuth.currentUser!.uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      _isSatellite = documentSnapshot.data()!['MapTypeIsSatellite'];
+    });
   }
 
   void _addPolyline(IATData iatData) {
@@ -366,21 +381,28 @@ class _MapLocationState extends State<MapLocation> {
                                   case ConnectionState.waiting:
                                     return CircleAvatar(
                                         child: CircularProgressIndicator(),
-                                        backgroundColor: AuxFunc().getColor(senderColor),
+                                        backgroundColor:
+                                            AuxFunc().getColor(senderColor),
                                         radius: 40);
                                   default:
                                     if (snapshot.hasError ||
                                         snapshot.data == '') {
                                       return CircleAvatar(
-                                          child: Icon(LineAwesomeIcons.paw, size: 40, color: Colors.white,),
-                                          backgroundColor: AuxFunc().getColor(senderColor),
+                                          child: Icon(
+                                            LineAwesomeIcons.paw,
+                                            size: 40,
+                                            color: Colors.white,
+                                          ),
+                                          backgroundColor:
+                                              AuxFunc().getColor(senderColor),
                                           radius: 40);
                                     } else {
                                       return CircleAvatar(
                                           backgroundImage:
                                               // AssetImage('assets/images/Bailey1.png'),
                                               NetworkImage(snapshot.data!),
-                                          backgroundColor: AuxFunc().getColor(senderColor),
+                                          backgroundColor:
+                                              AuxFunc().getColor(senderColor),
                                           radius: 40);
                                     }
                                 }
@@ -576,7 +598,9 @@ class _MapLocationState extends State<MapLocation> {
                                                 // width: MediaQuery.of(context).size.width,
                                                 // height: MediaQuery.of(context).size.height * 0.89,
                                                 child: GoogleMap(
-                                                  mapType: MapType.hybrid,
+                                                  mapType: _isSatellite
+                                              ? MapType.satellite
+                                              : MapType.normal,
                                                   onMapCreated:
                                                       (GoogleMapController
                                                           controller) {
@@ -646,6 +670,7 @@ class _MapLocationState extends State<MapLocation> {
                                                 width: 300,
                                                 offset: 50,
                                               ),
+                                              _toolsList(),
                                             ]),
                                           ),
                                         ]);
@@ -662,6 +687,46 @@ class _MapLocationState extends State<MapLocation> {
                 }
               });
         }));
+  }
+
+  ///Widget tools list
+  Widget _toolsList() {
+    return Builder(
+      builder: (context) {
+        return SafeArea(
+            child: Stack(children: <Widget>[
+          Align(
+            alignment: Alignment.topRight,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 30, right: 20),
+              child: InkWell(
+                onTap: () {
+                  if (_isSatellite) {
+                    _isSatellite = false;
+                  } else {
+                    _isSatellite = true;
+                  }
+                  DatabaseService(uid: _firebaseAuth.currentUser?.uid)
+                      .updateMapTypePreference(_isSatellite);
+                  setState(() {});
+                },
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                      color: _isSatellite ? Colors.white : Colors.black87,
+                      borderRadius: BorderRadius.circular(50)),
+                  child: Icon(
+                    _isSatellite ? Icons.map : Icons.satellite,
+                    color: _isSatellite ? Colors.black87 : Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          )
+        ]));
+      },
+    );
   }
 }
 

@@ -48,7 +48,7 @@ class _GeofenceWidgetState extends State<Geofence> {
   // late double _configuredRadius; //Radius is 30 meters
   // late double _configuredRadiusToUnits; //R
   double _configuredRadiusToUnits = 0.0;
-  late Uint8List _imageData;
+  Uint8List? _imageData;
   late localization.LocationData location;
   AppUser? _currentUser = locator.get<UserController>().currentUser;
 
@@ -86,9 +86,11 @@ class _GeofenceWidgetState extends State<Geofence> {
         });
       });
     });
-     await userCollection.doc(_firebaseAuth.currentUser!.uid).get()
+    await userCollection
+        .doc(_firebaseAuth.currentUser!.uid)
+        .get()
         .then((DocumentSnapshot documentSnapshot) {
-         _isSatellite =  documentSnapshot.data()!['MapTypeIsSatellite'];
+      _isSatellite = documentSnapshot.data()!['MapTypeIsSatellite'];
     });
   }
 
@@ -143,7 +145,7 @@ class _GeofenceWidgetState extends State<Geofence> {
       }
     });
 
-    updateMarkerAndCircle(_imageData);
+    updateMarkerAndCircle(_imageData ?? Uint8List.fromList([]));
 
     // updateMarkerAndCircle(location, imageData);
   }
@@ -189,7 +191,7 @@ class _GeofenceWidgetState extends State<Geofence> {
       // var location = await _locationTracker.getLocation();
 
       // location = await _locationTracker.getLocation();
-      updateMarkerAndCircle(_imageData);
+      updateMarkerAndCircle(_imageData ?? Uint8List.fromList([]));
 
       // updateMarkerAndCircle(location, imageData);
 
@@ -400,12 +402,14 @@ class _GeofenceWidgetState extends State<Geofence> {
     super.dispose();
   }
 
-  ///Widget for custom marker
+  //Widget for custom marker
   Widget mapIcon() {
     return Consumer<MapProvider>(
       builder: (context, mapProv, _) {
         return RepaintBoundary(
           key: mapProv.markerKey,
+
+          // key: mapProv.markerKey,
           child: Container(
             width: 32,
             height: 32,
@@ -430,6 +434,7 @@ class _GeofenceWidgetState extends State<Geofence> {
     return Consumer<MapProvider>(
       builder: (context, mapProv, _) {
         return RepaintBoundary(
+          // key: MapProvider.distanceKey,
           key: mapProv.distanceKey,
           child: Container(
             width: mapProv.distance.length > 6
@@ -501,7 +506,7 @@ class _GeofenceWidgetState extends State<Geofence> {
                                         ? InkWell(
                                             onTap: () {
                                               mapProv.saveTracking(context);
-                                              mapProv.changeEditMode();
+                                              // mapProv.changeEditMode();
                                             },
                                             child: Container(
                                               width: 40,
@@ -557,7 +562,8 @@ class _GeofenceWidgetState extends State<Geofence> {
                                 } else {
                                   _isSatellite = true;
                                 }
-                                DatabaseService(uid: _firebaseAuth.currentUser?.uid)
+                                DatabaseService(
+                                        uid: _firebaseAuth.currentUser?.uid)
                                     .updateMapTypePreference(_isSatellite);
                                 setState(() {});
                               },
@@ -607,7 +613,8 @@ class _GeofenceWidgetState extends State<Geofence> {
           leading: IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () {
-                Navigator.pushNamed(context, '/profile');
+                // Navigator.pushNamed(context, '/profile');
+                Navigator.pop(context);
               }),
           actions: <Widget>[
             Padding(
@@ -639,7 +646,7 @@ class _GeofenceWidgetState extends State<Geofence> {
 //Get first location
           if (mapProv.cameraPosition == null || mapProv.onInitCamera == false) {
             if (mapProv.markers.isEmpty &&
-                mapProv.tempLocation.isEmpty &&
+                // mapProv.tempLocation.isEmpty &&
                 !mapProv.isEditMode) {
               mapProv.initPolygonMarkers();
             }
@@ -711,59 +718,69 @@ class _GeofenceWidgetState extends State<Geofence> {
                           : new Stack(children: <Widget>[
                               Positioned(top: -300, child: mapDistance()),
                               Positioned(top: -300, child: mapIcon()),
-                              new Container(
-                                  height: 1000, // This line solved the issue
-                                  child: _isPolygonFence
-                                      ? GoogleMap(
-                                          mapType: _isSatellite
-                                              ? MapType.satellite
-                                              : MapType.normal,
-                                          initialCameraPosition: CameraPosition(
-                                            target: _initialPosition!,
-                                            zoom: 20,
-                                          ),
-                                          zoomGesturesEnabled: true,
-                                          myLocationEnabled: true,
-                                          compassEnabled: true,
-                                          myLocationButtonEnabled: false,
-                                          markers: Set.of(
-                                              (mapProv.markers != null)
-                                                  ? mapProv.markers
+                              mapProv.cameraPosition != null
+                                  ? new Container(
+                                      height:
+                                          1000, // This line solved the issue
+                                      child: _isPolygonFence
+                                          ? GoogleMap(
+                                              mapType: _isSatellite
+                                                  ? MapType.satellite
+                                                  : MapType.normal,
+                                              initialCameraPosition:
+                                                  CameraPosition(
+                                                target: _initialPosition!,
+                                                zoom: 20,
+                                              ),
+                                              zoomGesturesEnabled: true,
+                                              myLocationEnabled: true,
+                                              compassEnabled: true,
+                                              myLocationButtonEnabled: false,
+                                              markers: Set.of(
+                                                  (mapProv.markers != null)
+                                                      ? mapProv.markers
+                                                      : []),
+                                              polygons: mapProv.isEditMode
+                                                  ? mapProv.polygons
+                                                  : mapProv.savedPolygons,
+                                              polylines: mapProv.polylines,
+                                              onTap: (loc) => mapProv.onTapMap(
+                                                  loc,
+                                                  mode: TrackingMode.PLANAR),
+                                              onMapCreated: (GoogleMapController
+                                                  controller) {
+                                                _controller = controller;
+                                              },
+                                            )
+                                          : GoogleMap(
+                                              mapType: _isSatellite
+                                                  ? MapType.satellite
+                                                  : MapType.normal,
+                                              initialCameraPosition:
+                                                  CameraPosition(
+                                                target: _initialPosition!,
+                                                zoom: 20,
+                                              ),
+                                              zoomGesturesEnabled: true,
+                                              myLocationEnabled: false,
+                                              compassEnabled: true,
+                                              myLocationButtonEnabled: false,
+                                              markers: Set.of((_marker != null)
+                                                  ? [_marker!]
                                                   : []),
-                                          polygons: mapProv.polygons,
-                                          polylines: mapProv.polylines,
-                                          onTap: (loc) => mapProv.onTapMap(loc,
-                                              mode: TrackingMode.PLANAR),
-                                          onMapCreated:
-                                              (GoogleMapController controller) {
-                                            _controller = controller;
-                                          },
-                                        )
-                                      : GoogleMap(
-                                          mapType: _isSatellite
-                                              ? MapType.satellite
-                                              : MapType.normal,
-                                          initialCameraPosition: CameraPosition(
-                                            target: _initialPosition!,
-                                            zoom: 20,
-                                          ),
-                                          zoomGesturesEnabled: true,
-                                          myLocationEnabled: false,
-                                          compassEnabled: true,
-                                          myLocationButtonEnabled: false,
-                                          markers: Set.of((_marker != null)
-                                              ? [_marker!]
-                                              : []),
-                                          circles: Set.of((_circle != null)
-                                              ? [_circle!]
-                                              : []),
-                                          // polygons: _doNotEnterFence,
-                                          onTap: (point) {},
-                                          onMapCreated:
-                                              (GoogleMapController controller) {
-                                            _controller = controller;
-                                          },
-                                        )),
+                                              circles: Set.of((_circle != null)
+                                                  ? [_circle!]
+                                                  : []),
+                                              // polygons: _doNotEnterFence,
+                                              onTap: (point) {},
+                                              onMapCreated: (GoogleMapController
+                                                  controller) {
+                                                _controller = controller;
+                                              },
+                                            ))
+                                  : Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
                               _toolsList(),
                             ]);
                 } else {
