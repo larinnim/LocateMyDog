@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_maps/Services/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:line_awesome_flutter/line_awesome_flutter.dart';
+
+import '../loading.dart';
 
 class Avatar extends StatelessWidget {
   final String? avatarUrl;
@@ -16,7 +17,8 @@ class Avatar extends StatelessWidget {
         onTap: onTap as void Function()?,
         child: Center(
           child: avatarUrl == null
-              ? CircleAvatar(
+              ? 
+              CircleAvatar(
                   radius: kSpacingUnit.w * 5,
                   backgroundColor: Colors.lightGreen[100],
                   child: Icon(
@@ -24,7 +26,21 @@ class Avatar extends StatelessWidget {
                     color: Colors.black,
                   ),
                 )
-              : Stack(children: <Widget>[
+              : 
+              avatarUrl == 'uploading' ? CircleAvatar(
+                  radius: kSpacingUnit.w * 5,
+                  backgroundColor: Colors.lightGreen[100],
+                  child: CircularProgressIndicator(),
+                ) : avatarUrl == 'offline'? CircleAvatar(
+                  radius: kSpacingUnit.w * 5,
+                  backgroundColor: Colors.lightGreen[100],
+                  child: Icon(
+                    Icons.wifi_off,
+                    color: Colors.black,
+                    size: 40,
+                  ),
+                ):
+              Stack(children: <Widget>[
                   CircleAvatar(
                     backgroundColor: Colors.transparent,
                     radius: kSpacingUnit.w * 5,

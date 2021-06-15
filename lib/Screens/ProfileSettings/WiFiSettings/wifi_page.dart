@@ -1,12 +1,19 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/ProfileSettings/WiFiSettings/task_route.dart';
+import 'package:flutter_maps/Services/database.dart';
 import 'package:get/get.dart';
 
 class WifiPage extends StatefulWidget {
-  WifiPage(this.ssid, this.bssid);
+  WifiPage(
+      this.ssid, this.bssid, this.gatewayConnected, this.gatewayConnectedSSID);
 
   final String ssid;
   final String bssid;
+  final bool gatewayConnected;
+  final String gatewayConnectedSSID;
 
   @override
   _WifiPageState createState() => _WifiPageState();
@@ -18,16 +25,41 @@ class _WifiPageState extends State<WifiPage> {
   TextEditingController deviceCount = TextEditingController(text: "1");
   bool _obscureText = false;
   String _espIP = "";
+  FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  CollectionReference gatewayCollection =
+      FirebaseFirestore.instance.collection('gateway');
 
   void espIPReceived(String receivedIP) {
     setState(() => _espIP = receivedIP);
   }
 
+  void _sendChangeWiFiCommand() {
+    gatewayCollection
+        .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
+        .limit(1)
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) async {
+        await DatabaseService(uid: _firebaseAuth.currentUser!.uid)
+            .sendChangeWiFiCommand(doc['gatewayMAC'])
+            .then((value) {
+          goToTaskRoute();
+        });
+      });
+    });
+  }
+
   void goToTaskRoute() async {
     await Navigator.of(context)
         .push(MaterialPageRoute(
-            builder: (context) => TaskRoute(widget.ssid, widget.bssid,
-                password.text, deviceCount.text, isBroad)))
+            builder: (context) => TaskRoute(
+                widget.ssid,
+                widget.bssid,
+                password.text,
+                deviceCount.text,
+                isBroad,
+                widget.gatewayConnected,
+                widget.gatewayConnectedSSID, )))
         .then((value) {
       password.clear();
       espIPReceived(value);
@@ -41,7 +73,7 @@ class _WifiPageState extends State<WifiPage> {
         SizedBox(
           height: 50.0,
         ),
-        _espIP != ""
+        _espIP != "" || widget.gatewayConnected
             ? Image.asset(
                 'assets/images/wifi_connected.png',
                 // fit: BoxFit.fill,
@@ -53,7 +85,7 @@ class _WifiPageState extends State<WifiPage> {
         SizedBox(
           height: 30.0,
         ),
-        _espIP != ""
+        _espIP != "" || widget.gatewayConnected
             ? Text(
                 'connected'.tr,
                 style: TextStyle(
@@ -73,32 +105,55 @@ class _WifiPageState extends State<WifiPage> {
         ),
         Text.rich(TextSpan(children: [
           TextSpan(
-              text: "ssid".tr + " : \t ",
+              // text: "ssid".tr + " : \t ",
+              text: "Your cellphone is connected to: ",
               style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 18,
                   color: Colors.grey[700],
                   fontWeight: FontWeight.bold)),
           TextSpan(
-              text: widget.ssid,
+              text: "" + widget.ssid,
               style: TextStyle(
                   fontSize: 18,
                   color: Colors.grey,
                   fontWeight: FontWeight.bold)),
         ])),
-        Text.rich(TextSpan(children: [
-          TextSpan(
-              text: "ip_address".tr + ' : \t',
-              style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[700],
-                  fontWeight: FontWeight.bold)),
-          TextSpan(
-              text: _espIP,
-              style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey,
-                  fontWeight: FontWeight.bold)),
-        ])),
+        SizedBox(
+          height: 10,
+        ),
+        Visibility(
+          visible: widget.gatewayConnected,
+          child: Text.rich(TextSpan(children: [
+            TextSpan(
+                // text: "ssid".tr + " : \t ",
+                text: "The gateway is connected to: ",
+                style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey[700],
+                    fontWeight: FontWeight.bold)),
+            TextSpan(
+                text: widget.gatewayConnectedSSID,
+                style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.bold)),
+          ])),
+        ),
+        // SizedBox(height: 10,),
+        // Text.rich(TextSpan(children: [
+        //   TextSpan(
+        //       text: "ip_address".tr + ' : \t',
+        //       style: TextStyle(
+        //           fontSize: 18,
+        //           color: Colors.grey[700],
+        //           fontWeight: FontWeight.bold)),
+        //   TextSpan(
+        //       text: _espIP,
+        //       style: TextStyle(
+        //           fontSize: 18,
+        //           color: Colors.grey,
+        //           fontWeight: FontWeight.bold)),
+        // ])),
         SizedBox(
           height: 60,
         ),
@@ -137,9 +192,33 @@ class _WifiPageState extends State<WifiPage> {
           height: 50.0,
           child: ElevatedButton(
               onPressed: () async {
-                print(password.text);
-                print(deviceCount.text);
-                goToTaskRoute();
+                showDialog(
+                    context: context,
+                    builder: (context) {
+                      return CupertinoAlertDialog(
+                        title: Text("Confirm WiFi Configuration Change"),
+                        content: Text(
+                            "Are you sure you want to change the wifi configuration?"),
+                        actions: <Widget>[
+                          CupertinoDialogAction(
+                            child: Text("Confirm"),
+                            onPressed: () {
+                              print(password.text);
+                              print(deviceCount.text);
+                              _sendChangeWiFiCommand();
+                              // goToTaskRoute();
+                            },
+                          ),
+                          CupertinoDialogAction(
+                            child: Text("Cancel"),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          )
+                        ],
+                      );
+                    });
+
                 // Navigator.of(context).push(MaterialPageRoute(
                 //     builder: (context) => TaskRoute(widget.ssid, widget.bssid,
                 //         password.text, deviceCount.text, isBroad)));
@@ -154,6 +233,13 @@ class _WifiPageState extends State<WifiPage> {
               ),
               child: Text("confirm".tr)),
         ),
+        SizedBox(
+          height: 30,
+        ),
+        Text(
+          "* To change the gateway WiFi Settings you need first to connect your cellphone to same network you wish to configure it",
+          style: TextStyle(color: Colors.red),
+        )
       ],
     );
   }

@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -7,7 +5,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 class DatabaseService {
   final String? uid;
   DatabaseService({this.uid});
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   // collection reference
   final CollectionReference locateCollection =
@@ -28,22 +25,14 @@ class DatabaseService {
   late final CollectionReference pendingDevicesCollection =
       FirebaseFirestore.instance.collection('pendingDevices');
 
+  late final CollectionReference gatewayCommandCollection =
+      FirebaseFirestore.instance.collection('gateway-command');
+
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  Future<void> updateUserData(
-      String? dogname, String? ownername, String? breed) async {
-    usersCollection.doc(uid).set({
-      'Geofence': {
-        'Circle': {'initialLat': 0, 'initialLng': 0, 'radius': 30}
-      }
-    }, SetOptions(merge: true));
-    _db.collection('users').doc(uid).set(
-        {
-          'dogname': dogname,
-          'ownername': ownername,
-          'breed': breed,
-          'units': 'feet'
-        }, //default unit is feet
+  Future<void> updateUserData(String? ownername) async {
+    usersCollection.doc(uid).set(
+        {'ownername': ownername, 'units': 'feet'}, //default unit is feet
         SetOptions(merge: true));
     // SetOptions(merge: true);
   }
@@ -54,26 +43,125 @@ class DatabaseService {
     }, SetOptions(merge: true));
   }
 
+  Future<void> setSenderPicture(String url) async {
+    await senderCollection.doc(uid).set({
+      'pictureUrl': url,
+    }, SetOptions(merge: true));
+  }
+
+  Future<String> getSenderPicture() async {
+    return await senderCollection
+        .doc(uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        print('Document exists on the database');
+        return documentSnapshot.data()!['pictureUrl'];
+      } else {
+        return "";
+      }
+    });
+  }
+
+  Future<void> sendChangeWiFiCommand(String gatewayMAC) async {
+    gatewayCommandCollection.doc('GW-' + gatewayMAC).set(
+        {
+          'command': 'change_wifi',
+          'gatewayMAC': gatewayMAC,
+          'changedTimestamp': DateTime.now().millisecondsSinceEpoch
+        }, //default unit is feet
+        SetOptions(merge: true));
+    // SetOptions(merge: true);
+  }
+
+  Future<void> updateWiFiSSID(String gatewayID, String wifiSSID) async {
+    gatewayCollection.doc(gatewayID).set(
+        {'wifiSSID': wifiSSID}, //default unit is feet
+        SetOptions(merge: true));
+    // SetOptions(merge: true);
+  }
+
+  Future<void> updateNotificationPreference(
+      bool escaped, bool gatewayBattery, bool trackerBattery) async {
+    await usersCollection.doc(uid).set({
+      'Notification': {
+        'gatewayBattery': {'enabled': gatewayBattery},
+        'geofence': {'enabled': escaped},
+        'trackerBattery': {'enabled': trackerBattery},
+      },
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> setAgreedToNotBeNotified(bool agreed) async {
+    await usersCollection.doc(uid).set({
+      'agreedToNotBeNotified': agreed,
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> updateGeofenceType(String gatewayID, String fenceType) async {
+    await gatewayConfigCollection.doc(gatewayID).set({
+      'Geofence': {'FenceType': fenceType},
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> updateMapTypePreference(bool isSatellite) async {
+    await usersCollection.doc(uid).set({
+      'MapTypeIsSatellite': isSatellite,
+    }, SetOptions(merge: true));
+  }
+
   Future<void> addSenderToGateway(String senderMac, String gatewayID) async {
     await gatewayConfigCollection.doc('GW-' + gatewayID).set({
       'senders': FieldValue.arrayUnion([
         {'ID': senderMac}
       ]),
-      'userID': uid
+      'userID': uid,
+      'Geofence': {
+        'Circle': {'initialLat': 0, 'initialLng': 0, 'radius': 30},
+        'Polygon': FieldValue.arrayUnion([
+          {'ID': senderMac}
+        ])
+      },
     }, SetOptions(merge: true));
+  }
+
+  Future<void> updatePolygonGeofenceConfiguration(
+      String gatewayID, List<LatLng> polygonLatLng) async {
+    await gatewayConfigCollection.doc(gatewayID).set({
+      'Geofence': {'Polygon': FieldValue.delete()},
+    }, SetOptions(merge: true)).then((value) {
+      polygonLatLng.forEach((element) async {
+        await gatewayConfigCollection.doc(gatewayID).set({
+          'Geofence': {
+            'Polygon': FieldValue.arrayUnion([
+              {'lat': element.latitude, 'lng': element.longitude}
+            ]),
+            'updatedTimestamp': DateTime.now(),
+          },
+        }, SetOptions(merge: true));
+      });
+    });
   }
 
   Future<void> updateCircleRadius(
       double? radius, LatLng initialLocation) async {
-    return await usersCollection.doc(uid).set({
-      'Geofence': {
-        "Circle": {
-          "radius": radius,
-          "initialLat": initialLocation.latitude,
-          "initialLng": initialLocation.longitude,
-        }
-      },
-    }, SetOptions(merge: true));
+    // return
+    var getGatewayConfig = await gatewayConfigCollection
+        .where('userID', isEqualTo: uid)
+        .get(); //Temporary as it's one-to-one UserID Gatewat relationship
+
+    getGatewayConfig.docs.forEach((docCollected) {
+      //should return only 1 entry
+      gatewayConfigCollection.doc(docCollected.id).set({
+        'Geofence': {
+          "Circle": {
+            "radius": radius,
+            "initialLat": initialLocation.latitude,
+            "initialLng": initialLocation.longitude,
+          }
+        },
+      }, SetOptions(merge: true));
+    });
   }
 
   Future<void> updateGatewayName(String name) async {
@@ -93,6 +181,7 @@ class DatabaseService {
       'name': "Gateway - IAT - " + gatewayMAC,
       'userID': _firebaseAuth.currentUser!.uid,
       'version': '1.0',
+      'batteryLevel': 0,
       'gatewayMAC': gatewayMAC
     }, SetOptions(merge: true)).then((value) => null);
     var isItPending =
@@ -108,11 +197,11 @@ class DatabaseService {
     }, SetOptions(merge: true));
   }
 
-  Future<void> updateFencePreference(String fencePref) async {
-    return await usersCollection.doc(uid).set({
-      'Geofence': {"Preference": fencePref},
-    }, SetOptions(merge: true));
-  }
+  // Future<void> updateFencePreference(String fencePref) async {
+  //   return await gatewayConfigCollection.doc(uid).set({
+  //     'Geofence': {"Preference": fencePref},
+  //   }, SetOptions(merge: true));
+  // }
 }
 
 class FirestoreSetUp {

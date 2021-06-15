@@ -4,12 +4,9 @@ import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Services/permissionChangeBuilder.dart';
 import 'package:flutter_maps/Screens/Tutorial/step2.dart';
-import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
 
-import '../loading.dart';
-import '../../Services/appLifecycleObserver.dart';
 
 class Step1 extends StatefulWidget {
   @override
@@ -26,6 +23,34 @@ class _Step1State extends State<Step1> {
   void requestLocation() async {
     await Permission.location.request();
   }
+
+  // void checkNotificationPermission() async {
+  //   var notificationStatus = await Permission.notification.status;
+
+  //   print(notificationStatus);
+
+  //   //cameraStatus.isGranted == has access to application
+  //   //cameraStatus.isDenied == does not have access to application, you can request again for the permission.
+  //   //cameraStatus.isPermanentlyDenied == does not have access to application, you cannot request again for the permission.
+  //   //cameraStatus.isRestricted == because of security/parental control you cannot use this permission.
+  //   //cameraStatus.isUndetermined == permission has not asked before.
+
+  //   if (!notificationStatus.isGranted) await Permission.notification.request();
+
+  //   if (await Permission.notification.isGranted) {
+  //   } else {
+  //       Get.dialog(SimpleDialog(
+  //         title: Text(
+  //           "The app will not be able to send notification",
+  //           style: TextStyle(fontWeight: FontWeight.bold),
+  //         ),
+  //         shape: RoundedRectangleBorder(
+  //             borderRadius: new BorderRadius.circular(10.0)),
+  //         children: [ 
+  //         ]
+  //       ));
+  //   }
+  // }
 
   /// Dispose method to close out and cleanup objects.
   @override
@@ -150,6 +175,7 @@ class _Step1State extends State<Step1> {
                   style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
                 onPressed: () {
+                  // checkNotificationPermission();
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (context) => Step2(),
                   ));

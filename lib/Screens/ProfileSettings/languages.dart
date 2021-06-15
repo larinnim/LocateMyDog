@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,8 +20,10 @@ class LanguagesPage extends StatefulWidget {
 }
 
 class LanguagesPageState extends State<LanguagesPage> {
+  // ignore: unused_field
   String _currentLang = "english";
   int? lang = 1;
+  final Connectivity _connectivity = Connectivity();
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -109,72 +112,101 @@ class LanguagesPageState extends State<LanguagesPage> {
   Widget build(BuildContext context) {
     CollectionReference users = FirebaseFirestore.instance.collection('users');
 
-    return FutureBuilder<DocumentSnapshot>(
-        future: users.doc(_firebaseAuth.currentUser!.uid).get(),
-        builder:
-            (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+    return FutureBuilder(
+        initialData: false,
+        future:
+            mounted ? _connectivity.checkConnectivity() : Future.value(null),
+        builder: (context, connectivitySnap) {
+          if (connectivitySnap.hasData) {
+            return FutureBuilder<DocumentSnapshot>(
+                future: users.doc(_firebaseAuth.currentUser!.uid).get(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<DocumentSnapshot> snapshot) {
 // if (snapshot.hasError) {
 //           return Text("Something went wrong");
 //         }
-          if (snapshot.connectionState != ConnectionState.done) {
-            return Loading();
-          } else if (snapshot.hasData) {
-            Map<String, dynamic> data = snapshot.data!.data()!;
-            // return Text("Full Name: ${data['full_name']} ${data['last_name']}");
-            getLanguage(data['language']);
-            return Scaffold(
-              appBar: AppBar(
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                centerTitle: true,
-                elevation: 1,
-                title: Text(
-                  "language".tr,
-                  style: TextStyle(color: Colors.green),
-                ),
-                leading: IconButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  icon: Icon(
-                    Icons.arrow_back,
-                    color: Colors.green,
-                  ),
-                ),
-              ),
-              body: ListView(
-                padding: EdgeInsets.all(8.0),
-                children: _buttonOptions
-                    .map((langVal) => RadioListTile(
-                          activeColor: Colors.red[300],
-                          groupValue: lang,
-                          title: Text(langVal._value.tr),
-                          value: langVal._key,
-                          onChanged: (dynamic val) {
-                            setState(() {
-                              debugPrint('VAL = $val');
-                              lang = val;
-                              // _currentLang = val;
-                            });
-                            //                           WidgetsBinding.instance
-                            // .addPostFrameCallback((_) => setState(() {
-                            // lang = val;
-                            // }));
-                            _updateLanguage(val);
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return Loading();
+                  } else if (snapshot.hasData) {
+                    Map<String, dynamic> data = snapshot.data!.data()!;
+                    // return Text("Full Name: ${data['full_name']} ${data['last_name']}");
+                    getLanguage(data['language']);
+                    return Scaffold(
+                      appBar: AppBar(
+                        backgroundColor:
+                            Theme.of(context).scaffoldBackgroundColor,
+                        centerTitle: true,
+                        elevation: 1,
+                        title: Text(
+                          "language".tr,
+                          style: TextStyle(color: Colors.green),
+                        ),
+                        leading: IconButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
                           },
-                        ))
-                    .toList(),
-              ),
-            );
-          } else if (snapshot.hasError) {
-            // Manage error
+                          icon: Icon(
+                            Icons.arrow_back,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ),
+                      body: ListView(
+                        padding: EdgeInsets.all(8.0),
+                        children: _buttonOptions
+                            .map((langVal) => RadioListTile(
+                                  activeColor: Colors.red[300],
+                                  groupValue: lang,
+                                  title: Text(langVal._value.tr),
+                                  value: langVal._key,
+                                  onChanged: (dynamic val) {
+                                    if (connectivitySnap.data ==
+                                        ConnectivityResult.none) {
+                                      showCupertinoDialog(
+                                          context: context,
+                                          builder: (_) => CupertinoAlertDialog(
+                                                title: Text("Error"),
+                                                content: Text(
+                                                    "You are offline. Please connect to an active internet connection."),
+                                                actions: [
+                                                  // Close the dialog
+                                                  // You can use the CupertinoDialogAction widget instead
+                                                  CupertinoButton(
+                                                      child: Text('Dismiss'),
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      }),
+                                                ],
+                                              ));
+                                    } else {
+                                      setState(() {
+                                        debugPrint('VAL = $val');
+                                        lang = val;
+                                        // _currentLang = val;
+                                      });
+                                      _updateLanguage(val);
+                                    }
+                                  },
+                                ))
+                            .toList(),
+                      ),
+                    );
+                  } else if (snapshot.hasError) {
+                    // Manage error
+                  }
+                  return Loading();
+                  // return Container(
+                  //   color: Colors.white,
+                  //   child: SpinKitCircle(
+                  //     color: Colors.red,
+                  //     size: 30.0,
+                  //   ),
+                  // );
+                });
+          } else {
+            return Loading();
           }
-          return Container(
-            color: Colors.white,
-            child: SpinKitCircle(
-              color: Colors.red,
-              size: 30.0,
-            ),
-          );
         });
   }
 }

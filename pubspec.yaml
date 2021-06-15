@@ -13,6 +13,8 @@ description: A new Flutter application.
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 version: 1.0.0+1
 
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
 environment:
   # sdk: ">=2.1.0 <3.0.0"
   sdk: ">=2.12.0 <3.0.0"
@@ -23,7 +25,7 @@ dependencies:
   firebase_auth: ^1.1.0
   cloud_firestore: ^1.0.5
   font_awesome_flutter: ^9.0.0
-  firebase_core: ^1.0.3
+  firebase_core: ^1.1.0
   location: ^4.1.1
   # flutter_facebook_login: ^3.0.0
   local_auth: ^1.1.4
@@ -48,7 +50,7 @@ dependencies:
   percent_indicator: ^3.0.1
   lottie: ^1.0.1
   # flutter_barcode_scanner: ^1.0.2
-  firebase_messaging: ^9.1.1
+  firebase_messaging: ^9.1.3
   connectivity: ^3.0.3
   flutter_compass: ^0.6.0
   google_sign_in: ^5.0.2
@@ -64,11 +66,16 @@ dependencies:
   animated_text_kit: ^4.2.1
   app_settings: ^4.1.0
   permission_handler_platform_interface: ^3.3.0
+  fluttertoast: ^8.0.6
+  flutter_local_notifications: ^5.0.0+4
+  rxdart: ^0.26.0
+  google_maps_flutter_platform_interface: ^2.0.4
+  polymaker: ^1.0.2
 
-  # mapbox_gl:
-  #   git:
-  #     url: git://github.com/morvagergely/flutter-mapbox-gl.git
-  #     ref: master
+  mapbox_gl:
+    git:
+      url: git://github.com/tobrun/flutter-mapbox-gl.git
+      ref: master
 
   flutter_barcode_scanner:
     git:
@@ -136,6 +143,7 @@ flutter:
     - assets/lottie/devs.jpg
     - assets/lottie/powered_by.png
     - assets/icon/icon.png
+    - assets/icon/icon_old.png
     - assets/lottie/lottie_file.json
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

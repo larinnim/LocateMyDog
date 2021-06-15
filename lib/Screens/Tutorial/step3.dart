@@ -2,28 +2,12 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-// import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
-import 'package:flutter_maps/Models/user.dart';
-import 'package:flutter_maps/Screens/Devices/device.dart';
-import 'package:flutter_maps/Screens/Devices/device_detail.dart';
 import 'package:flutter_maps/Screens/Devices/functions_aux.dart';
-import 'package:flutter_maps/Screens/Home/wrapper.dart';
-import 'package:flutter_maps/Screens/Profile/profile.dart';
-import 'package:flutter_maps/Services/database.dart';
-import 'package:flutter_maps/Services/user_controller.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:get/get.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../loading.dart';
 import 'addNewDevice.dart';
 import 'step4.dart';
-import '../../locator.dart';
-
-import 'package:flutter_maps/Services/database.dart';
-
 class Step3 extends StatefulWidget {
   Step3(this.gatewayID);
 
@@ -85,8 +69,10 @@ class _Step3State extends State<Step3> {
 
   @override
   Widget build(BuildContext context) {
-    Stream<QuerySnapshot> sendersStream =
-        FirebaseFirestore.instance.collection('sender').where('userID', isEqualTo: _firebaseAuth.currentUser!.uid).snapshots();
+    Stream<QuerySnapshot> sendersStream = FirebaseFirestore.instance
+        .collection('sender')
+        .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
+        .snapshots();
 
     return StreamBuilder<QuerySnapshot>(
         stream: sendersStream,
@@ -174,8 +160,9 @@ class _Step3State extends State<Step3> {
                     Expanded(
                       child: new ListView.separated(
                           itemCount: snapshot.data!.docs.length,
-                          separatorBuilder: (BuildContext context, int index) =>
-                              Divider(height: 1),
+                          separatorBuilder:
+                              (BuildContext context, int index) =>
+                                  Divider(height: 1),
                           itemBuilder: (BuildContext context, int index) {
                             return ClipRRect(
                                 borderRadius: BorderRadius.only(
@@ -220,8 +207,8 @@ class _Step3State extends State<Step3> {
                                 ))),
                             child: Text(
                               'Continue',
-                              style:
-                                  TextStyle(fontSize: 16, color: Colors.white),
+                              style: TextStyle(
+                                  fontSize: 16, color: Colors.white),
                             ),
                             onPressed: () {
                               Navigator.of(context).push(MaterialPageRoute(

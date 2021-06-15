@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/Devices/gateway_detail.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import '../loading.dart';
 
@@ -14,6 +13,7 @@ class DeviceList extends StatefulWidget {
 class _DeviceListState extends State<DeviceList> {
   CollectionReference gatewayCollection =
       FirebaseFirestore.instance.collection('gateway');
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   @override
   void initState() {
@@ -34,7 +34,7 @@ class _DeviceListState extends State<DeviceList> {
         ),
         backgroundColor: Colors.grey[100],
         body: StreamBuilder<QuerySnapshot>(
-            stream: gatewayCollection.snapshots(),
+            stream: gatewayCollection.where('userID', isEqualTo: _firebaseAuth.currentUser!.uid).snapshots(),
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasError) {
@@ -93,10 +93,7 @@ class _DeviceListState extends State<DeviceList> {
                                                         title: snapshot.data!
                                                                 .docs[index]
                                                             ['name'],
-                                                        gatewayID: snapshot
-                                                            .data!
-                                                            .docs[index]
-                                                            .id)));
+                                                        gatewayMAC: snapshot.data!.docs[index]['gatewayMAC'])));
                                       },
                                     ),
                                   )

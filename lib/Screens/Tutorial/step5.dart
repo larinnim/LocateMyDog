@@ -8,9 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Models/user.dart';
-import 'package:flutter_maps/Screens/Fence/Geofence.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
-import 'package:flutter_maps/Screens/Tutorial/step3.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -51,6 +49,7 @@ class _Step5State extends State<Step5> {
   CollectionReference userInstance =
       FirebaseFirestore.instance.collection('users');
   localization.Location _locationTracker = localization.Location();
+  // ignore: cancel_subscriptions
   StreamSubscription? _locationSubscription;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -83,7 +82,11 @@ class _Step5State extends State<Step5> {
   void completedSetup(bool completed) async {
     await DatabaseService(uid: _firebaseAuth.currentUser!.uid)
         .completedSetup(completed)
-        .then((value) => Get.off(Wrapper()));
+        .then((value) async {
+      await DatabaseService(uid: _firebaseAuth.currentUser!.uid)
+          .updateNotificationPreference(true, true, true)
+          .then((value) => Get.off(() => Wrapper()));
+    });
   }
 
   void _updateUnits(String? unitsChoose) {
@@ -421,7 +424,8 @@ class _Step5State extends State<Step5> {
                                       });
                                     }
                                   },
-                                  onMapCreated: (GoogleMapController controller) {
+                                  onMapCreated:
+                                      (GoogleMapController controller) {
                                     // _controller = _controller;
                                     _controller.complete(controller);
                                   },
@@ -455,7 +459,8 @@ class _Step5State extends State<Step5> {
                                       });
                                     }
                                   },
-                                  onMapCreated: (GoogleMapController controller) {
+                                  onMapCreated:
+                                      (GoogleMapController controller) {
                                     _controller.complete(controller);
                                     // _controller = _controller;
                                   },
@@ -465,9 +470,11 @@ class _Step5State extends State<Step5> {
                   ),
                   ElevatedButton(
                     style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Colors.black),
-                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
+                        backgroundColor:
+                            MaterialStateProperty.all(Colors.black),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(18.0),
                         ))),
                     child: Text(

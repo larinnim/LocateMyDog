@@ -5,8 +5,9 @@ import 'package:flutter_maps/Firebase_Repository/auth_repo.dart';
 import 'package:flutter_maps/Firebase_Repository/storage_repo.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/locator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
+
+import 'database.dart';
 
 class UserController {
   AppUser? _currentUser;
@@ -25,9 +26,17 @@ class UserController {
 
   AppUser? get currentUser => _currentUser;
 
-  void uploadProfilePicture(File image) async {
+  Future<String> uploadProfilePicture(File image) async {
     print("In uploadProfile pic");
     _currentUser!.avatarUrl = await _storageRepo.uploadFile(image);
+    return await _storageRepo.uploadFile(image);
+  }
+
+  Future<String> uploadSenderPicture(File image, String senderDocID) async {
+    print("In upload Sender pic");
+    var picURL = await _storageRepo.uploadSenderPic(image, senderDocID);
+    await DatabaseService(uid: senderDocID).setSenderPicture(picURL);
+    return picURL;
   }
 
   Future<String> getDownloadUrl() async {

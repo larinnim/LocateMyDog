@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Screens/Tutorial/step1.dart';
-import 'package:flutter_maps/Services/database.dart';
-
 import '../loading.dart';
 
 class Wrapper extends StatelessWidget {

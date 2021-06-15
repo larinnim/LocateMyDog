@@ -33,6 +33,24 @@ class StorageRepo {
     }
   }
 
+  Future<String> uploadSenderPic(File file, String senderID) async {
+    AppUser user = await _authRepo.getUser();
+    var userId = user.uid;
+    var senderPicFolderName = userId.toString() + '_senderPic';
+    try {
+      firebase_storage.Reference ref =
+          storage.ref().child("user/$senderPicFolderName/senders_pic/$senderID");
+      firebase_storage.UploadTask uploadTask = ref.putFile(file);
+      var imageUrl = await (await uploadTask).ref.getDownloadURL();
+      String downloadUrl = imageUrl.toString();
+      print("The download URL: $downloadUrl");
+      return downloadUrl;
+    } catch (e) {
+      print(e.toString());
+      return "";
+    }
+  }
+
   Future<String> getUserProfileImage(String? uid) async {
     AppUser user = await _authRepo.getUser();
     var userId = user.uid;

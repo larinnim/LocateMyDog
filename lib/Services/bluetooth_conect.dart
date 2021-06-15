@@ -3,18 +3,11 @@ import 'dart:collection';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
-import 'package:flutter_maps/Screens/Devices/gateway_detail.dart';
-import 'package:flutter_maps/Services/constants.dart';
-import 'package:intl/intl.dart';
-import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
 import 'package:vector_math/vector_math.dart' as vec;
-import 'custom_expansion_tile.dart' as custom;
-import 'dart:ui' as ui;
 
 class LocationValues {
   /// Latitude in degrees
@@ -69,7 +62,67 @@ class BleDeviceItem {
   int rssi;
   AdvertisementData advertisementData;
   BluetoothDevice device;
-  BleDeviceItem(this.rssi, this.advertisementData, this.device);
+  Stream<BluetoothDeviceState> deviceState;
+  BleDeviceItem(
+      this.rssi, this.advertisementData, this.device, this.deviceState);
+}
+
+class IATData {
+  String? senderMAC;
+  double? latitude;
+  double? longitude;
+  int? locationTimestamp;
+  String? gatewayMAC;
+  int? trackerBatteryLevel;
+  int? gatewayBatteryLevel;
+  String? senderColor;
+  bool? escaped;
+
+  IATData(
+      {this.senderMAC,
+      this.latitude,
+      this.longitude,
+      this.locationTimestamp,
+      this.gatewayMAC,
+      this.trackerBatteryLevel,
+      this.gatewayBatteryLevel,
+      this.senderColor,
+      this.escaped});
+
+  // String? senderNumber;
+  // int rssi;
+  // AdvertisementData advertisementData;
+  // BluetoothDevice device;
+  // Stream<BluetoothDeviceState> deviceState;
+  // BleDeviceItem(this.rssi, this.advertisementData, this.device, this.deviceState);
+}
+
+class IATDataModel extends ChangeNotifier {
+  var _iatData = IATData(
+    senderMAC: "",
+    latitude: 0.0,
+    longitude: 0.0,
+    locationTimestamp: 0,
+    gatewayMAC: "",
+    trackerBatteryLevel: 0,
+    gatewayBatteryLevel: 0,
+    senderColor: "",
+  );
+    /// The current catalog. Used to construct items from numeric ids.
+  IATData get iatData => _iatData;
+
+ set iatData(IATData iatData) {
+    _iatData = iatData;
+    // Notify listeners, in case the new catalog provides information
+    // different from the previous one. For example, availability of an item
+    // might have changed.
+    notifyListeners();
+  }
+
+  // void addIatData(IATData item) {
+  //   iatData = item;
+  //   notifyListeners();
+  // }
 }
 
 class BleModel extends ChangeNotifier {
@@ -81,6 +134,7 @@ class BleModel extends ChangeNotifier {
   double? lng;
   DateTime? timestampBLE;
   String? senderNumber;
+  // IATData? currentIATData;
 
   /// An unmodifiable view of the items in the cart.
   UnmodifiableListView<BleDeviceItem> get items =>
@@ -90,10 +144,10 @@ class BleModel extends ChangeNotifier {
   /// cart from the outside.
   void addDeviceList(BleDeviceItem item) {
     print("addDeviceList - Line 138");
-    if (item != null) {
-      deviceList.add(item);
-      notifyListeners();
-    }
+    // if (item != null) {
+    deviceList.add(item);
+    notifyListeners();
+    // }
     // This call tells the widgets that are listening to this model to rebuild.
   }
 
@@ -104,6 +158,7 @@ class BleModel extends ChangeNotifier {
     lat = null;
     lng = null;
     senderNumber = null;
+    // currentIATData = null;
     notifyListeners();
   }
 
@@ -128,6 +183,14 @@ class BleModel extends ChangeNotifier {
     // This call tells the widgets that are listening to this model to rebuild.
     notifyListeners();
   }
+
+  // void addIATData(IATData item) {
+  //   // if (item != null) {
+  //   currentIATData = item;
+  //   notifyListeners();
+  //   // }
+  //   // This call tells the widgets that are listening to this model to rebuild.
+  // }
 
   void addLatLng(double receivedLat, double receivedLng, String? sender) {
     //print("addLat - Line 166");
@@ -201,7 +264,9 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
         });
         print("Connected");
         setState(() {});
-      }).catchError((e) => print("Connection Error $e"));
+      }).catchError((e) {
+        print("Connection Error $e");
+      });
     }
   }
 
@@ -245,8 +310,8 @@ class _BluetoothConnectionState extends State<BluetoothConnection> {
             print(
                 "\tmanufacture Data : ${r.advertisementData.manufacturerData}");
             print("\tTx Power Level : ${r.advertisementData.txPowerLevel}");
-            context.read<BleModel>().addDeviceList(
-                BleDeviceItem(r.rssi, r.advertisementData, r.device));
+            context.read<BleModel>().addDeviceList(BleDeviceItem(
+                r.rssi, r.advertisementData, r.device, r.device.state));
           }
           setState(() {});
         }

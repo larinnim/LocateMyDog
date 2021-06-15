@@ -1,6 +1,36 @@
 import 'package:flutter/material.dart';
 
 class AuxFunc {
+  String colorCodeFromName(String colorName) {
+    var _color = "";
+    switch (colorName) {
+      case "green":
+        {
+          _color = '#00ff08';
+        }
+        break;
+
+      case "orange":
+        {
+          _color = "#ff6200";
+        }
+        break;
+
+      case "purple":
+        {
+          _color = "#a200ff";
+        }
+        break;
+
+      default:
+        {
+          _color = "#ff0000";
+        }
+        break;
+    }
+    return _color;
+  }
+
   Color getColor(String? color) {
     var _color = Colors.white;
     switch (color) {

@@ -1,22 +1,20 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Providers/SocialSignin.dart';
 import 'package:flutter_maps/Screens/Authenticate/Authenticate.dart';
 import 'package:flutter_maps/Screens/Home/wrapper.dart';
 import 'package:flutter_maps/Screens/Profile/MapLocation.dart';
-import 'package:flutter_maps/Screens/SplashView.dart';
 import 'package:flutter_maps/Screens/help_support.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Screens/Profile/profile.dart';
 import 'Screens/ProfileSettings/translationDictionary.dart';
 // import 'Services/SetWiFiConf.dart';
+import 'Services/mapProvider.dart';
 import 'locator.dart';
 import 'Services/bluetooth_conect.dart';
 // void main() => runApp(MyApp());
@@ -27,14 +25,16 @@ void main() async {
   // void main() {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  // await Permission.location.request();
+
   setupServices();
 
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (context) => BleModel()),
     ChangeNotifierProvider(create: (context) => WiFiModel()),
     ChangeNotifierProvider(create: (context) => ConnectionStatusModel()),
-    ChangeNotifierProvider(create: (context) => SocialSignInProvider())
+    ChangeNotifierProvider(create: (context) => SocialSignInProvider()),
+    ChangeNotifierProvider(create: (context) => IATDataModel()),
+    ChangeNotifierProvider(create: (context) => MapProvider())
   ], child: MainPage()));
 }
 
@@ -52,30 +52,30 @@ class _MainPageState extends State<MainPage> {
     _getLanguage(); //Get language from Shared Preferences
   }
 
-  @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-        locale: Get.deviceLocale, //read the system locale
-        translations: Messages(),
-        fallbackLocale: Locale('en', 'US'),
-        debugShowCheckedModeBanner: false,
-        title: 'IAT',
-        routes: {
-          '/profile': (context) => ProfileScreen(),
-          '/trackwalk': (context) => BluetoothConnection(),
-          '/blueMap': (context) => MapLocation(),
-          // '/wifiConf': (context) => SetWiFiConf(),
-          '/authenticate': (context) => Authenticate(),
-          '/helpSupport': (context) => HelpSupport(),
-        },
-        theme: ThemeData(
-          primaryColor: Colors.white,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
-        home: Material(
-          // child: SplashView(),
-          child: Wrapper(),
-        ));
+      locale: Get.deviceLocale, //read the system locale
+      translations: Messages(),
+      fallbackLocale: Locale('en', 'US'),
+      debugShowCheckedModeBanner: false,
+      title: 'IAT',
+      routes: {
+        '/profile': (context) => ProfileScreen(),
+        '/trackwalk': (context) => BluetoothConnection(),
+        '/blueMap': (context) => MapLocation(),
+        // '/wifiConf': (context) => SetWiFiConf(),
+        '/authenticate': (context) => Authenticate(),
+        '/helpSupport': (context) => HelpSupport(),
+      },
+      theme: ThemeData(
+        primaryColor: Colors.white,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: Material(
+        // child: SplashView(),
+        child: Wrapper(),
+      ),
+    );
   }
 
   Future<void> _getLanguage() async {

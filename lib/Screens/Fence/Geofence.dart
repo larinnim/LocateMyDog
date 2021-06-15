@@ -1,26 +1,33 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_maps/Models/WiFiModel.dart';
 import 'package:flutter_maps/Models/user.dart';
 import 'package:flutter_maps/Screens/Profile/profile.dart';
 import 'package:flutter_maps/Services/checkWiFiConnection.dart';
+import 'package:flutter_maps/Services/mapProvider.dart';
 import 'package:flutter_maps/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps/Services/database.dart';
 import 'package:flutter_maps/Services/user_controller.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:location/location.dart' as localization;
+import 'package:polymaker/core/models/trackingmode.dart';
+
+// import 'package:polymaker/core/models/trackingmode.dart';
 import 'package:provider/provider.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter_platform_interface/src/types/polygon_updates.dart';
+
+import '../loading.dart';
+
+enum GeofenceType { Circle, Polygon }
 
 class Geofence extends StatefulWidget {
   @override
@@ -28,58 +35,63 @@ class Geofence extends StatefulWidget {
 }
 
 class _GeofenceWidgetState extends State<Geofence> {
+  // ignore: cancel_subscriptions
   StreamSubscription? _locationSubscription;
   localization.Location _locationTracker = localization.Location();
-  Circle? circle;
-  Marker? marker;
-  late Polygon polygon;
+  Circle? _circle;
+  Marker? _marker;
+  bool _isSatellite = false;
   GoogleMapController? _controller;
   static LatLng? _initialPosition;
   double _configuredRadius = 0.0; //Radius is 30 meters
-  double _configuredRadiusToUnits = 0.0; //Radius is 30 meters
-  late Uint8List imageData;
+
+  // late double _configuredRadius; //Radius is 30 meters
+  // late double _configuredRadiusToUnits; //R
+  double _configuredRadiusToUnits = 0.0;
+  Uint8List? _imageData;
   late localization.LocationData location;
   AppUser? _currentUser = locator.get<UserController>().currentUser;
-
-  // CollectionReference locateDogInstance =
-  //     FirebaseFirestore.instance.collection('locateDog');
 
   CollectionReference userCollection =
       FirebaseFirestore.instance.collection('users');
 
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  CollectionReference gatewayConfigCollection =
+      FirebaseFirestore.instance.collection('gateway-config');
+
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   bool _isPolygonFence = false;
-  bool _isDoNotEnterFence = false;
-  Set<Polygon> _polygonsFence = HashSet<Polygon>();
-  List<LatLng> polygonFenceLatLngs = [];
-  int _polygonFenceIdCounter = 1;
-  Set<Polygon> _doNotEnterFence = HashSet<Polygon>();
-  List<LatLng> dotNotEnterFenceLatLngs = [];
-  int _doNotEnterFenceIdCounter = 1;
   int _incrementRadius = 5;
   String? _units = 'meter';
-  // List<Polygon> polygons = <Polygon>[
-  //   new Polygon(
-  // polygonId: PolygonId('area'),
-  // points: <LatLng>[
-  //   new LatLng(46.52098670361095, -80.95421220237156),
-  //   new LatLng(46.52101623317156, -80.95524753496112),
-  //   new LatLng(46.52058805297215, -80.95529581471918),
-  //   new LatLng(46.52024845938013, -80.95401908333933)
-  // ],
-  // geodesic: true,
-  // strokeColor: Colors.blue,
-  // fillColor: Colors.lightBlue.withOpacity(0.1),
-  //   )
-  // ];
+  GeofenceType? _geofenceType = GeofenceType.Circle;
 
   @override
   void initState() {
-    super.initState();
-    _getRadiusAndUnits();
-    // _getInitialLocation();
     _getCurrentLocation();
+    _getRadiusAndUnits();
+    _getMapType();
+    super.initState();
+  }
+
+  Future<void> _getMapType() async {
+    await gatewayConfigCollection
+        .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        setState(() {
+          _geofenceType = doc.data()['Geofence']['FenceType'] == 'Circle'
+              ? GeofenceType.Circle
+              : GeofenceType.Polygon;
+          _isPolygonFence = _geofenceType == GeofenceType.Circle ? false : true;
+        });
+      });
+    });
+    await userCollection
+        .doc(_firebaseAuth.currentUser!.uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      _isSatellite = documentSnapshot.data()!['MapTypeIsSatellite'];
+    });
   }
 
   Future<void> _getRadiusAndUnits() async {
@@ -89,30 +101,30 @@ class _GeofenceWidgetState extends State<Geofence> {
         .then((DocumentSnapshot documentSnapshot) {
       setState(() {
         _units = documentSnapshot['units'];
-        if (_units == 'miles') {
+        if (_units == 'feet') {
           _incrementRadius = (_incrementRadius * 0.621371).round();
-        }
-        _configuredRadius =
-            documentSnapshot.data()!['Geofence']['Circle']['radius'];
-        if (_configuredRadius.isNegative) {
-          _configuredRadius = 0.0;
-          _updateCurrentRadius();
-          print('Radius: ' + _configuredRadius.toString());
         }
       });
     });
 
-    // await userCollection.doc(_currentUser!.uid).get().then((value) {
-    //   //  _configuredRadius = value.data()['Geofence'].Circle.radius;
-    //   setState(() {
-    //     _configuredRadius = value.data()!['Geofence']['Circle']['radius'];
-    //     if (_configuredRadius.isNegative) {
-    //       _configuredRadius = 0.0;
-    //     }
-    //     _updateCurrentRadius();
-    //     print('Radius: ' + _configuredRadius.toString());
-    //   });
-    // });
+    await gatewayConfigCollection
+        .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        setState(() {
+          _configuredRadius =
+              (doc.data()['Geofence']['Circle']['radius']).toDouble();
+          // _configuredRadiusToUnits = _configuredRadius;
+          if (_configuredRadius.isNegative) {
+            _configuredRadius = 0.0;
+            // _updateCurrentRadius();
+            print('Radius: ' + _configuredRadius.toString());
+          }
+          _updateCurrentRadius();
+        });
+      });
+    });
   }
 
   void _updateCurrentRadius() {
@@ -132,7 +144,10 @@ class _GeofenceWidgetState extends State<Geofence> {
         }
       }
     });
-    updateMarkerAndCircle(location, imageData);
+
+    updateMarkerAndCircle(_imageData ?? Uint8List.fromList([]));
+
+    // updateMarkerAndCircle(location, imageData);
   }
 
   void _onSettingsPressed() {
@@ -171,13 +186,14 @@ class _GeofenceWidgetState extends State<Geofence> {
       _initialPosition = LatLng(position.latitude, position.longitude);
 
       // Uint8List imageData = await getMarker();
-      imageData = await getMarker();
+      _imageData = await getMarker();
 
       // var location = await _locationTracker.getLocation();
 
-      location = await _locationTracker.getLocation();
+      // location = await _locationTracker.getLocation();
+      updateMarkerAndCircle(_imageData ?? Uint8List.fromList([]));
 
-      updateMarkerAndCircle(location, imageData);
+      // updateMarkerAndCircle(location, imageData);
 
       if (_locationSubscription != null) {
         _locationSubscription!.cancel();
@@ -186,13 +202,14 @@ class _GeofenceWidgetState extends State<Geofence> {
       _locationSubscription =
           _locationTracker.onLocationChanged.listen((newLocalData) {
         if (_controller != null) {
-          _controller!.animateCamera(CameraUpdate.newCameraPosition(
-              new CameraPosition(
-                  bearing: 192.8334901395799,
-                  target:
-                      LatLng(newLocalData.latitude!, newLocalData.longitude!),
-                  tilt: 0,
-                  zoom: 18.00)));
+          // _controller!.animateCamera(CameraUpdate.newCameraPosition(
+          //     new CameraPosition(
+          //         bearing: 192.8334901395799,
+          //         target:
+          //             LatLng(newLocalData.latitude!, newLocalData.longitude!),
+          //         tilt: 0,
+          //         zoom: 18.00)));
+
           // updateMarkerAndCircle(newLocalData, imageData);
         }
       });
@@ -203,50 +220,20 @@ class _GeofenceWidgetState extends State<Geofence> {
     }
   }
 
-  // void _getInitialLocation() async {
-  //   Position position = await GeolocatorPlatform.instance
-  //       .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-  //   _initialPosition = LatLng(position.latitude, position.longitude);
-  // }
-
-  void _setPolygonFence() {
-    final String polygonVal = 'polygon_id_$_polygonFenceIdCounter';
-    _polygonsFence.add(Polygon(
-      polygonId: PolygonId(polygonVal),
-      points: polygonFenceLatLngs,
-      // geodesic: true,
-      strokeWidth: 2,
-      strokeColor: Colors.blue,
-      fillColor: Colors.lightBlue,
-    ));
-  }
-
-  void _setDoNotEnterFence() {
-    final String doNotEnterVal = 'doNotEnter_id_$_doNotEnterFenceIdCounter';
-    _doNotEnterFence.add(Polygon(
-      polygonId: PolygonId(doNotEnterVal),
-      points: dotNotEnterFenceLatLngs,
-      // geodesic: true,
-      strokeWidth: 2,
-      strokeColor: Colors.red,
-      fillColor: Colors.redAccent,
-    ));
-  }
-
-  void updateMarkerAndCircle(
-      localization.LocationData newLocalData, Uint8List imageData) {
-    LatLng latlng = LatLng(newLocalData.latitude!, newLocalData.longitude!);
+  void updateMarkerAndCircle(Uint8List imageData) async {
+    var loc = await _locationTracker.getLocation();
+    LatLng latlng = LatLng(loc.latitude!, loc.longitude!);
     this.setState(() {
-      marker = Marker(
+      _marker = Marker(
           markerId: MarkerId("home"),
           position: latlng,
-          rotation: newLocalData.heading!,
+          rotation: loc.heading!,
           draggable: false,
           zIndex: 2,
           flat: true,
           anchor: Offset(0.5, 0.5),
           icon: BitmapDescriptor.fromBytes(imageData));
-      circle = Circle(
+      _circle = Circle(
           circleId: CircleId("pet"),
           radius: _configuredRadius,
           // radius: newLocalData.accuracy,
@@ -261,8 +248,56 @@ class _GeofenceWidgetState extends State<Geofence> {
 
   Column bottonNavigationBuilder(StateSetter mystate) {
     return Column(children: <Widget>[
-      SizedBox(height: 50),
-
+      SizedBox(height: 30),
+      ListTile(
+        leading: Icon(FontAwesomeIcons.drawPolygon),
+        title: Row(
+          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text("Polygon Geofence"),
+                  SizedBox(height: 5),
+                ]),
+            SizedBox(width: 30),
+          ],
+        ),
+        trailing: Radio<GeofenceType>(
+          value: GeofenceType.Polygon,
+          groupValue: _geofenceType,
+          activeColor: Colors.lightGreen,
+          onChanged: (GeofenceType? value) async {
+            setState(() {
+              _geofenceType = value;
+              _isPolygonFence = true;
+            });
+            mystate(() {
+              _geofenceType = value;
+              _isPolygonFence = true;
+            });
+            await gatewayConfigCollection
+                .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
+                .get()
+                .then((QuerySnapshot querySnapshot) {
+              querySnapshot.docs.forEach((doc) {
+                DatabaseService().updateGeofenceType(
+                    doc.id,
+                    _geofenceType == GeofenceType.Circle
+                        ? 'Circle'
+                        : 'Polygon');
+              });
+            });
+          },
+        ),
+        onTap: () => {
+          // mystate(() {
+          //   _isPolygonFence = false;
+          //   _isDoNotEnterFence = false;
+          // }),
+          Navigator.of(context).pop()
+        },
+      ),
       ListTile(
         leading: Icon(Icons.adjust_rounded),
         title: Row(
@@ -297,7 +332,7 @@ class _GeofenceWidgetState extends State<Geofence> {
                           .updateCircleRadius(
                               _configuredRadius, _initialPosition!);
                     }),
-                SizedBox(width: 50),
+                SizedBox(width: 15),
                 IconButton(
                     icon: Icon(FontAwesomeIcons.minus, size: 20),
                     onPressed: () async {
@@ -319,36 +354,41 @@ class _GeofenceWidgetState extends State<Geofence> {
             ),
           ],
         ),
+        trailing: Radio<GeofenceType>(
+          value: GeofenceType.Circle,
+          groupValue: _geofenceType,
+          activeColor: Colors.lightGreen,
+          onChanged: (GeofenceType? value) async {
+            setState(() {
+              _geofenceType = value;
+              _isPolygonFence = false;
+            });
+            mystate(() {
+              _geofenceType = value;
+              _isPolygonFence = false;
+            });
+            await gatewayConfigCollection
+                .where('userID', isEqualTo: _firebaseAuth.currentUser!.uid)
+                .get()
+                .then((QuerySnapshot querySnapshot) {
+              querySnapshot.docs.forEach((doc) {
+                DatabaseService().updateGeofenceType(
+                    doc.id,
+                    _geofenceType == GeofenceType.Circle
+                        ? 'Circle'
+                        : 'Polygon');
+              });
+            });
+          },
+        ),
         onTap: () => {
-          mystate(() {
-            _isPolygonFence = false;
-            _isDoNotEnterFence = false;
-          }),
+          // mystate(() {
+          //   _isPolygonFence = false;
+          //   _isDoNotEnterFence = false;
+          // }),
           Navigator.of(context).pop()
         },
       ),
-      // ListTile(
-      //   leading: Icon(FontAwesomeIcons.drawPolygon),
-      //   title: Text("Polygon Geofence"),
-      //   onTap: () => {
-      //     mystate(() {
-      //       _isPolygonFence = true;
-      //       _isDoNotEnterFence = false;
-      //     }),
-      //     Navigator.of(context).pop()
-      //   },
-      // ),
-      // ListTile(
-      //   leading: Icon(Icons.do_disturb_on_outlined),
-      //   title: Text("Dot Not Enter Area"),
-      //   onTap: () => {
-      //     mystate(() {
-      //       _isPolygonFence = false;
-      //       _isDoNotEnterFence = true;
-      //     }),
-      //     Navigator.of(context).pop()
-      //   },
-      // )
     ]);
   }
 
@@ -357,11 +397,211 @@ class _GeofenceWidgetState extends State<Geofence> {
     if (_locationSubscription != null) {
       _locationSubscription!.cancel();
     }
+    // _connectivitySubscription.cancel();
+
     super.dispose();
+  }
+
+  //Widget for custom marker
+  Widget mapIcon() {
+    return Consumer<MapProvider>(
+      builder: (context, mapProv, _) {
+        return RepaintBoundary(
+          key: mapProv.markerKey,
+
+          // key: mapProv.markerKey,
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration:
+                BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+            child: Center(
+              child: Text(
+                (mapProv.tempLocation.length + 1).toString(),
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget mapDistance() {
+    return Consumer<MapProvider>(
+      builder: (context, mapProv, _) {
+        return RepaintBoundary(
+          // key: MapProvider.distanceKey,
+          key: mapProv.distanceKey,
+          child: Container(
+            width: mapProv.distance.length > 6
+                ? (mapProv.distance.length >= 9 ? 100 : 80)
+                : 64,
+            height: 32,
+            decoration: BoxDecoration(
+                color: Colors.black87, borderRadius: BorderRadius.circular(10)),
+            child: Center(
+              child: Text(mapProv.distance,
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  ///Widget tools list
+  Widget _toolsList() {
+    return Builder(
+      builder: (context) {
+        return Consumer<MapProvider>(
+          builder: (context, mapProv, _) {
+            return SafeArea(
+              child: Stack(
+                children: <Widget>[
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                        padding: const EdgeInsets.only(top: 30, right: 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            _isPolygonFence == true
+
+                                // mapProv.isEditMode == true
+                                ? Row(children: [
+                                    mapProv.isEditMode == true
+                                        ? InkWell(
+                                            onTap: () => mapProv.undoLocation(),
+                                            child: Container(
+                                              width: 40,
+                                              height: 40,
+                                              decoration: BoxDecoration(
+                                                  color: _isSatellite
+                                                      ? Colors.white
+                                                      : Colors.black87,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          50)),
+                                              child: Icon(
+                                                Icons.undo,
+                                                color: _isSatellite
+                                                    ? Colors.black87
+                                                    : Colors.white,
+                                              ),
+                                            ),
+                                          )
+                                        : SizedBox(),
+                                    SizedBox(
+                                        width: mapProv.isEditMode == true
+                                            ? 10
+                                            : 0),
+                                    mapProv.isEditMode == true
+                                        ? InkWell(
+                                            onTap: () {
+                                              mapProv.saveTracking(context);
+                                              // mapProv.changeEditMode();
+                                            },
+                                            child: Container(
+                                              width: 40,
+                                              height: 40,
+                                              decoration: BoxDecoration(
+                                                  color: _isSatellite
+                                                      ? Colors.white
+                                                      : Colors.black87,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          50)),
+                                              child: Icon(
+                                                Icons.check,
+                                                color: _isSatellite
+                                                    ? Colors.black87
+                                                    : Colors.white,
+                                              ),
+                                            ),
+                                          )
+                                        : SizedBox(),
+                                    SizedBox(
+                                        width: mapProv.isEditMode == true
+                                            ? 10
+                                            : 0),
+                                    InkWell(
+                                      onTap: () => mapProv.changeEditMode(),
+                                      child: Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                            color: _isSatellite
+                                                ? Colors.white
+                                                : Colors.black87,
+                                            borderRadius:
+                                                BorderRadius.circular(50)),
+                                        child: Icon(
+                                          mapProv.isEditMode == false
+                                              ? Icons.edit_location
+                                              : Icons.close,
+                                          color: _isSatellite
+                                              ? Colors.black87
+                                              : Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 10),
+                                  ])
+                                : SizedBox(),
+                            InkWell(
+                              onTap: () {
+                                if (_isSatellite) {
+                                  _isSatellite = false;
+                                } else {
+                                  _isSatellite = true;
+                                }
+                                DatabaseService(
+                                        uid: _firebaseAuth.currentUser?.uid)
+                                    .updateMapTypePreference(_isSatellite);
+                                setState(() {});
+                              },
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                    color: _isSatellite
+                                        ? Colors.white
+                                        : Colors.black87,
+                                    borderRadius: BorderRadius.circular(50)),
+                                child: Icon(
+                                  _isSatellite ? Icons.map : Icons.satellite,
+                                  color: _isSatellite
+                                      ? Colors.black87
+                                      : Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    //To modify status bar
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark));
+
     final connectionStatus =
         Provider.of<ConnectionStatusModel>(context, listen: false);
     connectionStatus.initConnectionListen();
@@ -373,7 +613,8 @@ class _GeofenceWidgetState extends State<Geofence> {
           leading: IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () {
-                Navigator.pushNamed(context, '/profile');
+                // Navigator.pushNamed(context, '/profile');
+                Navigator.pop(context);
               }),
           actions: <Widget>[
             Padding(
@@ -387,9 +628,57 @@ class _GeofenceWidgetState extends State<Geofence> {
             )
           ],
         ),
-        backgroundColor: Colors.grey[100],
-        body: Consumer<ConnectionStatusModel>(
-            builder: (_, connectionProvider, child) {
+        backgroundColor: Colors.grey[500],
+        body: Consumer2<ConnectionStatusModel, MapProvider>(
+            builder: (_, connectionProvider, mapProv, child) {
+          // if (mapProv.markers.isEmpty) {
+          //   mapProv.initPolygonMarkers();
+          // }
+
+          // _initialPosition != null ?
+          //     _controller!.animateCamera(CameraUpdate.newCameraPosition(
+          //         new CameraPosition(
+          //             bearing: 192.8334901395799,
+          //             target: LatLng(_initialPosition!.latitude,
+          //                _initialPosition!.longitude),
+          //             tilt: 0,
+          //             zoom: 20.00))) : mapProv.initCamera(false, true, dragMarker: true) ;
+//Get first location
+          if (mapProv.cameraPosition == null || mapProv.onInitCamera == false) {
+            if (mapProv.markers.isEmpty &&
+                // mapProv.tempLocation.isEmpty &&
+                !mapProv.isEditMode) {
+              mapProv.initPolygonMarkers();
+            }
+          }
+          if (mapProv.cameraPosition == null && mapProv.onInitCamera == false) {
+            // if (widget.targetCameraPosition != null) {
+            //   mapProv.initCamera(false, true,
+            //       targetCameraPosition: widget.targetCameraPosition,
+            //       dragMarker: widget.enableDragMarker);
+            // }
+            // else {
+
+            // mapProv.initCamera(false, true, dragMarker: true);
+            // mapProv.tempLocation.isNotEmpty
+            //     ?
+            // _controller!.animateCamera(CameraUpdate.newCameraPosition(
+            //     new CameraPosition(
+            //         bearing: 192.8334901395799,
+            //         target: LatLng(mapProv.markers.first.position.latitude,
+            //             mapProv.markers.first.position.longitude),
+            //         tilt: 0,
+            //         zoom: 18.00)))
+            //     :
+
+            mapProv.initCamera(false, true, dragMarker: true);
+
+            // }
+            mapProv.setPolygonColor(Colors.blue);
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
           return FutureBuilder(
               initialData: false,
               future: mounted
@@ -427,112 +716,75 @@ class _GeofenceWidgetState extends State<Geofence> {
                               ),
                             )
                           : new Stack(children: <Widget>[
-                              new Container(
-                                  height: 1000, // This line solved the issue
-                                  child: _isPolygonFence
-                                      ? GoogleMap(
-                                          mapType: MapType.hybrid,
-                                          initialCameraPosition: CameraPosition(
-                                            target: _initialPosition!,
-                                            zoom: 11,
-                                          ),
-                                          zoomGesturesEnabled: true,
-                                          myLocationEnabled: false,
-                                          compassEnabled: true,
-                                          myLocationButtonEnabled: false,
-                                          markers: Set.of((marker != null)
-                                              ? [marker!]
-                                              : []),
-                                          circles: Set.of((circle != null)
-                                              ? [circle!]
-                                              : []),
-                                          polygons: _polygonsFence,
-                                          //     : _isDoNotEnterFence
-                                          //         ? _doNotEnterFence
-                                          //         : null,
-                                          onTap: (point) {
-                                            if (_isPolygonFence) {
-                                              setState(() {
-                                                polygonFenceLatLngs.add(point);
-                                                _setPolygonFence();
-                                              });
-                                            }
-                                            if (_isDoNotEnterFence) {
-                                              setState(() {
-                                                dotNotEnterFenceLatLngs
-                                                    .add(point);
-                                                _setDoNotEnterFence();
-                                              });
-                                            }
-                                          },
-                                          onMapCreated:
-                                              (GoogleMapController controller) {
-                                            _controller = controller;
-                                          },
-                                        )
-                                      : GoogleMap(
-                                          mapType: MapType.hybrid,
-                                          initialCameraPosition: CameraPosition(
-                                            target: _initialPosition!,
-                                            zoom: 11,
-                                          ),
-                                          zoomGesturesEnabled: true,
-                                          myLocationEnabled: false,
-                                          compassEnabled: true,
-                                          myLocationButtonEnabled: false,
-                                          markers: Set.of((marker != null)
-                                              ? [marker!]
-                                              : []),
-                                          circles: Set.of((circle != null)
-                                              ? [circle!]
-                                              : []),
-                                          polygons: _doNotEnterFence,
-                                          onTap: (point) {
-                                            if (_isPolygonFence) {
-                                              setState(() {
-                                                polygonFenceLatLngs.add(point);
-                                                _setPolygonFence();
-                                              });
-                                            }
-                                            if (_isDoNotEnterFence) {
-                                              setState(() {
-                                                dotNotEnterFenceLatLngs
-                                                    .add(point);
-                                                _setDoNotEnterFence();
-                                              });
-                                            }
-                                          },
-                                          onMapCreated:
-                                              (GoogleMapController controller) {
-                                            _controller = controller;
-                                          },
-                                        )),
-                              // connectionProvider.connectionStatus == NetworkStatus.Offline
-                              //     ? CupertinoAlertDialog(
-                              //         title: Text(
-                              //             'You are offline. Please connect to internet to continue to use this feature'),
-                              //         actions: [
-                              //           CupertinoDialogAction(
-                              //             child: Text('OK'),
-                              //             onPressed: () {
-                              //               Navigator.push(context,
-                              //                   MaterialPageRoute(builder: (context) {
-                              //                 return ProfileScreen();
-                              //               }));
-                              //             },
-                              //           )
-                              //         ],
-                              //       )
-                              //     : new Container()
+                              Positioned(top: -300, child: mapDistance()),
+                              Positioned(top: -300, child: mapIcon()),
+                              mapProv.cameraPosition != null
+                                  ? new Container(
+                                      height:
+                                          1000, // This line solved the issue
+                                      child: _isPolygonFence
+                                          ? GoogleMap(
+                                              mapType: _isSatellite
+                                                  ? MapType.satellite
+                                                  : MapType.normal,
+                                              initialCameraPosition:
+                                                  CameraPosition(
+                                                target: _initialPosition!,
+                                                zoom: 20,
+                                              ),
+                                              zoomGesturesEnabled: true,
+                                              myLocationEnabled: true,
+                                              compassEnabled: true,
+                                              myLocationButtonEnabled: false,
+                                              markers: Set.of(
+                                                  (mapProv.markers != null)
+                                                      ? mapProv.markers
+                                                      : []),
+                                              polygons: mapProv.isEditMode
+                                                  ? mapProv.polygons
+                                                  : mapProv.savedPolygons,
+                                              polylines: mapProv.polylines,
+                                              onTap: (loc) => mapProv.onTapMap(
+                                                  loc,
+                                                  mode: TrackingMode.PLANAR),
+                                              onMapCreated: (GoogleMapController
+                                                  controller) {
+                                                _controller = controller;
+                                              },
+                                            )
+                                          : GoogleMap(
+                                              mapType: _isSatellite
+                                                  ? MapType.satellite
+                                                  : MapType.normal,
+                                              initialCameraPosition:
+                                                  CameraPosition(
+                                                target: _initialPosition!,
+                                                zoom: 20,
+                                              ),
+                                              zoomGesturesEnabled: true,
+                                              myLocationEnabled: false,
+                                              compassEnabled: true,
+                                              myLocationButtonEnabled: false,
+                                              markers: Set.of((_marker != null)
+                                                  ? [_marker!]
+                                                  : []),
+                                              circles: Set.of((_circle != null)
+                                                  ? [_circle!]
+                                                  : []),
+                                              // polygons: _doNotEnterFence,
+                                              onTap: (point) {},
+                                              onMapCreated: (GoogleMapController
+                                                  controller) {
+                                                _controller = controller;
+                                              },
+                                            ))
+                                  : Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                              _toolsList(),
                             ]);
                 } else {
-                  return Container(
-                    color: Colors.white,
-                    child: SpinKitCircle(
-                      color: Colors.red,
-                      size: 30.0,
-                    ),
-                  );
+                  return Loading();
                 }
               });
         }));
