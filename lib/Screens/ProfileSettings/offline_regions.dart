@@ -371,8 +371,11 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
   void updateMapName(
       OfflineRegionListItem item, String mapName, int index) async {
     await updateOfflineRegionMetadata(item.downloadedId!, {'name': mapName},
-        accessToken:
-            "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w");
+    accessToken:
+            "sk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja29jODkzZzUwMTRnMndwaW41cjZxbzVrIn0.2aO8N6RyLzShXeV56Au_IQ"
+        // accessToken:
+        //     "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w"
+            );
     setState(() {
       _items[index].name = mapName;
       // updatedName = true;
@@ -383,8 +386,10 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
 
   void _updateListOfRegions() async {
     List<OfflineRegion> offlineRegions = await getListOfRegions(
-        accessToken:
-            "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w");
+      accessToken: "sk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja29jODkzZzUwMTRnMndwaW41cjZxbzVrIn0.2aO8N6RyLzShXeV56Au_IQ"
+        // accessToken:
+        //     "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w"
+            );
     List<OfflineRegionListItem> regionItems = [];
 
     for (var region in offlineRegions) {
@@ -447,8 +452,9 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
         metadata: {
           'name': regionNames[index],
         },
-        accessToken:
-            "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w",
+        accessToken: "sk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja29jODkzZzUwMTRnMndwaW41cjZxbzVrIn0.2aO8N6RyLzShXeV56Au_IQ"
+        // accessToken:
+        //     "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w",
       );
       setState(() {
         _items.removeAt(index);
@@ -481,8 +487,9 @@ class _OfflineRegionsBodyState extends State<OfflineRegionBody> {
 
     await deleteOfflineRegion(
       item.downloadedId!,
-      accessToken:
-          "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w",
+      accessToken: "sk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja29jODkzZzUwMTRnMndwaW41cjZxbzVrIn0.2aO8N6RyLzShXeV56Au_IQ"
+      // accessToken:
+      //     "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w",
     );
 
     setState(() {

@@ -180,7 +180,9 @@ class _OfflineRegionMapSelectionState extends State<OfflineRegionMapSelection> {
           // 'name': 'Map ' + _numberOfRegions.toString(),
         },
         accessToken:
-            "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w",
+            "sk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja29jODkzZzUwMTRnMndwaW41cjZxbzVrIn0.2aO8N6RyLzShXeV56Au_IQ",
+        // accessToken:
+        //     "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w",
       );
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
@@ -217,8 +219,10 @@ class _OfflineRegionMapSelectionState extends State<OfflineRegionMapSelection> {
 
   void _getListOfRegions() async {
     List<OfflineRegion> offlineRegions = await getListOfRegions(
-        accessToken:
-            "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w");
+      accessToken:
+            "sk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja29jODkzZzUwMTRnMndwaW41cjZxbzVrIn0.2aO8N6RyLzShXeV56Au_IQ");  
+        // accessToken:
+        //     "pk.eyJ1IjoibGFyaW5uaW1hbGhlaXJvcyIsImEiOiJja200M2s2NmQwMHQwMnZwdTUxZng1enFrIn0.ZeWhg3_t_0o4QOQooXf-9w");
     setState(() {
       _numberOfRegions = offlineRegions.length;
     });
